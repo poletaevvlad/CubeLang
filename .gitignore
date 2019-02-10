@@ -1,0 +1,4 @@
+/rubik-env
+.idea
+__pycache__
+*.iml
