@@ -62,3 +62,25 @@ def test_rotation(width: int, height: int, items: str, amount: int, expected: st
     side = create_side(width, height, items)
     side.rotate(amount)
     assert side_to_string(side) == expected
+
+
+def test_get_row():
+    side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
+    assert side.get_row(1) == [Color.RED, Color.WHITE, Color.YELLOW, Color.RED]
+
+
+def test_get_column():
+    side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
+    assert side.get_column(1) == [Color.ORANGE, Color.WHITE, Color.BLUE, Color.BLUE]
+
+
+def test_set_row():
+    side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
+    side.set_row(1, [Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW])
+    assert side_to_string(side) == "YOBG/BRGY/OBBY/GBRW"
+
+
+def test_set_column():
+    side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
+    side.set_column(1, [Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW])
+    assert side_to_string(side) == "YBBG/RRYR/OGBY/GYRW"

@@ -56,6 +56,22 @@ class ICubeSide(ABC):
                     for (i1, j1), val in zip(indices, values):
                         self[i1, j1] = val
 
+    def get_row(self, i: int) -> List[Color]:
+        return [self[i, j] for j in range(self.columns)]
+
+    def get_column(self, j: int) -> List[Color]:
+        return [self[i, j] for i in range(self.rows)]
+
+    def set_row(self, i: int, values: List[Color]) -> None:
+        assert len(values) == self.columns
+        for j in range(self.columns):
+            self[i, j] = values[j]
+
+    def set_column(self, j: int, values: List[Color]) -> None:
+        assert len(values) == self.rows
+        for i in range(self.rows):
+            self[i, j] = values[i]
+
 
 class CubeSideView(ICubeSide):
     def __init__(self, side: ICubeSide, rotation: int):
