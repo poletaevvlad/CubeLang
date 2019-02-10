@@ -32,7 +32,7 @@ class Orientation:
         Side.BACK: [Side.TOP, Side.LEFT, Side.BOTTOM, Side.RIGHT],
         Side.RIGHT: [Side.TOP, Side.BACK, Side.BOTTOM, Side.FRONT],
         Side.TOP: [Side.BACK, Side.RIGHT, Side.FRONT, Side.LEFT],
-        Side.BOTTOM: [Side.BACK, Side.LEFT, Side.FRONT, Side.RIGHT]
+        Side.BOTTOM: [Side.LEFT, Side.FRONT, Side.RIGHT, Side.BACK]
     }
 
     def __init__(self, front: Side = Side.FRONT, top: Side = Side.TOP):
@@ -58,6 +58,9 @@ class Orientation:
     @property
     def to_bottom(self) -> "Orientation":
         return Orientation(Orientation._OPPOSITES[self.top], self.front)
+
+    def get_side_rotation(self) -> int:
+        return Orientation._RELATIVE_SIDES[self.front].index(self.top)
 
     def __eq__(self, other):
         return (isinstance(other, Orientation) and

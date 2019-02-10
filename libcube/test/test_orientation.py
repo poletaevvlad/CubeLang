@@ -1,5 +1,4 @@
 from typing import Tuple
-
 from libcube.orientation import Side, Orientation
 
 import pytest
@@ -59,3 +58,16 @@ def test_rotations(current: Tuple[Side, Side], left: Tuple[Side, Side],
 
     assert current_orientation.to_left.front == left[0]
     assert current_orientation.to_left.top == left[1]
+
+
+@pytest.mark.parametrize("front, top, rotation", [
+    (F, T, 0), (F, R, 1), (F, D, 2), (F, L, 3),
+    (R, T, 0), (R, B, 1), (R, D, 2), (R, F, 3),
+    (B, T, 0), (B, L, 1), (B, D, 2), (B, R, 3),
+    (L, T, 0), (L, F, 1), (L, D, 2), (L, B, 3),
+    (T, B, 0), (T, R, 1), (T, F, 2), (T, L, 3),
+    (D, L, 0), (D, F, 1), (D, R, 2), (D, B, 3)
+])
+def test_get_side_rotation(front: Side, top: Side, rotation: int):
+    orientation = Orientation(front, top)
+    assert orientation.get_side_rotation() == rotation
