@@ -14,21 +14,51 @@ def side_to_string(side: ICubeSide):
     return "".join(out[:-1])
 
 
+def create_side(rows: int, columns: int, items: str):
+    colors = {
+        "Y": Color.YELLOW,
+        "W": Color.WHITE,
+        "R": Color.RED,
+        "O": Color.ORANGE,
+        "B": Color.BLUE,
+        "G": Color.GREEN
+    }
+
+    side = CubeSide(rows, columns, Color.RED)
+    for i, row in enumerate(items.split("/")):
+        for j, char in enumerate(row):
+            side[i, j] = colors[char]
+    return side
+
+
 @pytest.mark.parametrize("rotation, expected, rows, columns", [
     [-1, "RO/GB/YW", 3, 2], [0, "RO/GB/YW", 3, 2], [1, "YGR/WBO", 2, 3],
     [2, "WY/BG/OR", 3, 2], [3, "OBW/RGY", 2, 3]
 ])
 def test_get_set(rotation: int, expected: str, rows: int, columns: int) -> None:
-    side = CubeSide(3, 2, Color.RED)
-    side[0, 0] = Color.RED
-    side[0, 1] = Color.ORANGE
-    side[1, 0] = Color.GREEN
-    side[1, 1] = Color.BLUE
-    side[2, 0] = Color.YELLOW
-    side[2, 1] = Color.WHITE
-
+    side = create_side(3, 2, "RO/GB/YW")
     if rotation >= 0:
         side = CubeSideView(side, rotation)
     assert side.rows == rows
     assert side.columns == columns
+    assert side_to_string(side) == expected
+
+
+def test_rotation_illegal():
+    with pytest.raises(Exception):
+        side = create_side(2, 3, "YWB/OBG")
+        side.rotate(1)
+
+
+@pytest.mark.parametrize("width, height, items, amount, expected", [
+    [2, 3, "YWR/OBG", 2, "GBO/RWY"],
+    [3, 3, "GBO/RWY/OWB", 1, "ORG/WWB/BYO"],
+    [3, 3, "GBO/RWY/OWB", 2, "BWO/YWR/OBG"],
+    [3, 3, "GBO/RWY/OWB", 3, "OYB/BWW/GRO"],
+    [4, 4, "YOBG/RWYR/OBBY/GBRW", 3, "GRYW/BYBR/OWBB/YROG"],
+    [4, 4, "YOBG/RWYR/OBBY/GBRW", 1, "GORY/BBWO/RBYB/WYRG"]
+])
+def test_rotation(width: int, height: int, items: str, amount: int, expected: str):
+    side = create_side(width, height, items)
+    side.rotate(amount)
     assert side_to_string(side) == expected

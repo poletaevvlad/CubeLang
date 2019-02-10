@@ -7,17 +7,54 @@ from .orientation import Color
 class ICubeSide(ABC):
     @property
     @abstractmethod
-    def rows(self) -> int: pass
+    def rows(self) -> int:
+        pass
 
     @property
     @abstractmethod
-    def columns(self) -> int: pass
+    def columns(self) -> int:
+        pass
 
     @abstractmethod
-    def __getitem__(self, item: Tuple[int, int]) -> Color: pass
+    def __getitem__(self, item: Tuple[int, int]) -> Color:
+        pass
 
     @abstractmethod
-    def __setitem__(self, key: Tuple[int, int], value: Color) -> None: pass
+    def __setitem__(self, key: Tuple[int, int], value: Color) -> None:
+        pass
+
+    def create_view(self, rotation: int) -> "CubeSideView":
+        return CubeSideView(self, rotation)
+
+    def rotate(self, amount: int) -> None:
+        amount = amount % 4
+        if amount == 0:
+            return
+        elif amount % 2 == 0:
+            for i in range(self.rows // 2):
+                for j in range(self.columns):
+                    i1, i2 = self.rows - 1 - i, self.columns - 1 - j
+                    self[i, j], self[i1, i2] = self[i1, i2], self[i, j]
+            if self.rows % 2 != 0:
+                for j in range(self.columns // 2):
+                    i = self.rows // 2
+                    self[i, j], self[i, self.columns - i] = self[i, self.columns - i], self[i, j]
+        else:
+            if self.rows != self.columns:
+                raise AttributeError("Cannot rotate a side: it would have different shape after rotation")
+            size = self.rows
+            for i in range(size // 2):
+                for j in range(i, size - 1 - i):
+                    indices = [(i, j), (j, size - 1 - i), (size - 1 - i, size - 1 - j), (size - 1 - j, i)]
+                    print("a", indices)
+                    values = [self[i1, j1] for i1, j1 in indices]
+
+                    if amount == 3:
+                        values = values[1:] + [values[0]]
+                    else:
+                        values = [values[-1]] + values[:-1]
+                    for (i1, j1), val in zip(indices, values):
+                        self[i1, j1] = val
 
 
 class CubeSideView(ICubeSide):
@@ -48,6 +85,9 @@ class CubeSideView(ICubeSide):
     def __setitem__(self, key: Tuple[int, int], value: Color) -> None:
         i, j = self._transform_coord(key)
         self.side[i, j] = value
+
+    def create_view(self, rotation: int) -> "CubeSideView":
+        return CubeSideView(self.side, self.rotation + rotation)
 
 
 class CubeSide(ICubeSide):
