@@ -32,8 +32,11 @@ def create_side(rows: int, columns: int, items: str):
 
 
 @pytest.mark.parametrize("rotation, expected, rows, columns", [
-    [-1, "RO/GB/YW", 3, 2], [0, "RO/GB/YW", 3, 2], [1, "YGR/WBO", 2, 3],
-    [2, "WY/BG/OR", 3, 2], [3, "OBW/RGY", 2, 3]
+    [-1, "RO/GB/YW", 3, 2],
+    [0, "RO/GB/YW", 3, 2],
+    [1, "OBW/RGY", 2, 3],
+    [2, "WY/BG/OR", 3, 2],
+    [3, "YGR/WBO", 2, 3],
 ])
 def test_get_set(rotation: int, expected: str, rows: int, columns: int) -> None:
     side = create_side(3, 2, "RO/GB/YW")

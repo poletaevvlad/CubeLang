@@ -46,7 +46,6 @@ class ICubeSide(ABC):
             for i in range(size // 2):
                 for j in range(i, size - 1 - i):
                     indices = [(i, j), (j, size - 1 - i), (size - 1 - i, size - 1 - j), (size - 1 - j, i)]
-                    print("a", indices)
                     values = [self[i1, j1] for i1, j1 in indices]
 
                     if amount == 3:
@@ -88,11 +87,14 @@ class CubeSideView(ICubeSide):
 
     def _transform_coord(self, coords: Tuple[int, int]) -> Tuple[int, int]:
         i, j = coords
-        if self.rotation == 1 or self.rotation == 2:
-            j = self.columns - 1 - j
-        if self.rotation >= 2:
-            i = self.rows - 1 - i
-        return (i, j) if self.rotation % 2 == 0 else (j, i)
+        if self.rotation == 1:
+            return j, self.side.columns - 1 - i
+        elif self.rotation == 2:
+            return self.side.rows - 1 - i, self.side.columns - 1 - j
+        elif self.rotation == 3:
+            return self.side.rows - 1 - j, i
+        else:
+            return i, j
 
     def __getitem__(self, item: Tuple[int, int]) -> Color:
         i, j = self._transform_coord(item)
@@ -102,8 +104,8 @@ class CubeSideView(ICubeSide):
         i, j = self._transform_coord(key)
         self.side[i, j] = value
 
-    def create_view(self, rotation: int) -> "CubeSideView":
-        return CubeSideView(self.side, self.rotation + rotation)
+    # def create_view(self, rotation: int) -> "CubeSideView":
+    #     return CubeSideView(self.side, self.rotation + rotation)
 
 
 class CubeSide(ICubeSide):
