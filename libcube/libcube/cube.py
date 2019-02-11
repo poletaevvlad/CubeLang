@@ -53,3 +53,7 @@ class Cube:
         elif index == faces[0].columns - 1:
             right_face = self.get_side(orientation.to_right)
             right_face.rotate(turns)
+
+    def rotate_horizontal(self, orientation: Orientation, index: int, turns: int):
+        orientation = orientation.rotate_counter_clockwise()
+        return self.rotate_vertical(orientation, index, turns)
