@@ -55,5 +55,5 @@ class Cube:
             right_face.rotate(turns)
 
     def rotate_horizontal(self, orientation: Orientation, index: int, turns: int):
-        orientation = orientation.rotate_counter_clockwise()
+        orientation = orientation.rotate_clockwise()
         return self.rotate_vertical(orientation, index, turns)

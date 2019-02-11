@@ -71,3 +71,31 @@ def test_rotations(current: Tuple[Side, Side], left: Tuple[Side, Side],
 def test_get_side_rotation(front: Side, top: Side, rotation: int):
     orientation = Orientation(front, top)
     assert orientation.get_side_rotation() == rotation
+
+
+rotations = [
+    (F, T, [R, D, L]),
+    (R, T, [B, D, F]),
+    (B, T, [L, D, R]),
+    (L, T, [F, D, B]),
+    (T, R, [F, L, B]),
+    (D, L, [F, R, B])
+]
+
+
+@pytest.mark.parametrize("front, top, after_rotation", rotations)
+def test_rotation_clockwise(front, top, after_rotation):
+    orientation = Orientation(front, top).rotate_clockwise()
+    for after_top in after_rotation:
+        assert orientation.top == after_top
+        orientation = orientation.rotate_clockwise()
+    assert orientation.top == top
+
+
+@pytest.mark.parametrize("front, top, after_rotation", rotations)
+def test_rotation_counter_clockwise(front, top, after_rotation):
+    orientation = Orientation(front, top).rotate_counterclockwise()
+    for after_top in after_rotation[::-1]:
+        assert orientation.top == after_top
+        orientation = orientation.rotate_counterclockwise()
+    assert orientation.top == top

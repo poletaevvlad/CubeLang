@@ -69,7 +69,11 @@ class Orientation:
     def __hash__(self):
         return hash((self.front, self.top))
 
-    def rotate_counter_clockwise(self) -> "Orientation":
+    def rotate_counterclockwise(self) -> "Orientation":
+        index = (4 + Orientation._RELATIVE_SIDES[self.front].index(self.top) - 1) % 4
+        return Orientation(self.front, Orientation._RELATIVE_SIDES[self.front][index])
+
+    def rotate_clockwise(self) -> "Orientation":
         index = (Orientation._RELATIVE_SIDES[self.front].index(self.top) + 1) % 4
         return Orientation(self.front, Orientation._RELATIVE_SIDES[self.front][index])
 
