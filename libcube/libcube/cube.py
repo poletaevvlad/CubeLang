@@ -57,3 +57,7 @@ class Cube:
     def rotate_horizontal(self, orientation: Orientation, index: int, turns: int):
         orientation = orientation.rotate_clockwise()
         return self.rotate_vertical(orientation, index, turns)
+
+    def rotate_slice(self, orientation: Orientation, index: int, turns: int):
+        orientation = orientation.to_right
+        return self.rotate_vertical(orientation, index, 4 - turns)

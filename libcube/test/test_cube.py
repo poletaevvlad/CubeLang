@@ -141,3 +141,11 @@ def test_rotation_horizontal_last(sample_cube: Cube) -> None:
 
     assert_cube(sample_cube, "ORG/YRY/BWW", "OWW/OGG/RRR", "BYR/OOW/YOG", "YYY/BBR/OWW",
                 "BGO/BYO/BBY", "RGG/RWG/WBG")
+
+
+def test_rotation_slice(sample_cube: Cube) -> None:
+    orientation = Orientation(Side.RIGHT, Side.BACK)
+    sample_cube.rotate_slice(orientation, 1, 1)
+
+    assert_cube(sample_cube, "ORY/YRO/BWB", "RRR/GGO/WWO", "WYR/YOW/GOG", "YYY/BBR/OWW",
+                "BGG/BYG/BBG", "RGO/RWO/WBY")
