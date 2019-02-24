@@ -1,22 +1,24 @@
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Generic, TypeVar
 from .orientation import Side, Color, Orientation
 from .sides import CubeSide, ICubeSide, CubeSideView
 from .listutils import shift_list
 
+T = TypeVar("T")
 
-class Cube:
+
+class Cube(Generic[T]):
     def __init__(self, shape: Tuple[int, int, int]):
         self.shape: Tuple[int, int, int] = shape
-        self.sides: Dict[Side, CubeSide] = {
-            Side.FRONT: CubeSide(shape[0], shape[2], Color.RED),
-            Side.LEFT: CubeSide(shape[1], shape[2], Color.BLUE),
-            Side.BACK: CubeSide(shape[0], shape[2], Color.ORANGE),
-            Side.RIGHT: CubeSide(shape[1], shape[2], Color.GREEN),
-            Side.TOP: CubeSide(shape[0], shape[1], Color.YELLOW),
-            Side.BOTTOM: CubeSide(shape[0], shape[1], Color.WHITE)
+        self.sides: Dict[Side, CubeSide[T]] = {
+            Side.FRONT: CubeSide[T](shape[0], shape[2], Color.RED),
+            Side.LEFT: CubeSide[T](shape[1], shape[2], Color.BLUE),
+            Side.BACK: CubeSide[T](shape[0], shape[2], Color.ORANGE),
+            Side.RIGHT: CubeSide[T](shape[1], shape[2], Color.GREEN),
+            Side.TOP: CubeSide[T](shape[0], shape[1], Color.YELLOW),
+            Side.BOTTOM: CubeSide[T](shape[0], shape[1], Color.WHITE)
         }
 
-    def get_side(self, orientation: Orientation) -> ICubeSide:
+    def get_side(self, orientation: Orientation) -> ICubeSide[T]:
         rotation = orientation.get_side_rotation()
 
         if rotation == 0:
@@ -61,3 +63,24 @@ class Cube:
     def rotate_slice(self, orientation: Orientation, index: int, turns: int):
         orientation = orientation.to_right
         return self.rotate_vertical(orientation, index, 4 - turns)
+
+    def get_data(self, orientation: Orientation, i: int, j: int) -> T:
+        return self.get_side(orientation)[i, j].data
+
+    def set_data(self, orientation: Orientation, i: int, j: int, value: T) -> None:
+        front = self.get_side(orientation)
+        front[i, j].data = value
+
+        if j == 0:
+            left = self.get_side(orientation.to_left)
+            left[i, left.columns - 1].data = value
+        elif j == front.columns - 1:
+            right = self.get_side(orientation.to_right)
+            right[i, 0].data = value
+
+        if i == 0:
+            top = self.get_side(orientation.to_top)
+            top[top.rows - 1, j].data = value
+        elif i == front.rows - 1:
+            bottom = self.get_side(orientation.to_bottom)
+            bottom[0, j].data = value

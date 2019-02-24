@@ -47,6 +47,14 @@ def side_to_string(side: ICubeSide):
     return "".join(out[:-1])
 
 
+def data_to_string(side: ICubeSide):
+    out = []
+    for i in range(side.rows):
+        out.append(" ".join(str(side[i, j].data) for j in range(side.columns)))
+        out.append("/")
+    return "".join(out[:-1])
+
+
 def assert_cube(cube: Cube, front: str, right: str, back: str, left: str,
                 top: str, bottom: str) -> None:
     orientation = Orientation()
@@ -149,3 +157,35 @@ def test_rotation_slice(sample_cube: Cube) -> None:
 
     assert_cube(sample_cube, "ORY/YRO/BWB", "RRR/GGO/WWO", "WYR/YOW/GOG", "YYY/BBR/OWW",
                 "BGG/BYG/BBG", "RGO/RWO/WBY")
+
+
+def test_data_flat(sample_cube: Cube) -> None:
+    orientation = Orientation(Side.RIGHT, Side.BACK)
+
+    sample_cube.set_data(orientation, 1, 1, "a")
+    sample_cube.set_data(orientation, 0, 0, "b")
+    sample_cube.set_data(orientation, 1, 2, "c")
+
+    def get_side(orient: Orientation) -> str:
+        return data_to_string(sample_cube.get_side(orient))
+
+    orientation = Orientation(Side.FRONT, Side.TOP)
+    assert get_side(orientation) == "None None None/None None None/None None None"
+    assert get_side(orientation.to_top) == "None None b/None None None/None None None"
+    assert get_side(orientation.to_right) == "None None b/None a None/None c None"
+    assert get_side(orientation.to_right.to_right) == "b None None/None None None/None None None"
+    assert get_side(orientation.to_bottom) == "None None None/None None c/None None None"
+
+
+def test_data_rotation(sample_cube: Cube) -> None:
+    orientation = Orientation(Side.FRONT, Side.TOP)
+    sample_cube.set_data(orientation, 0, 2, "b")
+    sample_cube.set_data(orientation, 1, 2, "a")
+    sample_cube.rotate_vertical(orientation, 3, 1)
+
+    def get_side(orient: Orientation) -> str:
+        return data_to_string(sample_cube.get_side(orient))
+
+    assert get_side(orientation) == "None None None/None None None/None None None"
+    assert get_side(orientation.to_right) == "None a b/None None None/None None None"
+    assert get_side(orientation.to_top) == "None None b/None None a/None None None"
