@@ -214,8 +214,23 @@ def test_iterate() -> None:
     (Side.BOTTOM, 3, 1, 1, 2, 3),
     (Side.BACK, 1, 1, 2, 1, 4)
 ])
-def test_get_absoulute(side, i, j, a, b, c) -> None:
+def test_get_absolute(side, i, j, a, b, c) -> None:
     cube = Cube((4, 5, 3))
+    x, y, z = cube.get_absolute_coordinates(side, i, j)
+    assert x == a
+    assert y == b
+    assert z == c
+
+
+@pytest.mark.parametrize("side, i, j, a, b, c", [
+    (Side.FRONT, 0, 0, 0, 0, 0), (Side.FRONT, 1, 0, 0, 1, 0), (Side.FRONT, 0, 1, 1, 0, 0), (Side.FRONT, 1, 1, 1, 1, 0),
+    (Side.RIGHT, 0, 0, 1, 0, 0), (Side.RIGHT, 1, 0, 1, 1, 0), (Side.RIGHT, 0, 1, 1, 0, 1), (Side.RIGHT, 1, 1, 1, 1, 1),
+    (Side.LEFT,  0, 0, 0, 0, 1), (Side.LEFT,  1, 0, 0, 1, 1), (Side.LEFT,  0, 1, 0, 0, 0), (Side.LEFT,  1, 1, 0, 1, 0),
+    (Side.TOP,   0, 0, 0, 0, 1), (Side.TOP,   1, 0, 0, 0, 0), (Side.TOP,   0, 1, 1, 0, 1), (Side.TOP,   1, 1, 1, 0, 0),
+    (Side.BACK,  0, 0, 1, 0, 1), (Side.BACK,  1, 0, 1, 1, 1), (Side.BACK,  0, 1, 0, 0, 1), (Side.BACK,   1, 1, 0, 1, 1),
+])
+def test_get_absolute_2(side, i, j, a, b, c) -> None:
+    cube = Cube((2, 2, 2))
     x, y, z = cube.get_absolute_coordinates(side, i, j)
     assert x == a
     assert y == b

@@ -106,7 +106,7 @@ class Cube(Generic[T]):
         elif side == Side.RIGHT:
             return self.shape[0] - 1, i, j
         elif side == Side.BACK:
-            return self.shape[0] - 1 - i, j, self.shape[1] - 1
+            return self.shape[0] - 1 - j, i, self.shape[1] - 1
         elif side == Side.LEFT:
             return 0, i, self.shape[1] - 1 - j
         elif side == Side.TOP:

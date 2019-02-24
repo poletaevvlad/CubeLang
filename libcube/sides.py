@@ -11,6 +11,9 @@ class Component(Generic[T]):
         self.color: Color = color
         self.data: T = data
 
+    def __repr__(self):
+        return f"Component({self.color}, {self.data})"
+
 
 class ICubeSide(ABC, Generic[T]):
     def __init__(self):
@@ -81,6 +84,12 @@ class ICubeSide(ABC, Generic[T]):
         assert len(values) == self.rows
         for i in range(self.rows):
             self[i, j] = values[i]
+
+    def __repr__(self):
+        content = "/".join(
+            ", ".join(f"{self[r, c].color.name[0]}({self[r, c].data})" for c in range(self.columns))
+            for r in range(self.rows))
+        return f"<Side: {content}>"
 
 
 class ColorsAccessor(Generic[T]):
