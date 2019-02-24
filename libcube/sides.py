@@ -1,10 +1,21 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple, List, Generic, TypeVar
 
 from .orientation import Color
 
+T = TypeVar("T")
 
-class ICubeSide(ABC):
+
+class Component(Generic[T]):
+    def __init__(self, color: Color, data: T):
+        self.color: Color = color
+        self.data: T = data
+
+
+class ICubeSide(ABC, Generic[T]):
+    def __init__(self):
+        self.colors = ColorsAccessor(self)
+
     @property
     @abstractmethod
     def rows(self) -> int:
@@ -16,11 +27,11 @@ class ICubeSide(ABC):
         pass
 
     @abstractmethod
-    def __getitem__(self, item: Tuple[int, int]) -> Color:
+    def __getitem__(self, item: Tuple[int, int]) -> Component[T]:
         pass
 
     @abstractmethod
-    def __setitem__(self, key: Tuple[int, int], value: Color) -> None:
+    def __setitem__(self, key: Tuple[int, int], value: Component[T]) -> None:
         pass
 
     def create_view(self, rotation: int) -> "CubeSideView":
@@ -55,25 +66,37 @@ class ICubeSide(ABC):
                     for (i1, j1), val in zip(indices, values):
                         self[i1, j1] = val
 
-    def get_row(self, i: int) -> List[Color]:
+    def get_row(self, i: int) -> List[Component[T]]:
         return [self[i, j] for j in range(self.columns)]
 
-    def get_column(self, j: int) -> List[Color]:
+    def get_column(self, j: int) -> List[Component[T]]:
         return [self[i, j] for i in range(self.rows)]
 
-    def set_row(self, i: int, values: List[Color]) -> None:
+    def set_row(self, i: int, values: List[Component[T]]) -> None:
         assert len(values) == self.columns
         for j in range(self.columns):
             self[i, j] = values[j]
 
-    def set_column(self, j: int, values: List[Color]) -> None:
+    def set_column(self, j: int, values: List[Component[T]]) -> None:
         assert len(values) == self.rows
         for i in range(self.rows):
             self[i, j] = values[i]
 
 
-class CubeSideView(ICubeSide):
+class ColorsAccessor(Generic[T]):
+    def __init__(self, side: ICubeSide[T]):
+        self.side: ICubeSide[T] = side
+
+    def __getitem__(self, item: Tuple[int, int]) -> Color:
+        return self.side[item].color
+
+    def __setitem__(self, key: Tuple[int, int], value: Color) -> None:
+        self.side[key].color = value
+
+
+class CubeSideView(ICubeSide[T]):
     def __init__(self, side: ICubeSide, rotation: int):
+        super().__init__()
         self.side: ICubeSide = side
         self.rotation: int = rotation % 4
 
@@ -96,29 +119,27 @@ class CubeSideView(ICubeSide):
         else:
             return i, j
 
-    def __getitem__(self, item: Tuple[int, int]) -> Color:
+    def __getitem__(self, item: Tuple[int, int]) -> Component[T]:
         i, j = self._transform_coord(item)
         return self.side[i, j]
 
-    def __setitem__(self, key: Tuple[int, int], value: Color) -> None:
+    def __setitem__(self, key: Tuple[int, int], value: Component[T]) -> None:
         i, j = self._transform_coord(key)
         self.side[i, j] = value
 
-    # def create_view(self, rotation: int) -> "CubeSideView":
-    #     return CubeSideView(self.side, self.rotation + rotation)
 
-
-class CubeSide(ICubeSide):
+class CubeSide(ICubeSide[T]):
     def __init__(self, rows: int, columns: int, default: Color):
+        super().__init__()
         self.shape = (rows, columns)
-        self.items: List[List[Color]] = [[default for _j in range(columns)]
-                                         for _i in range(rows)]
+        self.items: List[List[T]] = [[Component(default, None) for _j in range(columns)]
+                                     for _i in range(rows)]
 
-    def __getitem__(self, item: Tuple[int, int]) -> Color:
+    def __getitem__(self, item: Tuple[int, int]) -> Component[T]:
         i, j = item
         return self.items[i][j]
 
-    def __setitem__(self, key: Tuple[int, int], value: Color) -> None:
+    def __setitem__(self, key: Tuple[int, int], value: Component[T]) -> None:
         i, j = key
         self.items[i][j] = value
 

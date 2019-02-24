@@ -1,4 +1,4 @@
-from libcube.sides import CubeSide, ICubeSide, CubeSideView
+from libcube.sides import CubeSide, ICubeSide, CubeSideView, Component
 from libcube.orientation import Color
 
 import pytest
@@ -8,7 +8,7 @@ def side_to_string(side: ICubeSide):
     out = []
     for i in range(side.rows):
         for j in range(side.columns):
-            color = side[i, j].name[0].upper()
+            color = side.colors[i, j].name[0].upper()
             out.append(color)
         out.append("/")
     return "".join(out[:-1])
@@ -27,7 +27,7 @@ def create_side(rows: int, columns: int, items: str):
     side = CubeSide(rows, columns, Color.RED)
     for i, row in enumerate(items.split("/")):
         for j, char in enumerate(row):
-            side[i, j] = colors[char]
+            side.colors[i, j] = colors[char]
     return side
 
 
@@ -69,21 +69,25 @@ def test_rotation(width: int, height: int, items: str, amount: int, expected: st
 
 def test_get_row():
     side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
-    assert side.get_row(1) == [Color.RED, Color.WHITE, Color.YELLOW, Color.RED]
+    assert (list(map(lambda x: x.color, side.get_row(1))) ==
+            [Color.RED, Color.WHITE, Color.YELLOW, Color.RED])
 
 
 def test_get_column():
     side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
-    assert side.get_column(1) == [Color.ORANGE, Color.WHITE, Color.BLUE, Color.BLUE]
+    assert (list(map(lambda x: x.color, side.get_column(1))) ==
+            [Color.ORANGE, Color.WHITE, Color.BLUE, Color.BLUE])
 
 
 def test_set_row():
     side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
-    side.set_row(1, [Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW])
+    side.set_row(1, list(map(lambda c: Component[None](c, None),
+                             [Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW])))
     assert side_to_string(side) == "YOBG/BRGY/OBBY/GBRW"
 
 
 def test_set_column():
     side = create_side(4, 4, "YOBG/RWYR/OBBY/GBRW")
-    side.set_column(1, [Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW])
+    side.set_column(1, list(map(lambda c: Component[None](c, None),
+                                [Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW])))
     assert side_to_string(side) == "YBBG/RRYR/OGBY/GYRW"

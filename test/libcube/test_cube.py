@@ -34,14 +34,14 @@ def test_get_side_rotated():
 def _set_side_colors(side: ICubeSide, colors: List[List[Color]]) -> None:
     for i, row in enumerate(colors):
         for j, color in enumerate(row):
-            side[i, j] = color
+            side.colors[i, j] = color
 
 
 def side_to_string(side: ICubeSide):
     out = []
     for i in range(side.rows):
         for j in range(side.columns):
-            color = side[i, j].name[0].upper()
+            color = side.colors[i, j].name[0].upper()
             out.append(color)
         out.append("/")
     return "".join(out[:-1])
