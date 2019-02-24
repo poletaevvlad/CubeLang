@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, List, Generic, TypeVar
+from typing import Tuple, Dict, List, Generic, TypeVar, Iterator
 from .orientation import Side, Color, Orientation
 from .sides import CubeSide, ICubeSide, CubeSideView
 from .listutils import shift_list
@@ -84,3 +84,18 @@ class Cube(Generic[T]):
         elif i == front.rows - 1:
             bottom = self.get_side(orientation.to_bottom)
             bottom[0, j].data = value
+
+    def iterate_components(self) -> Iterator[Tuple[int, int, Orientation]]:
+        for i in range(self.shape[2]):
+            for j in range(self.shape[0]):
+                yield i, j, Side.FRONT
+                yield i, j, Side.BACK
+
+        for j in range(1, self.shape[1] - 1):
+            for i in range(1, self.shape[0] - 1):
+                yield j, i, Side.TOP
+                yield j, i, Side.BOTTOM
+
+            for k in range(self.shape[2]):
+                yield k, j, Side.LEFT
+                yield k, j, Side.RIGHT

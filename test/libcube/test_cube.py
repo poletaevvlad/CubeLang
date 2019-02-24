@@ -189,3 +189,16 @@ def test_data_rotation(sample_cube: Cube) -> None:
     assert get_side(orientation) == "None None None/None None None/None None None"
     assert get_side(orientation.to_right) == "None a b/None None None/None None None"
     assert get_side(orientation.to_top) == "None None b/None None a/None None None"
+
+
+def test_iterate() -> None:
+    def orient_to_str(i: int, j: int, side: Side) -> str:
+        return f"{side.name[0].upper()}{i}:{j}"
+
+    cube = Cube((3, 4, 4))
+    result = set(map(lambda x: orient_to_str(*x), cube.iterate_components()))
+    assert result == {"F0:0", "F0:1", "F0:2", "F1:0", "F1:1", "F1:2", "F2:0", "F2:1", "F2:2", "F3:0", "F3:1", "F3:2",
+                      "R0:1", "R0:2", "R1:1", "R1:2", "R2:1", "R2:2", "R3:1", "R3:2",
+                      "B0:0", "B0:1", "B0:2", "B1:0", "B1:1", "B1:2", "B2:0", "B2:1", "B2:2", "B3:0", "B3:1", "B3:2",
+                      "L0:1", "L0:2", "L1:1", "L1:2", "L2:1", "L2:2", "L3:1", "L3:2",
+                      "T1:1", "T2:1", "B1:1", "B2:1"}
