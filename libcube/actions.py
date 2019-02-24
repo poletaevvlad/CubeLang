@@ -12,7 +12,7 @@ class Action(ABC):
 
 
 class Rotate(Action):
-    def __init__(self, around: Side):
+    def __init__(self, around: Side) -> None:
         self.axis_side: Side = around
 
     def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
@@ -31,7 +31,7 @@ class Rotate(Action):
 
 
 class Turn(Action):
-    def __init__(self, side: Side, sides: Union[int, List[int]], turns: int = 1):
+    def __init__(self, side: Side, sides: Union[int, List[int]], turns: int = 1) -> None:
         self.side: Side = side
         self.sides: List[int] = sides if isinstance(sides, list) else [sides]
         if side in {Side.BOTTOM, Side.RIGHT, Side.FRONT}:

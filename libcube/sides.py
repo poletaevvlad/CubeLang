@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, List, Generic, TypeVar
+from typing import Tuple, List, Generic, TypeVar, Optional
 
 from .orientation import Color
 
@@ -7,16 +7,16 @@ T = TypeVar("T")
 
 
 class Component(Generic[T]):
-    def __init__(self, color: Color, data: T):
+    def __init__(self, color: Color, data: Optional[T]) -> None:
         self.color: Color = color
-        self.data: T = data
+        self.data: Optional[T] = data
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Component({self.color}, {self.data})"
 
 
 class ICubeSide(ABC, Generic[T]):
-    def __init__(self):
+    def __init__(self) -> None:
         self.colors = ColorsAccessor(self)
 
     @property
@@ -85,7 +85,7 @@ class ICubeSide(ABC, Generic[T]):
         for i in range(self.rows):
             self[i, j] = values[i]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         content = "/".join(
             ", ".join(f"{self[r, c].color.name[0]}({self[r, c].data})" for c in range(self.columns))
             for r in range(self.rows))
@@ -93,7 +93,7 @@ class ICubeSide(ABC, Generic[T]):
 
 
 class ColorsAccessor(Generic[T]):
-    def __init__(self, side: ICubeSide[T]):
+    def __init__(self, side: ICubeSide[T]) -> None:
         self.side: ICubeSide[T] = side
 
     def __getitem__(self, item: Tuple[int, int]) -> Color:
@@ -104,7 +104,7 @@ class ColorsAccessor(Generic[T]):
 
 
 class CubeSideView(ICubeSide[T]):
-    def __init__(self, side: ICubeSide, rotation: int):
+    def __init__(self, side: ICubeSide, rotation: int) -> None:
         super().__init__()
         self.side: ICubeSide = side
         self.rotation: int = rotation % 4
@@ -141,8 +141,8 @@ class CubeSide(ICubeSide[T]):
     def __init__(self, rows: int, columns: int, default: Color):
         super().__init__()
         self.shape = (rows, columns)
-        self.items: List[List[T]] = [[Component(default, None) for _j in range(columns)]
-                                     for _i in range(rows)]
+        self.items: List[List[Component[T]]] = [[Component[T](default, None) for _j in range(columns)]
+                                                for _i in range(rows)]
 
     def __getitem__(self, item: Tuple[int, int]) -> Component[T]:
         i, j = item

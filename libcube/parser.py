@@ -24,7 +24,7 @@ action_factories: Dict[str, ActionFactory] = {
 
 
 class ParsingError(Exception):
-    def __init__(self, message: str, column: int):
+    def __init__(self, message: str, column: int) -> None:
         super(ParsingError, self).__init__(message)
         self.column = column
 

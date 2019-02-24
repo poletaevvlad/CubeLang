@@ -1,4 +1,5 @@
 import enum
+from typing import Any
 
 
 class Color (enum.Enum):
@@ -35,7 +36,7 @@ class Orientation:
         Side.BOTTOM: [Side.LEFT, Side.FRONT, Side.RIGHT, Side.BACK]
     }
 
-    def __init__(self, front: Side = Side.FRONT, top: Side = Side.TOP):
+    def __init__(self, front: Side = Side.FRONT, top: Side = Side.TOP) -> None:
         self.front: Side = front
         self.top: Side = top
 
@@ -62,11 +63,11 @@ class Orientation:
     def get_side_rotation(self) -> int:
         return Orientation._RELATIVE_SIDES[self.front].index(self.top)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return (isinstance(other, Orientation) and
                 other.front == self.front and other.top == self.top)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.front, self.top))
 
     def rotate_counterclockwise(self) -> "Orientation":
@@ -77,7 +78,7 @@ class Orientation:
         index = (Orientation._RELATIVE_SIDES[self.front].index(self.top) + 1) % 4
         return Orientation(self.front, Orientation._RELATIVE_SIDES[self.front][index])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Orientation(front={repr(self.front)}, top={repr(self.top)})"
 
     @classmethod

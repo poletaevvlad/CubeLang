@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, List, Generic, TypeVar, Iterator
+from typing import Tuple, Dict, List, Generic, TypeVar, Iterator, Optional
 from .orientation import Side, Color, Orientation
 from .sides import CubeSide, ICubeSide, CubeSideView
 from .listutils import shift_list
@@ -58,16 +58,16 @@ class Cube(Generic[T]):
 
     def rotate_horizontal(self, orientation: Orientation, index: int, turns: int) -> None:
         orientation = orientation.rotate_clockwise()
-        return self.rotate_vertical(orientation, index, turns)
+        self.rotate_vertical(orientation, index, turns)
 
     def rotate_slice(self, orientation: Orientation, index: int, turns: int) -> None:
         orientation = orientation.to_right
-        return self.rotate_vertical(orientation, index, 4 - turns)
+        self.rotate_vertical(orientation, index, 4 - turns)
 
-    def get_data(self, orientation: Orientation, i: int, j: int) -> T:
+    def get_data(self, orientation: Orientation, i: int, j: int) -> Optional[T]:
         return self.get_side(orientation)[i, j].data
 
-    def set_data(self, orientation: Orientation, i: int, j: int, value: T) -> None:
+    def set_data(self, orientation: Orientation, i: int, j: int, value: Optional[T]) -> None:
         front = self.get_side(orientation)
         front[i, j].data = value
 
@@ -113,3 +113,4 @@ class Cube(Generic[T]):
             return j, 0, self.shape[1] - 1 - i
         elif side == Side.BOTTOM:
             return j, self.shape[2] - 1, i
+        raise ValueError("Unknown value for `side` argument")
