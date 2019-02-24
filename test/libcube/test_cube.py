@@ -192,7 +192,7 @@ def test_data_rotation(sample_cube: Cube) -> None:
 
 
 def test_iterate() -> None:
-    def orient_to_str(i: int, j: int, side: Side) -> str:
+    def orient_to_str(side: Side, i: int, j: int) -> str:
         return f"{side.name[0].upper()}{i}:{j}"
 
     cube = Cube((3, 4, 4))
@@ -202,3 +202,20 @@ def test_iterate() -> None:
                       "B0:0", "B0:1", "B0:2", "B1:0", "B1:1", "B1:2", "B2:0", "B2:1", "B2:2", "B3:0", "B3:1", "B3:2",
                       "L0:1", "L0:2", "L1:1", "L1:2", "L2:1", "L2:2", "L3:1", "L3:2",
                       "T1:1", "T2:1", "B1:1", "B2:1"}
+
+
+@pytest.mark.parametrize("side, i, j, a, b, c", [
+    (Side.FRONT, 0, 0, 0, 0, 0),
+    (Side.FRONT, 1, 3, 3, 1, 0),
+    (Side.LEFT, 2, 3, 0, 2, 1),
+    (Side.RIGHT, 0, 1, 3, 0, 1),
+    (Side.TOP, 3, 2, 2, 0, 1),
+    (Side.BOTTOM, 3, 1, 1, 2, 3),
+    (Side.BACK, 1, 1, 2, 1, 4)
+])
+def test_get_absoulute(side, i, j, a, b, c) -> None:
+    cube = Cube((4, 5, 3))
+    x, y, z = cube.get_absolute_coordinates(side, i, j)
+    assert x == a
+    assert y == b
+    assert z == c

@@ -27,7 +27,7 @@ class Cube(Generic[T]):
             return CubeSideView(self.sides[orientation.front], rotation)
 
     @staticmethod
-    def _fix_index(index: int, items_count: int):
+    def _fix_index(index: int, items_count: int) -> int:
         if index == 0:
             raise ValueError("index cannot be zero")
         elif abs(index) > items_count:
@@ -37,7 +37,7 @@ class Cube(Generic[T]):
             index = items_count + 1 + index
         return index - 1
 
-    def rotate_vertical(self, orientation: Orientation, index: int, turns: int):
+    def rotate_vertical(self, orientation: Orientation, index: int, turns: int) -> None:
         faces: List[ICubeSide] = []
         for i in range(4):
             faces.append(self.get_side(orientation))
@@ -56,11 +56,11 @@ class Cube(Generic[T]):
             right_face = self.get_side(orientation.to_right)
             right_face.rotate(turns)
 
-    def rotate_horizontal(self, orientation: Orientation, index: int, turns: int):
+    def rotate_horizontal(self, orientation: Orientation, index: int, turns: int) -> None:
         orientation = orientation.rotate_clockwise()
         return self.rotate_vertical(orientation, index, turns)
 
-    def rotate_slice(self, orientation: Orientation, index: int, turns: int):
+    def rotate_slice(self, orientation: Orientation, index: int, turns: int) -> None:
         orientation = orientation.to_right
         return self.rotate_vertical(orientation, index, 4 - turns)
 
@@ -85,17 +85,31 @@ class Cube(Generic[T]):
             bottom = self.get_side(orientation.to_bottom)
             bottom[0, j].data = value
 
-    def iterate_components(self) -> Iterator[Tuple[int, int, Orientation]]:
+    def iterate_components(self) -> Iterator[Tuple[Side, int, int]]:
         for i in range(self.shape[2]):
             for j in range(self.shape[0]):
-                yield i, j, Side.FRONT
-                yield i, j, Side.BACK
+                yield Side.FRONT, i, j
+                yield Side.BACK, i, j
 
         for j in range(1, self.shape[1] - 1):
             for i in range(1, self.shape[0] - 1):
-                yield j, i, Side.TOP
-                yield j, i, Side.BOTTOM
+                yield Side.TOP, j, i,
+                yield Side.BOTTOM, j, i
 
             for k in range(self.shape[2]):
-                yield k, j, Side.LEFT
-                yield k, j, Side.RIGHT
+                yield Side.LEFT, k, j
+                yield Side.RIGHT, k, j
+
+    def get_absolute_coordinates(self, side: Side, i: int, j: int) -> Tuple[int, int, int]:
+        if side == Side.FRONT:
+            return j, i, 0
+        elif side == Side.RIGHT:
+            return self.shape[0] - 1, i, j
+        elif side == Side.BACK:
+            return self.shape[0] - 1 - i, j, self.shape[1] - 1
+        elif side == Side.LEFT:
+            return 0, i, self.shape[1] - 1 - j
+        elif side == Side.TOP:
+            return j, 0, self.shape[1] - 1 - i
+        elif side == Side.BOTTOM:
+            return j, self.shape[2] - 1, i

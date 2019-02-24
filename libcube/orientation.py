@@ -79,3 +79,7 @@ class Orientation:
 
     def __repr__(self):
         return f"Orientation(front={repr(self.front)}, top={repr(self.top)})"
+
+    @classmethod
+    def regular(cls, side: Side) -> "Orientation":
+        return Orientation(side, Orientation._RELATIVE_SIDES[side][0])
