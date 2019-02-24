@@ -3,6 +3,7 @@ from typing import List
 from libcube.cube import Cube
 from libcube.sides import CubeSide, CubeSideView, ICubeSide
 from libcube.orientation import Orientation, Side, Color
+from libcube.parser import parse_actions
 
 from unittest.mock import MagicMock
 import pytest
@@ -235,3 +236,17 @@ def test_get_absolute_2(side, i, j, a, b, c) -> None:
     assert x == a
     assert y == b
     assert z == c
+
+
+def test_cube_flip_flop():
+    cube = Cube((3, 3, 3))
+    assert_cube(cube, "RRR/RRR/RRR", "GGG/GGG/GGG", "OOO/OOO/OOO", "BBB/BBB/BBB", "YYY/YYY/YYY", "WWW/WWW/WWW")
+
+    for action in parse_actions("RUR'U'"):
+        action.perform(cube, Orientation())
+    assert_cube(cube, "RRW/RRY/RRR", "GGY/OGG/YGG", "OGG/OOO/OOO", "OBB/BBB/BBB", "YYB/YYR/YYR", "WWG/WWW/WWW")
+
+    for _ in range(5):
+        for action in parse_actions("RUR'U'"):
+            action.perform(cube, Orientation())
+    assert_cube(cube, "RRR/RRR/RRR", "GGG/GGG/GGG", "OOO/OOO/OOO", "BBB/BBB/BBB", "YYY/YYY/YYY", "WWW/WWW/WWW")
