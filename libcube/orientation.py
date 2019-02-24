@@ -82,4 +82,7 @@ class Orientation:
 
     @classmethod
     def regular(cls, side: Side) -> "Orientation":
-        return Orientation(side, Orientation._RELATIVE_SIDES[side][0])
+        if side == Side.BOTTOM:
+            return Orientation(side, Side.FRONT)
+        else:
+            return Orientation(side, Orientation._RELATIVE_SIDES[side][0])

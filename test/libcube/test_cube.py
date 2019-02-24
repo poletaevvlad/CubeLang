@@ -159,20 +159,21 @@ def test_rotation_slice(sample_cube: Cube) -> None:
                 "BGG/BYG/BBG", "RGO/RWO/WBY")
 
 
-def test_data_flat(sample_cube: Cube) -> None:
+def test_data_set(sample_cube: Cube) -> None:
     orientation = Orientation(Side.RIGHT, Side.BACK)
 
     sample_cube.set_data(orientation, 1, 1, "a")
     sample_cube.set_data(orientation, 0, 0, "b")
     sample_cube.set_data(orientation, 1, 2, "c")
+    sample_cube.set_data(orientation, 2, 1, "d")
 
     def get_side(orient: Orientation) -> str:
         return data_to_string(sample_cube.get_side(orient))
 
     orientation = Orientation(Side.FRONT, Side.TOP)
-    assert get_side(orientation) == "None None None/None None None/None None None"
+    assert get_side(orientation) == "None None None/None None d/None None None"
     assert get_side(orientation.to_top) == "None None b/None None None/None None None"
-    assert get_side(orientation.to_right) == "None None b/None a None/None c None"
+    assert get_side(orientation.to_right) == "None None b/d a None/None c None"
     assert get_side(orientation.to_right.to_right) == "b None None/None None None/None None None"
     assert get_side(orientation.to_bottom) == "None None None/None None c/None None None"
 

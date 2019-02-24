@@ -99,3 +99,17 @@ def test_rotation_counter_clockwise(front, top, after_rotation):
         assert orientation.top == after_top
         orientation = orientation.rotate_counterclockwise()
     assert orientation.top == top
+
+
+@pytest.mark.parametrize("front, top", [
+    (Side.FRONT, Side.TOP),
+    (Side.LEFT, Side.TOP),
+    (Side.RIGHT, Side.TOP),
+    (Side.BACK, Side.TOP),
+    (Side.TOP, Side.BACK),
+    (Side.BOTTOM, Side.FRONT)
+])
+def test_regular_orientation(front: Side, top: Side) -> None:
+    orientation = Orientation.regular(front)
+    assert orientation.front == front
+    assert orientation.top == top
