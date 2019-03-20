@@ -13,13 +13,18 @@ def create_turn_factory(side: Side) -> ActionFactory:
     return factory
 
 
+sides_letters: Dict[Side, str] = {
+    Side.LEFT: "L",
+    Side.RIGHT: "R",
+    Side.FRONT: "F",
+    Side.BACK: "B",
+    Side.TOP: "U",
+    Side.BOTTOM: "D"
+}
+
 action_factories: Dict[str, ActionFactory] = {
-    "L": create_turn_factory(Side.LEFT),
-    "R": create_turn_factory(Side.RIGHT),
-    "F": create_turn_factory(Side.FRONT),
-    "B": create_turn_factory(Side.BACK),
-    "U": create_turn_factory(Side.TOP),
-    "D": create_turn_factory(Side.BOTTOM)
+    sides_letters[side]: create_turn_factory(side)
+    for side in sides_letters
 }
 
 
@@ -55,3 +60,16 @@ def parse_actions(algorithm: str) -> Iterator[Action]:
             raise ParsingError(f"Unknown character '{char}' at {index + 1}", index)
     if factory is not None:
         yield factory(double, opposite)
+
+
+def get_action_representation(action: Action) -> str:
+    if isinstance(action, Turn):
+        letter = sides_letters[action.side]
+        if action.turns == 1:
+            return letter
+        elif action.turns == 2:
+            return letter + "2"
+        else:
+            return letter + "'"
+    else:
+        raise ValueError(f"Unknown action type: {type(Action)}")
