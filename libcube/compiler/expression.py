@@ -54,7 +54,7 @@ class Expression:
                 index = int(m.group(1))
                 return "tmp_" + str(variables[index])
 
-            expression = re.sub("{(\d+)}", substitute, self.expression)
+            expression = re.sub(r"{(\d+)}", substitute, self.expression)
 
         if var_name is not None:
             stream.push_line(f"{var_name} = {expression}")
@@ -75,7 +75,7 @@ class Expression:
                 nonlocal expressions
                 index = int(m.group(1))
                 return f"{{{index + offset}}}"
-            expressions.append(re.sub("{(\d+)}", substitute, expr.expression))
+            expressions.append(re.sub(r"{(\d+)}", substitute, expr.expression))
 
             for inter in expr.intermediates:
                 result.add_intermediate(inter)
