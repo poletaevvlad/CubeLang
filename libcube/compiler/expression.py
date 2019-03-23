@@ -1,5 +1,7 @@
-from typing import List
+from typing import List, Optional, Match
+import re
 
+from compiler.codeio import CodeStream
 from .types import Type
 
 
@@ -31,11 +33,31 @@ class VariablesPool:
 
 
 class Expression:
-    def __init__(self, expr_type: Type):
+    def __init__(self, expr_type: Type, text: str = ""):
         self.intermediates: List[Expression] = list()
         self.type: Type = expr_type
-        self.expression: str = ""
+        self.expression: str = text
 
     def add_intermediate(self, expression: "Expression") -> int:
         self.intermediates.append(expression)
         return len(self.intermediates) - 1
+
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+        with temp_pool.allocate(len(self.intermediates)) as variables:
+            for var, expr in zip(variables, self.intermediates):
+                temp_var_name = "tmp_" + str(var)
+                expr.generate(temp_pool, stream, temp_var_name)
+            variables = list(variables)
+
+            def substitute(m: Match[str]) -> str:
+                nonlocal variables
+                index = int(m.group(1))
+                return "tmp_" + str(variables[index])
+
+            expression = re.sub("{(\d+)}", substitute, self.expression)
+
+        if var_name is not None:
+            stream.push_line(f"{var_name} = {expression}")
+        else:
+            stream.push_line(expression)
+
