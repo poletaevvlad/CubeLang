@@ -2,23 +2,23 @@ from lark import Lark, Transformer
 from typing import IO, Union, NamedTuple, Tuple, List
 from pathlib import Path
 
-from .expression import Expression
+from .expression import Expression, TemplateType
 from .types import Integer, Real, Type
 
 
 class BinaryOperator(NamedTuple):
     symbol: str
-    expression: Union[str, List[str]]
+    expression: TemplateType
     arguments: List[Tuple[Tuple[Type, Type], Type]]
 
 
 # noinspection PyMethodMayBeStatic
 class CompilerTransformer(Transformer):
     BINARY_OPERATORS = [[
-        BinaryOperator("+", "({0}) + ({1})", [((Integer, Integer), Integer), ((Real, Real), Real)]),
-        BinaryOperator("-", "({0}) - ({1})", [((Integer, Integer), Integer), ((Real, Real), Real)]),
-        BinaryOperator("*", "({0}) * ({1})", [((Integer, Integer), Integer), ((Real, Real), Real)]),
-        BinaryOperator("/", "({0}) / ({1})", [((Real, Real), Real)]),
+        BinaryOperator("+", ["(", 0, ") + (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
+        BinaryOperator("-", ["(", 0, ") - (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
+        BinaryOperator("*", ["(", 0, ") * (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
+        BinaryOperator("/", ["(", 0, ") / (", 1, ")"], [((Real, Real), Real)]),
     ]]
 
     @staticmethod

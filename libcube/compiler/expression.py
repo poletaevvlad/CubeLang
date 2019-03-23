@@ -1,8 +1,9 @@
-from typing import List, Optional, Match
-import re
+from typing import List, Optional, Union
 
 from compiler.codeio import CodeStream
 from .types import Type
+
+TemplateType = List[Union[str, int]]
 
 
 class VariablesPool:
@@ -33,10 +34,12 @@ class VariablesPool:
 
 
 class Expression:
-    def __init__(self, expr_type: Type, text: str = ""):
+    def __init__(self, expr_type: Type, text: Union[str, TemplateType] = None):
         self.intermediates: List[Expression] = list()
         self.type: Type = expr_type
-        self.expression: str = text
+        if text is not None and isinstance(text, str):
+            text = [text]
+        self.expression: TemplateType = text
 
     def add_intermediate(self, expression: "Expression") -> int:
         self.intermediates.append(expression)
@@ -48,13 +51,8 @@ class Expression:
                 temp_var_name = "tmp_" + str(var)
                 expr.generate(temp_pool, stream, temp_var_name)
             variables = list(variables)
-
-            def substitute(m: Match[str]) -> str:
-                nonlocal variables
-                index = int(m.group(1))
-                return "tmp_" + str(variables[index])
-
-            expression = re.sub(r"{(\d+)}", substitute, self.expression)
+            expression = "".join("tmp_" + str(variables[c]) if isinstance(c, int) else c
+                                 for c in self.expression)
 
         if var_name is not None:
             stream.push_line(f"{var_name} = {expression}")
@@ -62,7 +60,15 @@ class Expression:
             stream.push_line(expression)
 
     @staticmethod
-    def merge(expr_type: Type, template: str, *parts: "Expression") -> "Expression":
+    def _from_template(template: TemplateType, expressions: List[TemplateType]) -> TemplateType:
+        for component in template:
+            if isinstance(component, int):
+                yield from expressions[component]
+            else:
+                yield component
+
+    @staticmethod
+    def merge(expr_type: Type, template: TemplateType, *parts: "Expression") -> "Expression":
         result = Expression(expr_type)
 
         expressions = [parts[0].expression]
@@ -71,16 +77,15 @@ class Expression:
         offset = len(parts[0].intermediates)
 
         for expr in parts[1:]:
-            def substitute(m: Match[str]) -> str:
-                nonlocal expressions
-                index = int(m.group(1))
-                return f"{{{index + offset}}}"
-            expressions.append(re.sub(r"{(\d+)}", substitute, expr.expression))
-
+            this_expression = expr.expression[::]
+            for i, component in enumerate(this_expression):
+                if isinstance(component, int):
+                    this_expression[i] += offset
+            expressions.append(this_expression)
             for inter in expr.intermediates:
                 result.add_intermediate(inter)
             offset += len(expr.intermediates)
 
-        result.expression = template.format(*expressions)
+        result.expression = list(Expression._from_template(template, expressions))
         return result
 

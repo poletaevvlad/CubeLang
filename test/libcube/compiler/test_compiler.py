@@ -21,7 +21,7 @@ class TestTransformer:
         expr = transform.transform(tree)
         assert isinstance(expr, Expression)
         assert expr.type == exp_type
-        assert expr.expression == exp_value
+        assert expr.expression == [exp_value]
         assert expr.intermediates == []
 
     @pytest.mark.parametrize("op1_type, op2_type, op_name, res_type, res_expr", [
@@ -32,21 +32,21 @@ class TestTransformer:
     ])
     def test_operators(self, op1_type: Type, op2_type: Type, op_name: str, res_type: Type,
                        res_expr: str, transform: CompilerTransformer):
-        a_expr = Expression(op1_type, "a")
-        b_expr = Expression(op2_type, "b")
+        a_expr = Expression(op1_type, ["a"])
+        b_expr = Expression(op2_type, ["b"])
         tree = lark.Tree(op_name, [a_expr, b_expr])
 
         expr: Expression = transform.transform(tree)
         assert expr.type == res_type
         assert expr.intermediates == []
-        assert expr.expression == res_expr
+        assert "".join(expr.expression) == res_expr
 
     @pytest.mark.parametrize("op1_type, op2_type, op_name", [
         (Bool, Integer, "op_0_0"),
     ])
     def test_operators_invalid(self, op1_type: Type, op2_type: Type, op_name: str, transform: CompilerTransformer):
-        a_expr = Expression(op1_type, "a")
-        b_expr = Expression(op2_type, "b")
+        a_expr = Expression(op1_type, ["a"])
+        b_expr = Expression(op2_type, ["b"])
         tree = lark.Tree(op_name, [a_expr, b_expr])
         with pytest.raises(Exception):
             transform.transform(tree)
