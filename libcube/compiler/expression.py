@@ -61,3 +61,26 @@ class Expression:
         else:
             stream.push_line(expression)
 
+    @staticmethod
+    def merge(expr_type: Type, template: str, *parts: "Expression") -> "Expression":
+        result = Expression(expr_type)
+
+        expressions = [parts[0].expression]
+        for inter in parts[0].intermediates:
+            result.add_intermediate(inter)
+        offset = len(parts[0].intermediates)
+
+        for expr in parts[1:]:
+            def substitute(m: Match[str]) -> str:
+                nonlocal expressions
+                index = int(m.group(1))
+                return f"{{{index + offset}}}"
+            expressions.append(re.sub("{(\d+)}", substitute, expr.expression))
+
+            for inter in expr.intermediates:
+                result.add_intermediate(inter)
+            offset += len(expr.intermediates)
+
+        result.expression = template.format(*expressions)
+        return result
+

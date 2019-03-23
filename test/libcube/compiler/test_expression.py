@@ -1,5 +1,5 @@
 from libcube.compiler.expression import VariablesPool, Expression
-from libcube.compiler.types import Integer
+from libcube.compiler.types import Integer, Real
 from libcube.compiler.codeio import CodeStream
 
 
@@ -40,3 +40,24 @@ def test_generating():
 
     assert stream.get_contents() == "tmp_2 = 2 + 3\ntmp_3 = 4 + 6\ntmp_2 * tmp_3\n"
 
+
+def test_merge():
+    intermediates = [Expression(Integer) for _ in range(7)]
+
+    ex1 = Expression(Integer, "{0}/{1}")
+    ex1.add_intermediate(intermediates[0])
+    ex1.add_intermediate(intermediates[1])
+
+    ex2 = Expression(Integer, "{0}*{1}*{2}")
+    ex2.add_intermediate(intermediates[2])
+    ex2.add_intermediate(intermediates[3])
+    ex2.add_intermediate(intermediates[4])
+
+    ex3 = Expression(Integer, "{1}+{0}")
+    ex3.add_intermediate(intermediates[5])
+    ex3.add_intermediate(intermediates[6])
+
+    merged = Expression.merge(Real, "({1})--({2})--({0})", ex1, ex2, ex3)
+    assert merged.intermediates == intermediates
+    assert merged.type == Real
+    assert merged.expression == "({2}*{3}*{4})--({6}+{5})--({0}/{1})"
