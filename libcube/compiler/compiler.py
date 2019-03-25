@@ -4,7 +4,7 @@ from typing import IO, Union, NamedTuple, Tuple, List, Callable, Dict
 from lark import Lark, Tree
 
 from .expression import Expression, TemplateType
-from .types import Integer, Real, Type
+from .types import Integer, Real, Type, Bool, Set, List as ListType
 from .stack import Stack
 
 
@@ -82,3 +82,18 @@ def handle_variable(tree: Tree, stack: Stack) -> Expression:
         raise ValueError(f"Undefined symbol: 'f{tree.children[0]}'")
     var_name = "var_" + str(variable.number) if variable.number >= 0 else tree.children[0]
     return Expression(variable.type, var_name)
+
+
+@compiler.handler("type_int")
+@compiler.handler("type_real")
+@compiler.handler("type_bool")
+def handle_scalar_type(tree: Tree, _stack: Stack) -> Type:
+    return {"type_int": Integer, "type_real": Real, "type_bool": Bool}[tree.data]
+
+
+@compiler.handler("type_list")
+@compiler.handler("type_set")
+def handle_compound_type(tree: Tree, stack: Stack) -> Type:
+    constructor = {"type_list": ListType, "type_set": Set}[tree.data]
+    inner_type: Type = compiler.handle(tree.children[0], stack)
+    return constructor(inner_type)

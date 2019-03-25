@@ -4,7 +4,7 @@ import pytest
 from libcube.compiler.compiler import compiler
 from libcube.compiler.expression import Expression
 from libcube.compiler.stack import Stack
-from libcube.compiler.types import Integer, Real, Type
+from libcube.compiler.types import Integer, Real, Type, Bool, List, Set
 
 
 # noinspection PyMethodMayBeStatic
@@ -58,3 +58,13 @@ class TestTransformer:
         tree = lark.Tree("variable", "a")
         with pytest.raises(ValueError):
             compiler.handle(tree, Stack())
+
+    @pytest.mark.parametrize("tree, expected", [
+        (lark.Tree("type_int", []), Integer),
+        (lark.Tree("type_real", []), Real),
+        (lark.Tree("type_bool", []), Bool),
+        (lark.Tree("type_list", [lark.Tree("type_bool", [])]), List(Bool)),
+        (lark.Tree("type_set", [lark.Tree("type_real", [])]), Set(Real)),
+    ])
+    def test_type_handle(self, tree: lark.Tree, expected: Type):
+        assert compiler.handle(tree, Stack()) == expected
