@@ -29,6 +29,10 @@ class VariablesPool:
         self._allocated += count
         return VariablesPool.Context(self, count)
 
+    def allocate_single(self):
+        self._allocated += 1
+        return self._allocated - 1
+
     def deallocate(self, count: int):
         self._allocated -= count
 
