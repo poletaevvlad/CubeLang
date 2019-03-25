@@ -4,7 +4,7 @@ from typing import IO, Union, NamedTuple, Tuple, List, Callable, Dict
 from lark import Lark, Tree
 
 from .expression import Expression, TemplateType
-from .types import Integer, Real, Type, Bool, Set, List as ListType
+from .types import Integer, Real, Type, Bool, Set, List as ListType, Void
 from .stack import Stack
 
 
@@ -97,3 +97,21 @@ def handle_compound_type(tree: Tree, stack: Stack) -> Type:
     constructor = {"type_list": ListType, "type_set": Set}[tree.data]
     inner_type: Type = compiler.handle(tree.children[0], stack)
     return constructor(inner_type)
+
+
+@compiler.handler("var_decl")
+def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
+    var_names: List[str] = []
+    i = 0
+    while isinstance(tree.children[i], str):
+        var_names.append(tree.children[i])
+        i += 1
+    var_type: Type = compiler.handle(tree.children[i], stack)
+    nums = [stack.add_variable(name, var_type) for name in var_names]
+
+    if i != len(tree.children) - 1:
+        value: Expression = compiler.handle(tree.children[i + 1], stack)
+        if not (var_type.is_assignable(value.type)):
+            raise ValueError(f"Value of type {value.type} cannot be assigned to variable of type {var_type}")
+        return [Expression.merge(Void, ["var_" + str(num), " = ", 0], value) for num in nums]
+    return []

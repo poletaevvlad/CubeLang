@@ -4,7 +4,8 @@ import pytest
 from libcube.compiler.compiler import compiler
 from libcube.compiler.expression import Expression
 from libcube.compiler.stack import Stack
-from libcube.compiler.types import Integer, Real, Type, Bool, List, Set
+from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void
+import typing
 
 
 # noinspection PyMethodMayBeStatic
@@ -68,3 +69,30 @@ class TestTransformer:
     ])
     def test_type_handle(self, tree: lark.Tree, expected: Type):
         assert compiler.handle(tree, Stack()) == expected
+
+    def test_var_declaration(self):
+        tree = lark.Tree("var_decl", ["a", "b", "c", lark.Tree("type_int", [])])
+        stack = Stack()
+
+        assert compiler.handle(tree, stack) == []
+        assert stack.get_variable("a").type == Integer
+        assert stack.get_variable("b").type == Integer
+        assert stack.get_variable("c").type == Integer
+
+    def test_var_declaration_value(self):
+        tree = lark.Tree("var_decl", ["a", "b", "c", lark.Tree("type_int", []), lark.Tree("int_literal", "1")])
+        stack = Stack()
+
+        values: typing.List[Expression] = compiler.handle(tree, stack)
+        for i, value in enumerate(values):
+            assert value.type == Void
+            assert value.expression == ["var_" + str(i), " = ", "1"]
+
+        assert stack.get_variable("a").type == Integer
+        assert stack.get_variable("b").type == Integer
+        assert stack.get_variable("c").type == Integer
+
+    def test_var_declaration_wrong_type(self):
+        tree = lark.Tree("var_decl", ["a", lark.Tree("type_int", []), lark.Tree("float_literal", "1")])
+        with pytest.raises(ValueError):
+            compiler.handle(tree, Stack())

@@ -21,6 +21,7 @@ class Type:
 Integer = Type("Integer")
 
 Real = Type("Real")
+Void = Type("Void")
 Real.is_assignable = MethodType(lambda self, fr: fr in {Integer, Real}, Real)
 
 Bool = Type("Bool")
