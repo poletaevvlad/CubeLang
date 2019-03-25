@@ -3,7 +3,8 @@ import pytest
 
 from libcube.compiler.compiler import compiler
 from libcube.compiler.expression import Expression
-from libcube.compiler.types import Integer, Real, Type, Bool
+from libcube.compiler.stack import Stack
+from libcube.compiler.types import Integer, Real, Type
 
 
 # noinspection PyMethodMayBeStatic
@@ -15,7 +16,7 @@ class TestTransformer:
     ])
     def test_literal(self, name: str, value: str, exp_type: Type, exp_value: str):
         tree = lark.Tree(name, [value])
-        expr = compiler.handle(tree)
+        expr = compiler.handle(tree, Stack())
         assert isinstance(expr, Expression)
         assert expr.type == exp_type
         assert expr.expression == [exp_value]
@@ -30,17 +31,30 @@ class TestTransformer:
     def test_operators(self, op1_type: str, op2_type: str, op_name: str, res_type: Type, res_expr: str):
         tree = lark.Tree(op_name, [lark.Tree(op1_type, ["1"]), lark.Tree(op2_type, ["2"])])
 
-        expr: Expression = compiler.handle(tree)
+        expr: Expression = compiler.handle(tree, Stack())
         assert expr.type == res_type
         assert expr.intermediates == []
         assert "".join(expr.expression) == res_expr
 
-    @pytest.mark.parametrize("op1_type, op2_type, op_name", [
-        (Bool, Integer, "op_0_0"),
-    ])
-    def test_operators_invalid(self, op1_type: Type, op2_type: Type, op_name: str):
-        a_expr = Expression(op1_type, ["a"])
-        b_expr = Expression(op2_type, ["b"])
-        tree = lark.Tree(op_name, [a_expr, b_expr])
-        with pytest.raises(Exception):
-            compiler.handle(tree)
+    # TODO: test invalid operand types
+
+    def test_variable_exist(self):
+        tree = lark.Tree("variable", "a")
+        stack = Stack()
+        stack.add_variable("a", Integer)
+        expression: Expression = compiler.handle(tree, stack)
+        assert expression.type == Integer
+        assert expression.expression == ["var_0"]
+
+    def test_global_variable_exist(self):
+        tree = lark.Tree("variable", "a")
+        stack = Stack()
+        stack.add_global("a", Real)
+        expression: Expression = compiler.handle(tree, stack)
+        assert expression.type == Real
+        assert expression.expression == ["a"]
+
+    def test_undefined_variable(self):
+        tree = lark.Tree("variable", "a")
+        with pytest.raises(ValueError):
+            compiler.handle(tree, Stack())

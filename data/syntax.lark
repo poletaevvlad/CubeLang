@@ -22,7 +22,7 @@ for_expression: "for" IDENTIFIER "in" expression "do" _clause
 
 ?atom: INT_LITERAL -> int_literal
            | FLOAT_LITERAL -> float_literal
-           | IDENTIFIER
+           | IDENTIFIER -> variable
            | collection_item
            | "(" expression ")" 
            | "-" expression -> negation
