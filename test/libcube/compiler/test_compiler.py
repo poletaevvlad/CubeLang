@@ -2,7 +2,7 @@ import lark
 import pytest
 
 from libcube.compiler.compiler import compiler
-from libcube.compiler.expression import Expression
+from libcube.compiler.expression import Expression, ConditionExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void
 import typing
@@ -94,5 +94,51 @@ class TestTransformer:
 
     def test_var_declaration_wrong_type(self):
         tree = lark.Tree("var_decl", ["a", lark.Tree("type_int", []), lark.Tree("float_literal", "1")])
+        with pytest.raises(ValueError):
+            compiler.handle(tree, Stack())
+
+    def test_if_expression(self):
+        tree = lark.Tree("if_expression", [
+            lark.Tree("bool_literal_true", []),
+            lark.Tree("clause", [
+                lark.Tree("int_literal", "1"),
+                lark.Tree("float_literal", "2")
+            ])
+        ])
+        expression = compiler.handle(tree, Stack())
+        assert isinstance(expression, ConditionExpression)
+        assert expression.type == Void
+
+        intermediate = expression.intermediates[0]
+        assert isinstance(intermediate, ConditionExpression.Intermediate)
+        assert intermediate.condition.expression == ["True"]
+        assert intermediate.then_clause[0].expression == ["1"]
+        assert intermediate.then_clause[1].expression == ["2.0"]
+        assert len(intermediate.else_clause) == 0
+
+    def test_if_else_expression(self):
+        tree = lark.Tree("if_expression", [
+            lark.Tree("bool_literal_false", []),
+            lark.Tree("int_literal", "1"),
+            lark.Tree("clause", [
+                lark.Tree("float_literal", "2")
+            ])
+        ])
+        expression = compiler.handle(tree, Stack())
+        assert isinstance(expression, ConditionExpression)
+        assert expression.type == Real
+
+        intermediate = expression.intermediates[0]
+        assert isinstance(intermediate, ConditionExpression.Intermediate)
+        assert intermediate.condition.expression == ["False"]
+        assert intermediate.then_clause[0].expression == ["1"]
+        assert intermediate.else_clause[0].expression == ["2.0"]
+
+    def test_if_wrong_type(self):
+        tree = lark.Tree("if_expression", [
+            lark.Tree("int_literal", ["1"]),
+            lark.Tree("float_literal", ["2"]),
+            lark.Tree("float_literal", ["3"])
+        ])
         with pytest.raises(ValueError):
             compiler.handle(tree, Stack())
