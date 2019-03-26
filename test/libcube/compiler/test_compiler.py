@@ -2,7 +2,7 @@ import lark
 import pytest
 
 from libcube.compiler.compiler import compiler
-from libcube.compiler.expression import Expression, ConditionExpression
+from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void
 import typing
@@ -142,3 +142,24 @@ class TestTransformer:
         ])
         with pytest.raises(ValueError):
             compiler.handle(tree, Stack())
+
+    def test_while(self):
+        tree = lark.Tree("while_expression", [
+            lark.Tree("bool_literal_true", []),
+            lark.Tree("int_literal", "1")
+        ])
+        expression = compiler.handle(tree, Stack())
+        assert isinstance(expression, WhileLoopExpression)
+        assert expression.type == Integer
+
+        intermediate = expression.intermediates[0]
+        assert isinstance(intermediate, WhileLoopExpression.Intermediate)
+        assert intermediate.condition.expression == ["True"]
+        assert intermediate.actions[0].expression == ["1"]
+
+    def test_while_type_error(self):
+        with pytest.raises(ValueError):
+            compiler.handle(lark.Tree("while_expression", [
+                lark.Tree("int_literal", "2"),
+                lark.Tree("int_literal", "1")
+            ]), Stack())

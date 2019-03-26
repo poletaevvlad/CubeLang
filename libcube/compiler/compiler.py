@@ -3,7 +3,7 @@ from typing import IO, Union, NamedTuple, Tuple, List, Callable, Dict
 
 from lark import Lark, Tree
 
-from .expression import Expression, TemplateType, ConditionExpression
+from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void
 from .stack import Stack
 
@@ -141,10 +141,19 @@ def handle_clause(tree: Tree, stack: Stack) -> List[Expression]:
 def handle_if_expression(tree: Tree, stack: Stack) -> Expression:
     condition = compiler.handle(tree.children[0], stack)
     if not Bool.is_assignable(condition.type):
-        raise ValueError("Only expression of boolean type can be used as if condition")
+        raise ValueError("Only expression of boolean type can be used as an if condition")
     then_clause = handle_clause(tree.children[1], stack)
     if len(tree.children) > 2:
         else_clause = handle_clause(tree.children[2], stack)
     else:
         else_clause = []
     return ConditionExpression(condition, then_clause, else_clause)
+
+
+@compiler.handler("while_expression")
+def handle_while_expression(tree: Tree, stack: Stack) -> Expression:
+    condition = compiler.handle(tree.children[0], stack)
+    if not Bool.is_assignable(condition.type):
+        raise ValueError("Only expression of boolean type can be used as a while condition")
+    actions = handle_clause(tree.children[1], stack)
+    return WhileLoopExpression(condition, actions)
