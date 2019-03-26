@@ -1,5 +1,5 @@
-from libcube.compiler.expression import VariablesPool, Expression
-from libcube.compiler.types import Integer, Real
+from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression
+from libcube.compiler.types import Integer, Real, Bool, Void
 from libcube.compiler.codeio import CodeStream
 
 
@@ -61,3 +61,52 @@ def test_merge():
     assert merged.intermediates == intermediates
     assert merged.type == Real
     assert merged.expression == ["(", 2, "*", 3, "*", 4, ")--(", 6, "+", 5, ")--(", 0, "/", 1, ")"]
+
+
+class TestConditions:
+    def test_simple(self):
+        expr = ConditionExpression(Expression(Bool, ["a"]),
+                                   [Expression(Integer, "b"), Expression(Integer, "c")],
+                                   [])
+        pool = VariablesPool()
+        stream = CodeStream()
+        expr.generate(pool, stream, None)
+
+        res = stream.get_contents()
+        assert res == "if a:\n    b\n    c\n"
+        assert expr.type == Void
+
+    def test_else(self):
+        expr = ConditionExpression(Expression(Bool, ["a"]),
+                                   [Expression(Integer, "b")],
+                                   [Expression(Real, "c"), Expression(Bool, "d")])
+        pool = VariablesPool()
+        stream = CodeStream()
+        expr.generate(pool, stream, None)
+        res = stream.get_contents()
+        assert res == "if a:\n    b\nelse:\n    c\n    d\n"
+        assert expr.type == Void
+
+    def test_expression(self):
+        expr = ConditionExpression(Expression(Bool, ["a"]),
+                                   [Expression(Integer, "b")],
+                                   [Expression(Real, "c"), Expression(Integer, "d")])
+        pool = VariablesPool()
+        stream = CodeStream()
+        expr.generate(pool, stream, "res")
+
+        res = stream.get_contents()
+        assert res == "if a:\n    res = b\nelse:\n    c\n    res = d\n"
+        assert expr.type == Integer
+
+    def test_merge(self):
+        expr1 = Expression(Integer, ["a"])
+        expr2 = ConditionExpression(Expression(Bool, ["a"]), [Expression(Integer, "b")], [Expression(Integer, "d")])
+        merged = Expression.merge(Bool, [0, " -- ", 1], expr1, expr2)
+
+        pool = VariablesPool()
+        stream = CodeStream()
+        merged.generate(pool, stream, "x")
+
+        res = stream.get_contents()
+        assert res == "if a:\n    tmp_0 = b\nelse:\n    tmp_0 = d\nx = a -- tmp_0\n"

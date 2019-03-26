@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from compiler.codeio import CodeStream
-from .types import Type
+from .types import Type, Void
 
 TemplateType = List[Union[str, int]]
 
@@ -49,19 +49,23 @@ class Expression:
         self.intermediates.append(expression)
         return len(self.intermediates) - 1
 
-    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
-        with temp_pool.allocate(len(self.intermediates)) as variables:
+    def generate_line(self, pool: VariablesPool, stream: CodeStream) -> str:
+        with pool.allocate(len(self.intermediates)) as variables:
             for var, expr in zip(variables, self.intermediates):
                 temp_var_name = "tmp_" + str(var)
-                expr.generate(temp_pool, stream, temp_var_name)
+                expr.generate(pool, stream, temp_var_name)
             variables = list(variables)
-            expression = "".join("tmp_" + str(variables[c]) if isinstance(c, int) else c
-                                 for c in self.expression)
+            return "".join("tmp_" + str(variables[c]) if isinstance(c, int) else c
+                           for c in self.expression)
 
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+        if self.expression == [0]:
+            self.intermediates[0].generate(temp_pool, stream, var_name)
+            return
+        expression = self.generate_line(temp_pool, stream)
         if var_name is not None:
-            stream.push_line(f"{var_name} = {expression}")
-        else:
-            stream.push_line(expression)
+            expression = var_name + " = " + expression
+        stream.push_line(expression)
 
     @staticmethod
     def _from_template(template: TemplateType, expressions: List[TemplateType]) -> TemplateType:
@@ -93,3 +97,41 @@ class Expression:
         result.expression = list(Expression._from_template(template, expressions))
         return result
 
+
+class ConditionExpression(Expression):
+    class Intermediate(Expression):
+        def __init__(self, type: Type, condition: Expression, then_clause: List[Expression], else_clause: List[Expression]):
+            super(ConditionExpression.Intermediate, self).__init__(type, [])
+            self.condition: Expression = condition
+            self.then_clause: List[Expression] = then_clause
+            self.else_clause: List[Expression] = else_clause
+
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+            condition = self.condition.generate_line(temp_pool, stream)
+            stream.push_line("if " + condition + ":")
+            stream.indent()
+            for line in self.then_clause[:-1]:
+                line.generate(temp_pool, stream, None)
+            self.then_clause[-1].generate(temp_pool, stream, None if self.type is None else var_name)
+            stream.unindent()
+
+            if len(self.else_clause) > 0:
+                stream.push_line("else:")
+                stream.indent()
+                for line in self.else_clause[:-1]:
+                    line.generate(temp_pool, stream, None)
+                self.else_clause[-1].generate(temp_pool, stream, None if self.type is None else var_name)
+                stream.unindent()
+
+    def __init__(self, condition: Expression, then_clause: List[Expression], else_clause: List[Expression]):
+        expr_type = Void
+        if len(else_clause) > 0:
+            expr_type1 = then_clause[-1].type
+            expr_type2 = else_clause[-1].type
+            if expr_type1.is_assignable(expr_type2):
+                expr_type = expr_type1
+            elif expr_type2.is_assignable(expr_type1):
+                expr_type = expr_type2
+
+        super(ConditionExpression, self).__init__(expr_type, [0])
+        self.add_intermediate(ConditionExpression.Intermediate(expr_type, condition, then_clause, else_clause))
