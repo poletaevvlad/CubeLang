@@ -164,3 +164,26 @@ class WhileLoopExpression(Expression):
     def __init__(self, condition: Expression, actions: List[Expression]):
         super().__init__(actions[-1].type, [0])
         self.add_intermediate(WhileLoopExpression.Intermediate(condition, actions))
+
+
+class RepeatLoopExpression(Expression):
+    class Intermediate(Expression):
+        def __init__(self, times: Expression, actions: List[Expression]):
+            self.times: Expression = times
+            self.actions: List[Expression] = actions
+            super().__init__(self.actions[-1].type, [])
+
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+            with temp_pool.allocate(1) as ctr:
+                counter, = ctr
+                line = self.times.generate_line(temp_pool, stream)
+                stream.push_line(f"for tmp_{counter} in range({line}):")
+                stream.indent()
+                for action in self.actions[:-1]:
+                    action.generate(temp_pool, stream, None)
+                self.actions[-1].generate(temp_pool, stream, var_name)
+                stream.unindent()
+
+    def __init__(self, times: Expression, actions: List[Expression]):
+        super().__init__(actions[-1].type, [0])
+        self.add_intermediate(RepeatLoopExpression.Intermediate(times, actions))

@@ -1,4 +1,5 @@
-from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression
+from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression, \
+    RepeatLoopExpression
 from libcube.compiler.types import Integer, Real, Bool, Void
 from libcube.compiler.codeio import CodeStream
 
@@ -137,3 +138,15 @@ class TestWhileLoop:
 
         res = stream.get_contents()
         assert res == "tmp_0 = b\nwhile a tmp_0:\n    b\n    res = c\n    tmp_0 = b\n"
+
+
+class TestRepeatLoop:
+    def test_loop(self):
+        iterations = Expression(Bool, ["a ", 0])
+        iterations.add_intermediate(Expression(Void, ["b"]))
+        expr = RepeatLoopExpression(iterations, [Expression(Void, "a"), Expression(Void, "b")])
+        stream = CodeStream()
+        expr.generate(VariablesPool(), stream, "res")
+
+        res = stream.get_contents()
+        assert res == "tmp_1 = b\nfor tmp_0 in range(a tmp_1):\n    a\n    res = b\n"
