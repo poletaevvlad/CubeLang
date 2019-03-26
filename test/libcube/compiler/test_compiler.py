@@ -2,7 +2,8 @@ import lark
 import pytest
 
 from libcube.compiler.compiler import compiler
-from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression
+from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
+    RepeatLoopExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void
 import typing
@@ -182,5 +183,26 @@ class TestTransformer:
         with pytest.raises(ValueError):
             compiler.handle(lark.Tree("do_expression", [
                 lark.Tree("int_literal", "2"),
+                lark.Tree("int_literal", "1")
+            ]), Stack())
+
+    def test_repeat(self):
+        tree = lark.Tree("repeat_expression", [
+            lark.Tree("int_literal", ["2"]),
+            lark.Tree("bool_literal_true", [])
+        ])
+        expression = compiler.handle(tree, Stack())
+        assert isinstance(expression, RepeatLoopExpression)
+        assert expression.type == Bool
+
+        intermediate = expression.intermediates[0]
+        assert isinstance(intermediate, RepeatLoopExpression.Intermediate)
+        assert intermediate.times.expression == ["2"]
+        assert intermediate.actions[0].expression == ["True"]
+
+    def test_repeat_error(self):
+        with pytest.raises(ValueError):
+            compiler.handle(lark.Tree("repeat_expression", [
+                lark.Tree("float_literal", "2"),
                 lark.Tree("int_literal", "1")
             ]), Stack())

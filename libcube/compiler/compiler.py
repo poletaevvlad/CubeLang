@@ -3,7 +3,8 @@ from typing import IO, Union, NamedTuple, Tuple, List, Callable, Dict
 
 from lark import Lark, Tree
 
-from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression
+from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
+    RepeatLoopExpression
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void
 from .stack import Stack
 
@@ -166,3 +167,12 @@ def handle_do_expression(tree: Tree, stack: Stack) -> Expression:
         raise ValueError("Only expression of boolean type can be used as a do-while condition")
     actions = handle_clause(tree.children[0], stack)
     return DoWhileLoopExpression(condition, actions)
+
+
+@compiler.handler("repeat_expression")
+def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
+    iterations = compiler.handle(tree.children[0], stack)
+    if not Integer.is_assignable(iterations.type):
+        raise ValueError("Iterations count must be integer")
+    actions = handle_clause(tree.children[1], stack)
+    return RepeatLoopExpression(iterations, actions)
