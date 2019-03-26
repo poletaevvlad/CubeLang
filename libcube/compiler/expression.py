@@ -49,14 +49,20 @@ class Expression:
         self.intermediates.append(expression)
         return len(self.intermediates) - 1
 
+    def generate_intermediates(self, vars: VariablesPool.Context, pool: VariablesPool, stream: CodeStream):
+        for var, expr in zip(vars, self.intermediates):
+            temp_var_name = "tmp_" + str(var)
+            expr.generate(pool, stream, temp_var_name)
+
+    def generate_expression_line(self, vars: VariablesPool.Context) -> str:
+        variables = list(vars)
+        return "".join("tmp_" + str(variables[c]) if isinstance(c, int) else c
+                       for c in self.expression)
+
     def generate_line(self, pool: VariablesPool, stream: CodeStream) -> str:
         with pool.allocate(len(self.intermediates)) as variables:
-            for var, expr in zip(variables, self.intermediates):
-                temp_var_name = "tmp_" + str(var)
-                expr.generate(pool, stream, temp_var_name)
-            variables = list(variables)
-            return "".join("tmp_" + str(variables[c]) if isinstance(c, int) else c
-                           for c in self.expression)
+            self.generate_intermediates(variables, pool, stream)
+            return self.generate_expression_line(variables)
 
     def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
         if self.expression == [0]:
@@ -135,3 +141,26 @@ class ConditionExpression(Expression):
 
         super(ConditionExpression, self).__init__(expr_type, [0])
         self.add_intermediate(ConditionExpression.Intermediate(expr_type, condition, then_clause, else_clause))
+
+
+class WhileLoopExpression(Expression):
+    class Intermediate(Expression):
+        def __init__(self, condition: Expression, actions: List[Expression]):
+            self.condition: Expression = condition
+            self.actions: List[Expression] = actions
+            super().__init__(self.actions[-1].type, [])
+
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+            with temp_pool.allocate(len(self.condition.intermediates)) as cond_vars:
+                self.condition.generate_intermediates(cond_vars, temp_pool, stream)
+                stream.push_line("while " + self.condition.generate_expression_line(cond_vars) + ":")
+                stream.indent()
+                for action in self.actions[:-1]:
+                    action.generate(temp_pool, stream, None)
+                self.actions[-1].generate(temp_pool, stream, var_name)
+                self.condition.generate_intermediates(cond_vars, temp_pool, stream)
+                stream.unindent()
+
+    def __init__(self, condition: Expression, actions: List[Expression]):
+        super().__init__(actions[-1].type, [0])
+        self.add_intermediate(WhileLoopExpression.Intermediate(condition, actions))

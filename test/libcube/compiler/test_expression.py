@@ -1,4 +1,4 @@
-from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression
+from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression
 from libcube.compiler.types import Integer, Real, Bool, Void
 from libcube.compiler.codeio import CodeStream
 
@@ -110,3 +110,30 @@ class TestConditions:
 
         res = stream.get_contents()
         assert res == "if a:\n    tmp_0 = b\nelse:\n    tmp_0 = d\nx = a -- tmp_0\n"
+
+
+class TestWhileLoop:
+    def test_loop(self):
+        condition = Expression(Bool, ["a ", 0])
+        condition.add_intermediate(Expression(Integer, "b"))
+
+        action = Expression(Void, ["action ", 0])
+        action.add_intermediate(Expression(Integer, "A"))
+
+        expr = WhileLoopExpression(condition, [Expression(Integer, "b"), action])
+        stream = CodeStream()
+        expr.generate(VariablesPool(), stream, None)
+
+        res = stream.get_contents()
+        assert res == "tmp_0 = b\nwhile a tmp_0:\n    b\n    tmp_1 = A\n    action tmp_1\n    tmp_0 = b\n"
+
+    def test_loop_variable(self):
+        condition = Expression(Bool, ["a ", 0])
+        condition.add_intermediate(Expression(Integer, "b"))
+
+        expr = WhileLoopExpression(condition, [Expression(Integer, "b"), Expression(Integer, "c")])
+        stream = CodeStream()
+        expr.generate(VariablesPool(), stream, "res")
+
+        res = stream.get_contents()
+        assert res == "tmp_0 = b\nwhile a tmp_0:\n    b\n    res = c\n    tmp_0 = b\n"
