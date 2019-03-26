@@ -212,3 +212,25 @@ class DoWhileLoopExpression(Expression):
     def __init__(self, condition: Expression, actions: List[Expression]):
         super().__init__(actions[-1].type, [0])
         self.add_intermediate(DoWhileLoopExpression.Intermediate(condition, actions))
+
+
+class ForLoopExpression(Expression):
+    class Intermediate(Expression):
+        def __init__(self, iterator: str, loop_range: Expression, actions: List[Expression]):
+            self.iterator: str = iterator
+            self.range: Expression = loop_range
+            self.actions: List[Expression] = actions
+            super().__init__(self.actions[-1].type, [])
+
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+            range_expression = self.range.generate_line(temp_pool, stream)
+            stream.push(f"for {self.iterator} in {range_expression}:")
+            stream.indent()
+            for action in self.actions[:-1]:
+                action.generate(temp_pool, stream, None)
+            self.actions[-1].generate(temp_pool, stream, var_name)
+            stream.unindent()
+
+    def __init__(self, iterator: str, loop_range: Expression, actions: List[Expression]):
+        super().__init__(actions[-1].type, [0])
+        self.add_intermediate(ForLoopExpression.Intermediate(iterator, loop_range, actions))

@@ -1,6 +1,6 @@
 from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression, \
-    RepeatLoopExpression, DoWhileLoopExpression
-from libcube.compiler.types import Integer, Real, Bool, Void
+    RepeatLoopExpression, DoWhileLoopExpression, ForLoopExpression
+from libcube.compiler.types import Integer, Real, Bool, Void, Set
 from libcube.compiler.codeio import CodeStream
 
 
@@ -162,3 +162,15 @@ class TestDoWhileLoop:
 
         res = stream.get_contents()
         assert res == "while True:\n    a\n    res = b\n    tmp_0 = b\n    if not (a tmp_0):\n        break\n"
+
+
+class TestForLoop:
+    def test_loop(self):
+        range_expression = Expression(Set(Integer), ["range(", 0, ")"])
+        range_expression.add_intermediate(Expression(Bool, ["x"]))
+        expr = ForLoopExpression("i", range_expression, [Expression(Void, "x"), Expression(Integer, "y")])
+
+        stream = CodeStream()
+        expr.generate(VariablesPool(), stream, "res")
+        res = stream.get_contents()
+        assert res == "tmp_0 = x\nfor i in range(tmp_0):\n    x\n    res = y\n"
