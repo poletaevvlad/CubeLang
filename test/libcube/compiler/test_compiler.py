@@ -38,7 +38,14 @@ class TestTransformer:
         assert expr.intermediates == []
         assert "".join(expr.expression) == res_expr
 
-    # TODO: test invalid operand types
+    @pytest.mark.parametrize("operator, arg1, arg2", [
+        ("op_0_0", lark.Tree("float_literal", ["1"]), lark.Tree("bool_literal_true", [])),
+        ("op_0_0", lark.Tree("bool_literal_true", []), lark.Tree("float_literal", ["2"]))
+    ])
+    def test_wrong_operand(self, operator, arg1, arg2):
+        tree = lark.Tree(operator, [arg1, arg2])
+        with pytest.raises(ValueError):
+            compiler.handle(tree, Stack())
 
     def test_variable_exist(self):
         tree = lark.Tree("variable", "a")
