@@ -1,5 +1,5 @@
 from types import MethodType
-
+import typing
 
 class Type:
     def __init__(self, name: str):
@@ -50,3 +50,24 @@ class List(CollectionType):
 class Set(CollectionType):
     def __init__(self, item_type: Type):
         super().__init__("Set", item_type)
+
+
+class Function(Type):
+    def __init__(self, arguments: typing.List[Type], return_type: Type):
+        super().__init__("Function")
+        self.arguments: typing.List[Type] = arguments
+        self.return_type: Type = return_type
+
+    def __hash__(self):
+        return hash((tuple(self.arguments), self.return_type))
+
+    def __eq__(self, other):
+        return (isinstance(other, Function) and self.arguments == other.arguments and
+                self.return_type == other.return_type)
+
+    def __repr__(self):
+        return f"{self.name}({self.arguments}, {self.return_type})"
+
+    def takes_arguments(self, arguments: typing.List[Type]) -> bool:
+        return (len(arguments) == len(self.arguments) and
+                all(y.is_assignable(x) for x, y in zip(arguments, self.arguments)))
