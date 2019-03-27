@@ -4,8 +4,8 @@ from typing import IO, Union, NamedTuple, Tuple, List, Callable, Dict
 from lark import Lark, Tree
 
 from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
-    RepeatLoopExpression
-from .types import Integer, Real, Type, Bool, Set, List as ListType, Void
+    RepeatLoopExpression, ForLoopExpression
+from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType
 from .stack import Stack
 
 
@@ -90,7 +90,7 @@ def handle_bool_literal_false(_tree: Tree, _stack: Stack) -> Expression:
 def handle_variable(tree: Tree, stack: Stack) -> Expression:
     variable = stack.get_variable(tree.children[0])
     if variable is None:
-        raise ValueError(f"Undefined symbol: 'f{tree.children[0]}'")
+        raise ValueError(f"Undefined symbol: '{tree.children[0]}'")
     var_name = "var_" + str(variable.number) if variable.number >= 0 else tree.children[0]
     return Expression(variable.type, var_name)
 
@@ -176,3 +176,32 @@ def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
         raise ValueError("Iterations count must be integer")
     actions = handle_clause(tree.children[1], stack)
     return RepeatLoopExpression(iterations, actions)
+
+
+@compiler.handler("for_expression")
+def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
+    var_name = tree.children[0]
+    range_expression = compiler.handle(tree.children[1], stack)
+    range_type = range_expression.type
+    if not isinstance(range_type, CollectionType):
+        raise ValueError("For loop range must be a list or a set")
+
+    in_stack = stack.get_variable(var_name)
+    if in_stack is not None:
+        if in_stack.number >= 0:
+            var_name = "var_" + str(in_stack.number)
+        if not in_stack.type.is_assignable(range_type.item_type):
+            raise ValueError(f"Value of type {range_type} cannot be assigned to a for loop iterator of type "
+                             f"{in_stack.type}")
+        stack.add_frame()
+    else:
+        stack.add_frame()
+        var_num = stack.add_variable(var_name, range_type.item_type)
+        var_name = "var_" + str(var_num)
+
+    if tree.children[2].data == "clause":
+        actions = [compiler.handle(subtree, stack) for subtree in tree.children[2].children]
+    else:
+        actions = [compiler.handle(tree.children[2], stack)]
+    stack.pop_frame()
+    return ForLoopExpression(var_name, range_expression, actions)

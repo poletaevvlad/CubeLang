@@ -3,7 +3,7 @@ import pytest
 
 from libcube.compiler.compiler import compiler
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
-    RepeatLoopExpression
+    RepeatLoopExpression, ForLoopExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void
 import typing
@@ -206,3 +206,62 @@ class TestTransformer:
                 lark.Tree("float_literal", "2"),
                 lark.Tree("int_literal", "1")
             ]), Stack())
+
+    def test_for_loop_existing_var(self):
+        stack = Stack()
+        stack.add_variable("var", Real)
+        stack.add_variable("range", List(Integer))
+        tree = lark.Tree("for_expression", [
+            "var",
+            lark.Tree("variable", ["range"]),
+            lark.Tree("int_literal", ["1"])
+        ])
+        expression = compiler.handle(tree, stack)
+        assert isinstance(expression, ForLoopExpression)
+        intermediate = expression.intermediates[0]
+        assert isinstance(intermediate, ForLoopExpression.Intermediate)
+        assert intermediate.iterator == "var_0"
+        assert intermediate.range.expression == ["var_1"]
+        assert intermediate.actions[0].expression == ["1"]
+
+    def test_for_loop_new_var(self):
+        stack = Stack()
+        stack.add_variable("range", List(Integer))
+        tree = lark.Tree("for_expression", [
+            "var",
+            lark.Tree("variable", ["range"]),
+            lark.Tree("clause", [
+                lark.Tree("int_literal", ["1"]),
+                lark.Tree("variable", ["var"])
+            ])
+        ])
+        expression = compiler.handle(tree, stack)
+        assert isinstance(expression, ForLoopExpression)
+        intermediate = expression.intermediates[0]
+        assert isinstance(intermediate, ForLoopExpression.Intermediate)
+        assert intermediate.iterator == "var_1"
+        assert intermediate.range.expression == ["var_0"]
+        assert intermediate.actions[0].expression == ["1"]
+        assert intermediate.actions[1].expression == ["var_1"]
+        assert intermediate.actions[1].type == Integer
+
+    def test_for_loop_wrong_range(self):
+        with pytest.raises(ValueError):
+            tree = lark.Tree("for_expression", [
+                "var",
+                lark.Tree("int_literal", ["1"]),
+                lark.Tree("int_literal", ["1"])
+            ])
+            compiler.handle(tree, Stack())
+
+    def test_for_loop_wrong_iterator_type(self):
+        with pytest.raises(ValueError):
+            stack = Stack()
+            stack.add_variable("var", Bool)
+            stack.add_variable("range", List(Integer))
+            tree = lark.Tree("for_expression", [
+                "var",
+                lark.Tree("variable", ["range"]),
+                lark.Tree("int_literal", ["1"])
+            ])
+            compiler.handle(tree, stack)
