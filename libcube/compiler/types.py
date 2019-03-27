@@ -1,5 +1,6 @@
 from types import MethodType
 import typing
+from inspect import getfullargspec
 
 class Type:
     def __init__(self, name: str):
@@ -52,6 +53,24 @@ class Set(CollectionType):
         super().__init__("Set", item_type)
 
 
+def type_annotation_to_type(annotation: typing.Any) -> Type:
+    if annotation == int:
+        return Integer
+    elif annotation == float:
+        return Real
+    elif annotation == bool:
+        return Bool
+    elif annotation is None:
+        return Void
+    r = repr(annotation)
+    if r.startswith(repr(typing.List)):
+        return List(type_annotation_to_type(annotation.__args__[0]))
+    elif r.startswith(repr(typing.Set)):
+        return Set(type_annotation_to_type(annotation.__args__[0]))
+    else:
+        raise ValueError(f"Unsupported annotation: {annotation!r}")
+
+
 class Function(Type):
     def __init__(self, arguments: typing.List[Type], return_type: Type):
         super().__init__("Function")
@@ -71,3 +90,10 @@ class Function(Type):
     def takes_arguments(self, arguments: typing.List[Type]) -> bool:
         return (len(arguments) == len(self.arguments) and
                 all(y.is_assignable(x) for x, y in zip(arguments, self.arguments)))
+
+    @staticmethod
+    def from_function(func: typing.Any) -> "Function":
+        arg_spec = getfullargspec(func)
+        argument_types = (arg_spec.annotations[x] for x in arg_spec.args)
+        return_type = type_annotation_to_type(arg_spec.annotations["return"])
+        return Function(list(map(type_annotation_to_type, argument_types)), return_type)

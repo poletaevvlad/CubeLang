@@ -1,7 +1,7 @@
 import typing
 
 import pytest
-from libcube.compiler.types import Type, Integer, Real, Bool, List, Set, Function, Void
+from libcube.compiler.types import Type, Integer, Real, Bool, List, Set, Function, Void, type_annotation_to_type
 
 
 @pytest.mark.parametrize("type_object, representation", [
@@ -53,3 +53,22 @@ def test_function_arguments(real: typing.List[Type], check: typing.List[Type], r
     func = Function(real, Void)
     res = func.takes_arguments(check)
     assert res == result
+
+
+@pytest.mark.parametrize("annotation, val_type", [
+    (int, Integer), (float, Real), (bool, Bool), (None, Void),
+    (typing.List[int], List(Integer)),
+    (typing.Set[float], Set(Real)),
+    (typing.List[typing.Set[int]], List(Set(Integer)))
+])
+def test_from_annotation(annotation: typing.Any, val_type: Type):
+    assert type_annotation_to_type(annotation) == val_type
+
+
+def test_from_function():
+    # noinspection PyUnusedLocal
+    def f(a: int, b: float, c: typing.List[typing.Set[int]]) -> int:
+        pass
+
+    func = Function.from_function(f)
+    assert func == Function([Integer, Real, List(Set(Integer))], Integer)
