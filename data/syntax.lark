@@ -48,10 +48,6 @@ var_decl: "let" (IDENTIFIER ",")* IDENTIFIER ":" type ("=" expression)?
 argument: IDENTIFIER ":" type ("=" expression)?
 func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? _clause
 var_assignment: assignable "=" expression
-              | assignable "+=" expression -> var_add
-              | assignable "-=" expression -> var_subtract
-              | assignable "*=" expression -> var_multiply
-              | assignable "/=" expression -> var_divide
 
 ?statement: var_decl | func_decl | expression | var_assignment
 _clause: statement | "{" start "}"

@@ -322,3 +322,29 @@ class TestTransformer:
             stack.add_variable("func", Function([Integer, List(Integer)], Integer))
             tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("variable", ["var"])])
             compiler.handle(tree, stack)
+
+    def test_var_assignment(self):
+        stack = Stack()
+        stack.add_variable("var", Real)
+        tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["42"])])
+        expression = compiler.handle(tree, stack)
+        assert expression.expression == ["var_0", " = ", "42"]
+
+    def test_var_assignment_readonly(self):
+        stack = Stack()
+        stack.add_global("var", Real)
+        tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
+        with pytest.raises(ValueError):
+            compiler.handle(tree, stack)
+
+    def test_var_assignment_undefined(self):
+        tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
+        with pytest.raises(ValueError):
+            compiler.handle(tree, Stack())
+
+    def test_var_assignment_type_error(self):
+        stack = Stack()
+        stack.add_global("var", List(Integer))
+        tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
+        with pytest.raises(ValueError):
+            compiler.handle(tree, stack)

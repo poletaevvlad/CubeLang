@@ -235,3 +235,20 @@ def handle_func_call(tree: Tree, stack: Stack):
 
     return Expression.merge(func_type.return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"],
                             *arguments)
+
+
+@compiler.handler("var_assignment")
+def handle_var_assignment(tree: Tree, stack: Stack):
+    var_name: str = tree.children[0]
+    var_data = stack.get_variable(var_name)
+    if var_data is None:
+        raise ValueError(f"Undefined symbol: {var_data}")
+    elif var_data.number < 0:
+        raise ValueError(f"Attempting to read to readonly value {var_data}")
+
+    expression: Expression = compiler.handle(tree.children[1], stack)
+    if not var_data.type.is_assignable(expression.type):
+        raise ValueError(f"Value of type {expression.type} cannot be assigned to a varaible of type "
+                         f"{var_data.type}")
+
+    return Expression.merge(Void, ["var_" + str(var_data.number), " = ", 0], expression)
