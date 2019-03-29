@@ -82,7 +82,11 @@ class TestTransformer:
         tree = lark.Tree("var_decl", ["a", "b", "c", lark.Tree("type_int", [])])
         stack = Stack()
 
-        assert compiler.handle(tree, stack) == []
+        expressions = compiler.handle(tree, stack)
+        for i, value in enumerate(expressions):
+            assert value.type == Void
+            assert value.expression == ["var_" + str(i), " = ", "0"]
+
         assert stack.get_variable("a").type == Integer
         assert stack.get_variable("b").type == Integer
         assert stack.get_variable("c").type == Integer

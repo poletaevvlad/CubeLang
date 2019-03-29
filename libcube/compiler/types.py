@@ -2,9 +2,11 @@ from types import MethodType
 import typing
 from inspect import getfullargspec
 
+
 class Type:
-    def __init__(self, name: str):
+    def __init__(self, name: str, default: str):
         self.name = name
+        self.default = default
 
     def is_assignable(self, fr: "Type"):
         return self == fr
@@ -18,19 +20,22 @@ class Type:
     def __repr__(self):
         return self.name
 
+    def default_value(self) -> str:
+        return self.default
 
-Integer = Type("Integer")
 
-Real = Type("Real")
-Void = Type("Void")
+Integer = Type("Integer", "0")
+
+Real = Type("Real", "0.0")
+Void = Type("Void", "")
 Real.is_assignable = MethodType(lambda self, fr: fr in {Integer, Real}, Real)
 
-Bool = Type("Bool")
+Bool = Type("Bool", "False")
 
 
 class CollectionType(Type):
-    def __init__(self, name: str, item_type: Type):
-        super().__init__(name)
+    def __init__(self, name: str, item_type: Type, default: str):
+        super().__init__(name, default)
         self.item_type = item_type
 
     def __eq__(self, other):
@@ -45,12 +50,12 @@ class CollectionType(Type):
 
 class List(CollectionType):
     def __init__(self, item_type: Type):
-        super().__init__("List", item_type)
+        super().__init__("List", item_type, "list()")
 
 
 class Set(CollectionType):
     def __init__(self, item_type: Type):
-        super().__init__("Set", item_type)
+        super().__init__("Set", item_type, "set()")
 
 
 def type_annotation_to_type(annotation: typing.Any) -> Type:
@@ -73,7 +78,7 @@ def type_annotation_to_type(annotation: typing.Any) -> Type:
 
 class Function(Type):
     def __init__(self, arguments: typing.List[Type], return_type: Type):
-        super().__init__("Function")
+        super().__init__("Function", "")
         self.arguments: typing.List[Type] = arguments
         self.return_type: Type = return_type
 

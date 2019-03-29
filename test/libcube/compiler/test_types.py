@@ -72,3 +72,10 @@ def test_from_function():
 
     func = Function.from_function(f)
     assert func == Function([Integer, Real, List(Set(Integer))], Integer)
+
+
+@pytest.mark.parametrize("type, value", [
+    (Integer, "0"), (Real, "0.0"), (Bool, "False"), (List(Bool), "list()"), (Set(Integer), "set()")
+])
+def test_default(type: Type, value: str):
+    assert type.default_value() == value

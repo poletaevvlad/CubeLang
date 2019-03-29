@@ -125,7 +125,7 @@ def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
         if not (var_type.is_assignable(value.type)):
             raise ValueError(f"Value of type {value.type} cannot be assigned to variable of type {var_type}")
         return [Expression.merge(Void, ["var_" + str(num), " = ", 0], value) for num in nums]
-    return []
+    return [Expression(Void, ["var_" + str(num), " = ", var_type.default_value()]) for num in nums]
 
 
 def handle_clause(tree: Tree, stack: Stack) -> List[Expression]:
