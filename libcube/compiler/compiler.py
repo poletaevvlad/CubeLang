@@ -5,7 +5,7 @@ from lark import Lark, Tree
 
 from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
-from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType
+from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function
 from .stack import Stack
 
 
@@ -205,3 +205,33 @@ def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
         actions = [compiler.handle(tree.children[2], stack)]
     stack.pop_frame()
     return ForLoopExpression(var_name, range_expression, actions)
+
+
+@compiler.handler("func_call")
+def handle_func_call(tree: Tree, stack: Stack):
+    def create_arg_list(count):
+        if count > 0:
+            yield 0
+            for index in range(1, count):
+                yield ", "
+                yield index
+
+    function_name: str = tree.children[0]
+    func_data = stack.get_variable(function_name)
+    if func_data is None:
+        raise ValueError(f"Undefined symbol: {function_name}")
+
+    func_type: Function = func_data.type
+    if not isinstance(func_type, Function):
+        raise ValueError(f"{function_name} is not a function")
+
+    if func_data.number >= 0:
+        function_name = "var_" + str(func_data.number)
+
+    arguments = [compiler.handle(x, stack) for x in tree.children[1:]]
+    arg_types = [x.type for x in arguments]
+    if not func_type.takes_arguments(arg_types):
+        raise ValueError(f"Function {function_name} does not accept arguments: {arg_types!r}")
+
+    return Expression.merge(func_type.return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"],
+                            *arguments)

@@ -5,7 +5,7 @@ from libcube.compiler.compiler import compiler
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
 from libcube.compiler.stack import Stack
-from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void
+from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function
 import typing
 
 
@@ -271,4 +271,54 @@ class TestTransformer:
                 lark.Tree("variable", ["range"]),
                 lark.Tree("int_literal", ["1"])
             ])
+            compiler.handle(tree, stack)
+
+    @pytest.mark.parametrize("is_global", [(True,), (False,)])
+    def test_function_call(self, is_global):
+        stack = Stack()
+        stack.add_variable("array", List(Integer))
+        func = Function([Integer, Real, List(Integer)], Void)
+        if is_global:
+            stack.add_global("func", func)
+        else:
+            stack.add_variable("func", func)
+
+        tree = lark.Tree("func_call", [
+            "func",
+            lark.Tree("int_literal", ["1"]),
+            lark.Tree("int_literal", ["2"]),
+            lark.Tree("variable", ["array"]),
+        ])
+        expression = compiler.handle(tree, stack)
+
+        assert expression.type == Void
+        func_name = "func" if is_global else "var_1"
+        assert expression.expression == [func_name, "(", "1", ", ", "2", ", ", "var_0", ")"]
+
+    def test_function_call_invalid_name(self):
+        with pytest.raises(ValueError):
+            tree = lark.Tree("func_call", ["func"])
+            compiler.handle(tree, Stack())
+
+    def test_function_call_invalid_arguments_count_few(self):
+        with pytest.raises(ValueError):
+            stack = Stack()
+            stack.add_variable("func", Function([Integer, Integer], Integer))
+            tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"])])
+            compiler.handle(tree, stack)
+
+    def test_function_call_invalid_arguments_count_many(self):
+        with pytest.raises(ValueError):
+            stack = Stack()
+            stack.add_variable("func", Function([Integer, Integer], Integer))
+            tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("int_literal", ["1"]),
+                                           lark.Tree("int_literal", ["1"])])
+            compiler.handle(tree, stack)
+
+    def test_function_call_invalid_argument_types(self):
+        with pytest.raises(ValueError):
+            stack = Stack()
+            stack.add_variable("var", Set(Real))
+            stack.add_variable("func", Function([Integer, List(Integer)], Integer))
+            tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("variable", ["var"])])
             compiler.handle(tree, stack)
