@@ -6,14 +6,6 @@ INT_LITERAL.2: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
 IDENTIFIER: /[a-zA-Z_][a-zA-Z_\d]*/
 
-?op_sum.2: op_mul
-         | op_sum "+" op_mul -> op_add
-         | op_sum "-" op_mul -> op_subtract
-
-?op_mul.1: atom
-         | op_mul "*" atom -> op_multiply
-         | op_mul "/" atom -> op_divide
-
 if_expression: "if" expression "then" _clause ("else" _clause)?
 while_expression: "while" expression "do" _clause
 do_expression: "do" _clause "while" expression
@@ -33,7 +25,7 @@ for_expression: "for" IDENTIFIER "in" expression "do" _clause
            | repeat_expression
            | for_expression
 
-?expression: op_sum
+?expression: op_0
 
 collection_item: IDENTIFIER "[" expression "]"
 ?assignable: IDENTIFIER | collection_item
@@ -50,5 +42,5 @@ func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? _clau
 var_assignment: assignable "=" expression
 
 ?statement: var_decl | func_decl | expression | var_assignment
-_clause: statement | "{" start "}"
-?start: (_clause _NEWLINE)* _clause?
+_clause: statement | "{" clause "}"
+?clause: (_clause _NEWLINE)* _clause?

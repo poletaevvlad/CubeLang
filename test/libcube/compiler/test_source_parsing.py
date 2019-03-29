@@ -1,7 +1,7 @@
 import lark
 import pytest
 
-from libcube.compiler.parser import parser
+from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
 from libcube.compiler.stack import Stack
@@ -11,6 +11,19 @@ import typing
 
 # noinspection PyMethodMayBeStatic
 class TestTransformer:
+
+    def test_operator_generation(self):
+        operators = [
+            [BinaryOperator("a", [], []), BinaryOperator("b", [], [])],
+            [BinaryOperator("c", [], [])],
+            [BinaryOperator("e", [], []), BinaryOperator("f", [], []), BinaryOperator("g", [], [])]
+        ]
+        actual = parser._generate_operators(operators)
+        print(actual)
+        assert actual == ("?op_0.3: op_1 | op_0 \"a\" op_1 -> op_0_0 | op_0 \"b\" op_1 -> op_0_1\n"
+                          "?op_1.2: op_2 | op_1 \"c\" op_2 -> op_1_0\n"
+                          "?op_2.1: atom | op_2 \"e\" atom -> op_2_0 | op_2 \"f\" atom -> op_2_1 | "
+                          "op_2 \"g\" atom -> op_2_2\n")
 
     @pytest.mark.parametrize("name, value, exp_type, exp_value", [
         ("int_literal", "1", Integer, "1"),

@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Union, NamedTuple, Tuple, List, Callable, Dict
+from typing import Union, NamedTuple, Tuple, List, Callable, Dict, IO, Iterator
 
-from lark import Lark, Tree
+from lark import Tree, Lark
 
 from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
@@ -17,14 +17,33 @@ class BinaryOperator(NamedTuple):
 
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
 
+BINARY_OPERATORS = [[
+    BinaryOperator("+", ["(", 0, ") + (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
+    BinaryOperator("-", ["(", 0, ") - (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
+    BinaryOperator("*", ["(", 0, ") * (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
+    BinaryOperator("/", ["(", 0, ") / (", 1, ")"], [((Real, Real), Real)]),
+]]
+
 
 class Parser:
     def __init__(self):
         path = Path(__file__).parents[2] / "data" / "syntax.lark"
         with open(str(path)) as f:
-            grammar = f.read()
-        self.lark = Lark(grammar)
+            grammar = Parser._generate_operators(BINARY_OPERATORS) + f.read()
+        self.lark = Lark(grammar, start="clause")
         self.callbacks: Dict[str, Callback] = dict()
+
+    @staticmethod
+    def _generate_operators(operators: List[List[BinaryOperator]]) -> str:
+        lines = []
+        for op_index, op in enumerate(operators):
+            this_name = "op_" + str(op_index)
+            next_name = "op_" + str(op_index + 1) if op_index < len(operators) - 1 else "atom"
+            lines.append(f"?{this_name}.{len(operators) - op_index}: {next_name} | ")
+            lines.append(" | ".join(f"{this_name} \"{operator.symbol}\" {next_name} -> op_{op_index}_{index}"
+                                    for index, operator in enumerate(op)))
+            lines.append("\n")
+        return "".join(lines)
 
     def handler(self, name: str) -> Callable[[Callback], Callback]:
         def wrapper(func: Callback) -> Callback:
@@ -35,14 +54,15 @@ class Parser:
     def handle(self, tree: Tree, stack: Stack) -> Union[Expression, Type]:
         return self.callbacks[tree.data](tree, stack)
 
+    def parse(self, file: Union[IO, str], stack: Stack) -> Iterator[Expression]:
+        if not isinstance(file, str):
+            file = file.read()
+        tree = self.lark.parse(file)
+        for subtree in tree.children:
+            yield self.handle(subtree, stack)
+
 
 parser = Parser()
-BINARY_OPERATORS = [[
-    BinaryOperator("+", ["(", 0, ") + (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
-    BinaryOperator("-", ["(", 0, ") - (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
-    BinaryOperator("*", ["(", 0, ") * (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
-    BinaryOperator("/", ["(", 0, ") / (", 1, ")"], [((Real, Real), Real)]),
-]]
 
 for precedence, operators in enumerate(BINARY_OPERATORS):
     for i, operator in enumerate(operators):
@@ -107,15 +127,15 @@ def handle_compound_type(tree: Tree, stack: Stack) -> Type:
 @parser.handler("var_decl")
 def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
     var_names: List[str] = []
-    i = 0
-    while isinstance(tree.children[i], str):
-        var_names.append(tree.children[i])
-        i += 1
-    var_type: Type = parser.handle(tree.children[i], stack)
+    index = 0
+    while isinstance(tree.children[index], str):
+        var_names.append(tree.children[index])
+        index += 1
+    var_type: Type = parser.handle(tree.children[index], stack)
     nums = [stack.add_variable(name, var_type) for name in var_names]
 
-    if i != len(tree.children) - 1:
-        value: Expression = parser.handle(tree.children[i + 1], stack)
+    if index != len(tree.children) - 1:
+        value: Expression = parser.handle(tree.children[index + 1], stack)
         if not (var_type.is_assignable(value.type)):
             raise ValueError(f"Value of type {value.type} cannot be assigned to variable of type {var_type}")
         return [Expression.merge(Void, ["var_" + str(num), " = ", 0], value) for num in nums]
