@@ -1,7 +1,7 @@
 import lark
 import pytest
 
-from libcube.compiler.compiler import compiler
+from libcube.compiler.parser import parser
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
 from libcube.compiler.stack import Stack
@@ -18,7 +18,7 @@ class TestTransformer:
     ])
     def test_literal(self, name: str, value: str, exp_type: Type, exp_value: str):
         tree = lark.Tree(name, [value])
-        expr = compiler.handle(tree, Stack())
+        expr = parser.handle(tree, Stack())
         assert isinstance(expr, Expression)
         assert expr.type == exp_type
         assert expr.expression == [exp_value]
@@ -33,7 +33,7 @@ class TestTransformer:
     def test_operators(self, op1_type: str, op2_type: str, op_name: str, res_type: Type, res_expr: str):
         tree = lark.Tree(op_name, [lark.Tree(op1_type, ["1"]), lark.Tree(op2_type, ["2"])])
 
-        expr: Expression = compiler.handle(tree, Stack())
+        expr: Expression = parser.handle(tree, Stack())
         assert expr.type == res_type
         assert expr.intermediates == []
         assert "".join(expr.expression) == res_expr
@@ -45,13 +45,13 @@ class TestTransformer:
     def test_wrong_operand(self, operator, arg1, arg2):
         tree = lark.Tree(operator, [arg1, arg2])
         with pytest.raises(ValueError):
-            compiler.handle(tree, Stack())
+            parser.handle(tree, Stack())
 
     def test_variable_exist(self):
         tree = lark.Tree("variable", "a")
         stack = Stack()
         stack.add_variable("a", Integer)
-        expression: Expression = compiler.handle(tree, stack)
+        expression: Expression = parser.handle(tree, stack)
         assert expression.type == Integer
         assert expression.expression == ["var_0"]
 
@@ -59,14 +59,14 @@ class TestTransformer:
         tree = lark.Tree("variable", "a")
         stack = Stack()
         stack.add_global("a", Real)
-        expression: Expression = compiler.handle(tree, stack)
+        expression: Expression = parser.handle(tree, stack)
         assert expression.type == Real
         assert expression.expression == ["a"]
 
     def test_undefined_variable(self):
         tree = lark.Tree("variable", "a")
         with pytest.raises(ValueError):
-            compiler.handle(tree, Stack())
+            parser.handle(tree, Stack())
 
     @pytest.mark.parametrize("tree, expected", [
         (lark.Tree("type_int", []), Integer),
@@ -76,13 +76,13 @@ class TestTransformer:
         (lark.Tree("type_set", [lark.Tree("type_real", [])]), Set(Real)),
     ])
     def test_type_handle(self, tree: lark.Tree, expected: Type):
-        assert compiler.handle(tree, Stack()) == expected
+        assert parser.handle(tree, Stack()) == expected
 
     def test_var_declaration(self):
         tree = lark.Tree("var_decl", ["a", "b", "c", lark.Tree("type_int", [])])
         stack = Stack()
 
-        expressions = compiler.handle(tree, stack)
+        expressions = parser.handle(tree, stack)
         for i, value in enumerate(expressions):
             assert value.type == Void
             assert value.expression == ["var_" + str(i), " = ", "0"]
@@ -95,7 +95,7 @@ class TestTransformer:
         tree = lark.Tree("var_decl", ["a", "b", "c", lark.Tree("type_int", []), lark.Tree("int_literal", "1")])
         stack = Stack()
 
-        values: typing.List[Expression] = compiler.handle(tree, stack)
+        values: typing.List[Expression] = parser.handle(tree, stack)
         for i, value in enumerate(values):
             assert value.type == Void
             assert value.expression == ["var_" + str(i), " = ", "1"]
@@ -107,7 +107,7 @@ class TestTransformer:
     def test_var_declaration_wrong_type(self):
         tree = lark.Tree("var_decl", ["a", lark.Tree("type_int", []), lark.Tree("float_literal", "1")])
         with pytest.raises(ValueError):
-            compiler.handle(tree, Stack())
+            parser.handle(tree, Stack())
 
     def test_if_expression(self):
         tree = lark.Tree("if_expression", [
@@ -117,7 +117,7 @@ class TestTransformer:
                 lark.Tree("float_literal", "2")
             ])
         ])
-        expression = compiler.handle(tree, Stack())
+        expression = parser.handle(tree, Stack())
         assert isinstance(expression, ConditionExpression)
         assert expression.type == Void
 
@@ -136,7 +136,7 @@ class TestTransformer:
                 lark.Tree("float_literal", "2")
             ])
         ])
-        expression = compiler.handle(tree, Stack())
+        expression = parser.handle(tree, Stack())
         assert isinstance(expression, ConditionExpression)
         assert expression.type == Real
 
@@ -153,14 +153,14 @@ class TestTransformer:
             lark.Tree("float_literal", ["3"])
         ])
         with pytest.raises(ValueError):
-            compiler.handle(tree, Stack())
+            parser.handle(tree, Stack())
 
     def test_while(self):
         tree = lark.Tree("while_expression", [
             lark.Tree("bool_literal_true", []),
             lark.Tree("int_literal", "1")
         ])
-        expression = compiler.handle(tree, Stack())
+        expression = parser.handle(tree, Stack())
         assert isinstance(expression, WhileLoopExpression)
         assert expression.type == Integer
 
@@ -171,7 +171,7 @@ class TestTransformer:
 
     def test_while_type_error(self):
         with pytest.raises(ValueError):
-            compiler.handle(lark.Tree("while_expression", [
+            parser.handle(lark.Tree("while_expression", [
                 lark.Tree("int_literal", "2"),
                 lark.Tree("int_literal", "1")
             ]), Stack())
@@ -181,7 +181,7 @@ class TestTransformer:
             lark.Tree("int_literal", "2"),
             lark.Tree("bool_literal_true", [])
         ])
-        expression = compiler.handle(tree, Stack())
+        expression = parser.handle(tree, Stack())
         assert isinstance(expression, DoWhileLoopExpression)
         assert expression.type == Integer
 
@@ -192,7 +192,7 @@ class TestTransformer:
 
     def test_do_while_type_error(self):
         with pytest.raises(ValueError):
-            compiler.handle(lark.Tree("do_expression", [
+            parser.handle(lark.Tree("do_expression", [
                 lark.Tree("int_literal", "2"),
                 lark.Tree("int_literal", "1")
             ]), Stack())
@@ -202,7 +202,7 @@ class TestTransformer:
             lark.Tree("int_literal", ["2"]),
             lark.Tree("bool_literal_true", [])
         ])
-        expression = compiler.handle(tree, Stack())
+        expression = parser.handle(tree, Stack())
         assert isinstance(expression, RepeatLoopExpression)
         assert expression.type == Bool
 
@@ -213,7 +213,7 @@ class TestTransformer:
 
     def test_repeat_error(self):
         with pytest.raises(ValueError):
-            compiler.handle(lark.Tree("repeat_expression", [
+            parser.handle(lark.Tree("repeat_expression", [
                 lark.Tree("float_literal", "2"),
                 lark.Tree("int_literal", "1")
             ]), Stack())
@@ -227,7 +227,7 @@ class TestTransformer:
             lark.Tree("variable", ["range"]),
             lark.Tree("int_literal", ["1"])
         ])
-        expression = compiler.handle(tree, stack)
+        expression = parser.handle(tree, stack)
         assert isinstance(expression, ForLoopExpression)
         intermediate = expression.intermediates[0]
         assert isinstance(intermediate, ForLoopExpression.Intermediate)
@@ -246,7 +246,7 @@ class TestTransformer:
                 lark.Tree("variable", ["var"])
             ])
         ])
-        expression = compiler.handle(tree, stack)
+        expression = parser.handle(tree, stack)
         assert isinstance(expression, ForLoopExpression)
         intermediate = expression.intermediates[0]
         assert isinstance(intermediate, ForLoopExpression.Intermediate)
@@ -263,7 +263,7 @@ class TestTransformer:
                 lark.Tree("int_literal", ["1"]),
                 lark.Tree("int_literal", ["1"])
             ])
-            compiler.handle(tree, Stack())
+            parser.handle(tree, Stack())
 
     def test_for_loop_wrong_iterator_type(self):
         with pytest.raises(ValueError):
@@ -275,7 +275,7 @@ class TestTransformer:
                 lark.Tree("variable", ["range"]),
                 lark.Tree("int_literal", ["1"])
             ])
-            compiler.handle(tree, stack)
+            parser.handle(tree, stack)
 
     @pytest.mark.parametrize("is_global", [(True,), (False,)])
     def test_function_call(self, is_global):
@@ -293,7 +293,7 @@ class TestTransformer:
             lark.Tree("int_literal", ["2"]),
             lark.Tree("variable", ["array"]),
         ])
-        expression = compiler.handle(tree, stack)
+        expression = parser.handle(tree, stack)
 
         assert expression.type == Void
         func_name = "func" if is_global else "var_1"
@@ -302,14 +302,14 @@ class TestTransformer:
     def test_function_call_invalid_name(self):
         with pytest.raises(ValueError):
             tree = lark.Tree("func_call", ["func"])
-            compiler.handle(tree, Stack())
+            parser.handle(tree, Stack())
 
     def test_function_call_invalid_arguments_count_few(self):
         with pytest.raises(ValueError):
             stack = Stack()
             stack.add_variable("func", Function([Integer, Integer], Integer))
             tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"])])
-            compiler.handle(tree, stack)
+            parser.handle(tree, stack)
 
     def test_function_call_invalid_arguments_count_many(self):
         with pytest.raises(ValueError):
@@ -317,7 +317,7 @@ class TestTransformer:
             stack.add_variable("func", Function([Integer, Integer], Integer))
             tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("int_literal", ["1"]),
                                            lark.Tree("int_literal", ["1"])])
-            compiler.handle(tree, stack)
+            parser.handle(tree, stack)
 
     def test_function_call_invalid_argument_types(self):
         with pytest.raises(ValueError):
@@ -325,13 +325,13 @@ class TestTransformer:
             stack.add_variable("var", Set(Real))
             stack.add_variable("func", Function([Integer, List(Integer)], Integer))
             tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("variable", ["var"])])
-            compiler.handle(tree, stack)
+            parser.handle(tree, stack)
 
     def test_var_assignment(self):
         stack = Stack()
         stack.add_variable("var", Real)
         tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["42"])])
-        expression = compiler.handle(tree, stack)
+        expression = parser.handle(tree, stack)
         assert expression.expression == ["var_0", " = ", "42"]
 
     def test_var_assignment_readonly(self):
@@ -339,16 +339,16 @@ class TestTransformer:
         stack.add_global("var", Real)
         tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
         with pytest.raises(ValueError):
-            compiler.handle(tree, stack)
+            parser.handle(tree, stack)
 
     def test_var_assignment_undefined(self):
         tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
         with pytest.raises(ValueError):
-            compiler.handle(tree, Stack())
+            parser.handle(tree, Stack())
 
     def test_var_assignment_type_error(self):
         stack = Stack()
         stack.add_global("var", List(Integer))
         tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
         with pytest.raises(ValueError):
-            compiler.handle(tree, stack)
+            parser.handle(tree, stack)

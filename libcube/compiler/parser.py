@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import IO, Union, NamedTuple, Tuple, List, Callable, Dict
+from typing import Union, NamedTuple, Tuple, List, Callable, Dict
 
 from lark import Lark, Tree
 
 from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
-from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function
 from .stack import Stack
+from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function
 
 
 class BinaryOperator(NamedTuple):
@@ -18,19 +18,13 @@ class BinaryOperator(NamedTuple):
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
 
 
-class Compiler:
+class Parser:
     def __init__(self):
         path = Path(__file__).parents[2] / "data" / "syntax.lark"
         with open(str(path)) as f:
             grammar = f.read()
         self.lark = Lark(grammar)
         self.callbacks: Dict[str, Callback] = dict()
-
-    def compile(self, file: Union[str, IO[str]]):
-        if not isinstance(file, str):
-            file = file.read()
-        tree = self.lark.parse(file)
-        pass
 
     def handler(self, name: str) -> Callable[[Callback], Callback]:
         def wrapper(func: Callback) -> Callback:
@@ -42,7 +36,7 @@ class Compiler:
         return self.callbacks[tree.data](tree, stack)
 
 
-compiler = Compiler()
+parser = Parser()
 BINARY_OPERATORS = [[
     BinaryOperator("+", ["(", 0, ") + (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
     BinaryOperator("-", ["(", 0, ") - (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
@@ -52,11 +46,11 @@ BINARY_OPERATORS = [[
 
 for precedence, operators in enumerate(BINARY_OPERATORS):
     for i, operator in enumerate(operators):
-        @compiler.handler(f"op_{precedence}_{i}")
+        @parser.handler(f"op_{precedence}_{i}")
         def handler(tree: Tree, stack: Stack, op=operator) -> Expression:
             assert len(tree.children) == 2
-            expr1: Expression = compiler.handle(tree.children[0], stack)
-            expr2: Expression = compiler.handle(tree.children[1], stack)
+            expr1: Expression = parser.handle(tree.children[0], stack)
+            expr2: Expression = parser.handle(tree.children[1], stack)
             arg_types = [expr1.type, expr2.type]
             for operand_types, result_type in op.arguments:
                 if all(ar1.is_assignable(ar2) for ar1, ar2 in zip(operand_types, arg_types)):
@@ -66,27 +60,27 @@ for precedence, operators in enumerate(BINARY_OPERATORS):
                                  f"of type {arg_types[0]} and {arg_types[1]}")
 
 
-@compiler.handler("int_literal")
+@parser.handler("int_literal")
 def handle_int_literal(tree: Tree, _stack: Stack) -> Expression:
     return Expression(Integer, str(int(tree.children[0])))
 
 
-@compiler.handler("float_literal")
+@parser.handler("float_literal")
 def handle_float_literal(tree: Tree, _stack: Stack) -> Expression:
     return Expression(Real, str(float(tree.children[0])))
 
 
-@compiler.handler("bool_literal_true")
+@parser.handler("bool_literal_true")
 def handle_bool_literal_true(_tree: Tree, _stack: Stack) -> Expression:
     return Expression(Bool, "True")
 
 
-@compiler.handler("bool_literal_false")
+@parser.handler("bool_literal_false")
 def handle_bool_literal_false(_tree: Tree, _stack: Stack) -> Expression:
     return Expression(Bool, "False")
 
 
-@compiler.handler("variable")
+@parser.handler("variable")
 def handle_variable(tree: Tree, stack: Stack) -> Expression:
     variable = stack.get_variable(tree.children[0])
     if variable is None:
@@ -95,33 +89,33 @@ def handle_variable(tree: Tree, stack: Stack) -> Expression:
     return Expression(variable.type, var_name)
 
 
-@compiler.handler("type_int")
-@compiler.handler("type_real")
-@compiler.handler("type_bool")
+@parser.handler("type_int")
+@parser.handler("type_real")
+@parser.handler("type_bool")
 def handle_scalar_type(tree: Tree, _stack: Stack) -> Type:
     return {"type_int": Integer, "type_real": Real, "type_bool": Bool}[tree.data]
 
 
-@compiler.handler("type_list")
-@compiler.handler("type_set")
+@parser.handler("type_list")
+@parser.handler("type_set")
 def handle_compound_type(tree: Tree, stack: Stack) -> Type:
     constructor = {"type_list": ListType, "type_set": Set}[tree.data]
-    inner_type: Type = compiler.handle(tree.children[0], stack)
+    inner_type: Type = parser.handle(tree.children[0], stack)
     return constructor(inner_type)
 
 
-@compiler.handler("var_decl")
+@parser.handler("var_decl")
 def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
     var_names: List[str] = []
     i = 0
     while isinstance(tree.children[i], str):
         var_names.append(tree.children[i])
         i += 1
-    var_type: Type = compiler.handle(tree.children[i], stack)
+    var_type: Type = parser.handle(tree.children[i], stack)
     nums = [stack.add_variable(name, var_type) for name in var_names]
 
     if i != len(tree.children) - 1:
-        value: Expression = compiler.handle(tree.children[i + 1], stack)
+        value: Expression = parser.handle(tree.children[i + 1], stack)
         if not (var_type.is_assignable(value.type)):
             raise ValueError(f"Value of type {value.type} cannot be assigned to variable of type {var_type}")
         return [Expression.merge(Void, ["var_" + str(num), " = ", 0], value) for num in nums]
@@ -131,16 +125,16 @@ def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
 def handle_clause(tree: Tree, stack: Stack) -> List[Expression]:
     if tree.data == "clause":
         stack.add_frame()
-        expressions = [compiler.handle(subtree, stack) for subtree in tree.children]
+        expressions = [parser.handle(subtree, stack) for subtree in tree.children]
         stack.pop_frame()
         return expressions
     else:
-        return [compiler.handle(tree, stack)]
+        return [parser.handle(tree, stack)]
 
 
-@compiler.handler("if_expression")
+@parser.handler("if_expression")
 def handle_if_expression(tree: Tree, stack: Stack) -> Expression:
-    condition = compiler.handle(tree.children[0], stack)
+    condition = parser.handle(tree.children[0], stack)
     if not Bool.is_assignable(condition.type):
         raise ValueError("Only expression of boolean type can be used as an if condition")
     then_clause = handle_clause(tree.children[1], stack)
@@ -151,37 +145,37 @@ def handle_if_expression(tree: Tree, stack: Stack) -> Expression:
     return ConditionExpression(condition, then_clause, else_clause)
 
 
-@compiler.handler("while_expression")
+@parser.handler("while_expression")
 def handle_while_expression(tree: Tree, stack: Stack) -> Expression:
-    condition = compiler.handle(tree.children[0], stack)
+    condition = parser.handle(tree.children[0], stack)
     if not Bool.is_assignable(condition.type):
         raise ValueError("Only expression of boolean type can be used as a while condition")
     actions = handle_clause(tree.children[1], stack)
     return WhileLoopExpression(condition, actions)
 
 
-@compiler.handler("do_expression")
+@parser.handler("do_expression")
 def handle_do_expression(tree: Tree, stack: Stack) -> Expression:
-    condition = compiler.handle(tree.children[1], stack)
+    condition = parser.handle(tree.children[1], stack)
     if not Bool.is_assignable(condition.type):
         raise ValueError("Only expression of boolean type can be used as a do-while condition")
     actions = handle_clause(tree.children[0], stack)
     return DoWhileLoopExpression(condition, actions)
 
 
-@compiler.handler("repeat_expression")
+@parser.handler("repeat_expression")
 def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
-    iterations = compiler.handle(tree.children[0], stack)
+    iterations = parser.handle(tree.children[0], stack)
     if not Integer.is_assignable(iterations.type):
         raise ValueError("Iterations count must be integer")
     actions = handle_clause(tree.children[1], stack)
     return RepeatLoopExpression(iterations, actions)
 
 
-@compiler.handler("for_expression")
+@parser.handler("for_expression")
 def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
     var_name = tree.children[0]
-    range_expression = compiler.handle(tree.children[1], stack)
+    range_expression = parser.handle(tree.children[1], stack)
     range_type = range_expression.type
     if not isinstance(range_type, CollectionType):
         raise ValueError("For loop range must be a list or a set")
@@ -200,14 +194,14 @@ def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
         var_name = "var_" + str(var_num)
 
     if tree.children[2].data == "clause":
-        actions = [compiler.handle(subtree, stack) for subtree in tree.children[2].children]
+        actions = [parser.handle(subtree, stack) for subtree in tree.children[2].children]
     else:
-        actions = [compiler.handle(tree.children[2], stack)]
+        actions = [parser.handle(tree.children[2], stack)]
     stack.pop_frame()
     return ForLoopExpression(var_name, range_expression, actions)
 
 
-@compiler.handler("func_call")
+@parser.handler("func_call")
 def handle_func_call(tree: Tree, stack: Stack):
     def create_arg_list(count):
         if count > 0:
@@ -228,7 +222,7 @@ def handle_func_call(tree: Tree, stack: Stack):
     if func_data.number >= 0:
         function_name = "var_" + str(func_data.number)
 
-    arguments = [compiler.handle(x, stack) for x in tree.children[1:]]
+    arguments = [parser.handle(x, stack) for x in tree.children[1:]]
     arg_types = [x.type for x in arguments]
     if not func_type.takes_arguments(arg_types):
         raise ValueError(f"Function {function_name} does not accept arguments: {arg_types!r}")
@@ -237,7 +231,7 @@ def handle_func_call(tree: Tree, stack: Stack):
                             *arguments)
 
 
-@compiler.handler("var_assignment")
+@parser.handler("var_assignment")
 def handle_var_assignment(tree: Tree, stack: Stack):
     var_name: str = tree.children[0]
     var_data = stack.get_variable(var_name)
@@ -246,7 +240,7 @@ def handle_var_assignment(tree: Tree, stack: Stack):
     elif var_data.number < 0:
         raise ValueError(f"Attempting to read to readonly value {var_data}")
 
-    expression: Expression = compiler.handle(tree.children[1], stack)
+    expression: Expression = parser.handle(tree.children[1], stack)
     if not var_data.type.is_assignable(expression.type):
         raise ValueError(f"Value of type {expression.type} cannot be assigned to a varaible of type "
                          f"{var_data.type}")
