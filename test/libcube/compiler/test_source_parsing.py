@@ -38,10 +38,10 @@ class TestTransformer:
         assert expr.intermediates == []
 
     @pytest.mark.parametrize("op1_type, op2_type, op_name, res_type, res_expr", [
-        ("int_literal", "int_literal", "op_0_0", Integer, "(1) + (2)"),
-        ("float_literal", "int_literal", "op_0_0", Real, "(1.0) + (2)"),
-        ("int_literal", "float_literal", "op_0_0", Real, "(1) + (2.0)"),
-        ("int_literal", "int_literal", "op_0_3", Real, "(1) / (2)")
+        ("int_literal", "int_literal", "op_5_0", Integer, "(1) + (2)"),
+        ("float_literal", "int_literal", "op_5_0", Real, "(1.0) + (2)"),
+        ("int_literal", "float_literal", "op_5_0", Real, "(1) + (2.0)"),
+        ("int_literal", "int_literal", "op_6_1", Real, "(1) / (2)")
     ])
     def test_operators(self, op1_type: str, op2_type: str, op_name: str, res_type: Type, res_expr: str):
         tree = lark.Tree(op_name, [lark.Tree(op1_type, ["1"]), lark.Tree(op2_type, ["2"])])
@@ -52,8 +52,8 @@ class TestTransformer:
         assert "".join(expr.expression) == res_expr
 
     @pytest.mark.parametrize("operator, arg1, arg2", [
-        ("op_0_0", lark.Tree("float_literal", ["1"]), lark.Tree("bool_literal_true", [])),
-        ("op_0_0", lark.Tree("bool_literal_true", []), lark.Tree("float_literal", ["2"]))
+        ("op_5_0", lark.Tree("float_literal", ["1"]), lark.Tree("bool_literal_true", [])),
+        ("op_5_0", lark.Tree("bool_literal_true", []), lark.Tree("float_literal", ["2"]))
     ])
     def test_wrong_operand(self, operator, arg1, arg2):
         tree = lark.Tree(operator, [arg1, arg2])

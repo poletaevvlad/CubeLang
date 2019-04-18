@@ -64,7 +64,7 @@ class Expression:
             self.generate_intermediates(variables, pool, stream)
             return self.generate_expression_line(variables)
 
-    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
         if self.expression == [0]:
             self.intermediates[0].generate(temp_pool, stream, var_name)
             return
@@ -106,13 +106,14 @@ class Expression:
 
 class ConditionExpression(Expression):
     class Intermediate(Expression):
-        def __init__(self, type: Type, condition: Expression, then_clause: List[Expression], else_clause: List[Expression]):
+        def __init__(self, type: Type, condition: Expression, then_clause: List[Expression],
+                     else_clause: List[Expression]):
             super(ConditionExpression.Intermediate, self).__init__(type, [])
             self.condition: Expression = condition
             self.then_clause: List[Expression] = then_clause
             self.else_clause: List[Expression] = else_clause
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
             condition = self.condition.generate_line(temp_pool, stream)
             stream.push_line("if " + condition + ":")
             stream.indent()
@@ -150,7 +151,7 @@ class WhileLoopExpression(Expression):
             self.actions: List[Expression] = actions
             super().__init__(self.actions[-1].type, [])
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
             with temp_pool.allocate(len(self.condition.intermediates)) as cond_vars:
                 self.condition.generate_intermediates(cond_vars, temp_pool, stream)
                 stream.push_line("while " + self.condition.generate_expression_line(cond_vars) + ":")
@@ -173,7 +174,7 @@ class RepeatLoopExpression(Expression):
             self.actions: List[Expression] = actions
             super().__init__(self.actions[-1].type, [])
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
             with temp_pool.allocate(1) as ctr:
                 counter, = ctr
                 line = self.times.generate_line(temp_pool, stream)
@@ -196,7 +197,7 @@ class DoWhileLoopExpression(Expression):
             self.actions: List[Expression] = actions
             super(DoWhileLoopExpression.Intermediate, self).__init__(self.actions[-1].type, [])
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
             stream.push_line("while True:")
             stream.indent()
             for action in self.actions[:-1]:
@@ -222,7 +223,7 @@ class ForLoopExpression(Expression):
             self.actions: List[Expression] = actions
             super().__init__(self.actions[-1].type, [])
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str]):
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
             range_expression = self.range.generate_line(temp_pool, stream)
             stream.push(f"for {self.iterator} in {range_expression}:")
             stream.indent()

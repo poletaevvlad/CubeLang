@@ -18,10 +18,26 @@ class BinaryOperator(NamedTuple):
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
 
 BINARY_OPERATORS = [[
+    BinaryOperator("xor", ["(", 0, ") != (", 1, ")"], [((Bool, Bool), Bool)]),
+], [
+    BinaryOperator("or", ["(", 0, ") or (", 1, ")"], [((Bool, Bool), Bool)]),
+], [
+    BinaryOperator("and", ["(", 0, ") and (", 1, ")"], [((Bool, Bool), Bool)]),
+], [
+    BinaryOperator("==", ["(", 0, ") == (", 1, ")"], [((Real, Real), Bool), ((Bool, Bool), Bool)]),
+    BinaryOperator("!=", ["(", 0, ") != (", 1, ")"], [((Real, Real), Bool), ((Bool, Bool), Bool)]),
+], [
+    BinaryOperator("<", ["(", 0, ") < (", 1, ")"], [((Real, Real), Bool)]),
+    BinaryOperator(">", ["(", 0, ") > (", 1, ")"], [((Real, Real), Bool)]),
+    BinaryOperator("<=", ["(", 0, ") <= (", 1, ")"], [((Real, Real), Bool)]),
+    BinaryOperator(">=", ["(", 0, ") >= (", 1, ")"], [((Real, Real), Bool)])
+], [
     BinaryOperator("+", ["(", 0, ") + (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
-    BinaryOperator("-", ["(", 0, ") - (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
+    BinaryOperator("-", ["(", 0, ") - (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)])
+], [
     BinaryOperator("*", ["(", 0, ") * (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
     BinaryOperator("/", ["(", 0, ") / (", 1, ")"], [((Real, Real), Real)]),
+    BinaryOperator("mod", ["(", 0, ") % (", 1, ")"], [((Integer, Integer), Integer)])
 ]]
 
 
@@ -59,7 +75,11 @@ class Parser:
             file = file.read()
         tree = self.lark.parse(file)
         for subtree in tree.children:
-            yield self.handle(subtree, stack)
+            expr = self.handle(subtree, stack)
+            if isinstance(expr, Expression):
+                yield expr
+            else:
+                yield from expr
 
 
 parser = Parser()
@@ -149,7 +169,10 @@ def handle_clause(tree: Tree, stack: Stack) -> List[Expression]:
         stack.pop_frame()
         return expressions
     else:
-        return [parser.handle(tree, stack)]
+        stack.add_frame()
+        expressions = [parser.handle(tree, stack)]
+        stack.pop_frame()
+        return expressions
 
 
 @parser.handler("if_expression")
