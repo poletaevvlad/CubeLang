@@ -20,10 +20,6 @@ for_expression: "for" IDENTIFIER "in" expression "do" _clause
            | "-" expression -> negation
            | IDENTIFIER "(" (expression ",")* expression ")" -> func_call
            | if_expression
-           | while_expression
-           | do_expression
-           | repeat_expression
-           | for_expression
 
 ?expression: op_0
 
@@ -41,6 +37,7 @@ argument: IDENTIFIER ":" type ("=" expression)?
 func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? _clause
 var_assignment: assignable "=" expression
 
-?statement: var_decl | func_decl | expression | var_assignment
+?statement: var_decl | func_decl | expression | var_assignment | while_expression
+          | do_expression | repeat_expression | for_expression
 _clause: statement | "{" clause "}"
 ?clause: (_clause _NEWLINE)* _clause?

@@ -175,7 +175,7 @@ class TestTransformer:
         ])
         expression = parser.handle(tree, Stack())
         assert isinstance(expression, WhileLoopExpression)
-        assert expression.type == Integer
+        assert expression.type == Void
 
         intermediate = expression.intermediates[0]
         assert isinstance(intermediate, WhileLoopExpression.Intermediate)
@@ -196,7 +196,7 @@ class TestTransformer:
         ])
         expression = parser.handle(tree, Stack())
         assert isinstance(expression, DoWhileLoopExpression)
-        assert expression.type == Integer
+        assert expression.type == Void
 
         intermediate = expression.intermediates[0]
         assert isinstance(intermediate, DoWhileLoopExpression.Intermediate)
@@ -217,7 +217,7 @@ class TestTransformer:
         ])
         expression = parser.handle(tree, Stack())
         assert isinstance(expression, RepeatLoopExpression)
-        assert expression.type == Bool
+        assert expression.type == Void
 
         intermediate = expression.intermediates[0]
         assert isinstance(intermediate, RepeatLoopExpression.Intermediate)
