@@ -6,7 +6,10 @@ from lark import Tree, Lark
 from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
 from .stack import Stack
-from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function
+from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function, Color, Side
+
+
+TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool, "type_color": Color, "type_side": Side}
 
 
 class BinaryOperator(NamedTuple):
@@ -132,8 +135,10 @@ def handle_variable(tree: Tree, stack: Stack) -> Expression:
 @parser.handler("type_int")
 @parser.handler("type_real")
 @parser.handler("type_bool")
+@parser.handler("type_color")
+@parser.handler("type_side")
 def handle_scalar_type(tree: Tree, _stack: Stack) -> Type:
-    return {"type_int": Integer, "type_real": Real, "type_bool": Bool}[tree.data]
+    return TYPE_NAMES[tree.data]
 
 
 @parser.handler("type_list")

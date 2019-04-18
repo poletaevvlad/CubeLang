@@ -29,7 +29,8 @@ Integer = Type("Integer", "0")
 Real = Type("Real", "0.0")
 Void = Type("Void", "")
 Real.is_assignable = MethodType(lambda self, fr: fr in {Integer, Real}, Real)
-
+Color = Type("Color", "white")
+Side = Type("Side", "front")
 Bool = Type("Bool", "False")
 
 

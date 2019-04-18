@@ -29,6 +29,8 @@ collection_item: IDENTIFIER "[" expression "]"
 ?type: "int" -> type_int
      | "real" -> type_real
      | "boolean" -> type_bool
+     | "side" -> type_side
+     | "color" -> type_color
      | "list" "of" type -> type_list
      | "set" "of" type -> type_set
 

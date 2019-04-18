@@ -5,7 +5,7 @@ from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression
 from libcube.compiler.stack import Stack
-from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function
+from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function, Color, Side
 import typing
 
 
@@ -85,6 +85,8 @@ class TestTransformer:
         (lark.Tree("type_int", []), Integer),
         (lark.Tree("type_real", []), Real),
         (lark.Tree("type_bool", []), Bool),
+        (lark.Tree("type_side", []), Side),
+        (lark.Tree("type_color", []), Color),
         (lark.Tree("type_list", [lark.Tree("type_bool", [])]), List(Bool)),
         (lark.Tree("type_set", [lark.Tree("type_real", [])]), Set(Real)),
     ])
