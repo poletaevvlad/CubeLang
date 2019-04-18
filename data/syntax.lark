@@ -6,12 +6,13 @@ INT_LITERAL.2: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
 IDENTIFIER: /[a-zA-Z_][a-zA-Z_\d]*/
 
-if_expression: "if" expression "then" _clause ("else" _clause)?
-while_expression: "while" expression "do" _clause
-do_expression: "do" _clause "while" expression
-repeat_expression: "repeat" expression "times" _clause
-for_expression: "for" IDENTIFIER "in" expression "do" _clause
+if_expression: "if" expression "then" clause ("else" clause)? "end"
+while_expression: "while" expression "do" clause "end"
+do_expression: "do" clause "while" expression
+repeat_expression: "repeat" expression "times" clause "end"
+for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 
+?op_a.7: if_expression | op_0
 ?atom: INT_LITERAL -> int_literal
            | FLOAT_LITERAL -> float_literal
            | IDENTIFIER -> variable
@@ -19,9 +20,8 @@ for_expression: "for" IDENTIFIER "in" expression "do" _clause
            | "(" expression ")" 
            | "-" expression -> negation
            | IDENTIFIER "(" (expression ",")* expression ")" -> func_call
-           | if_expression
 
-?expression: op_0
+?expression: op_a
 
 collection_item: IDENTIFIER "[" expression "]"
 ?assignable: IDENTIFIER | collection_item
@@ -34,10 +34,9 @@ collection_item: IDENTIFIER "[" expression "]"
 
 var_decl: "let" (IDENTIFIER ",")* IDENTIFIER ":" type ("=" expression)?
 argument: IDENTIFIER ":" type ("=" expression)?
-func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? _clause
+func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? clause*
 var_assignment: assignable "=" expression
 
-?statement: var_decl | func_decl | expression | var_assignment | while_expression
+?statement: var_decl | func_decl | expression | var_assignment | while_expression 
           | do_expression | repeat_expression | for_expression
-_clause: statement | "{" clause "}"
-?clause: (_clause _NEWLINE)* _clause?
+clause: (statement _NEWLINE)* statement?

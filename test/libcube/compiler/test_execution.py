@@ -36,13 +36,13 @@ def test_execution_gcd():
     code = """
         let a: int = 15
         let b: int = 6
-        while a != 0 and b != 0 do {
-            if a > b then {
+        while a != 0 and b != 0 do
+            if a > b then
                 a = a - b
-            } else { 
+            else
                 b = b - a
-            }
-        }
+            end
+        end
         print (a + b)
     """
 
