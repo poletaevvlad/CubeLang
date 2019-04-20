@@ -272,11 +272,11 @@ def handle_func_call(tree: Tree, stack: Stack):
 
     arguments = [parser.handle(x, stack) for x in tree.children[1:]]
     arg_types = [x.type for x in arguments]
-    if not func_type.takes_arguments(arg_types):
+    return_type = func_type.takes_arguments(arg_types)
+    if return_type is None:
         raise ValueError(f"Function {function_name} does not accept arguments: {arg_types!r}")
 
-    return Expression.merge(func_type.return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"],
-                            *arguments)
+    return Expression.merge(return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"], *arguments)
 
 
 @parser.handler("var_assignment")

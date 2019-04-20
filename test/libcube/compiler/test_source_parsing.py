@@ -296,7 +296,7 @@ class TestTransformer:
     def test_function_call(self, is_global):
         stack = Stack()
         stack.add_variable("array", List(Integer))
-        func = Function([Integer, Real, List(Integer)], Void)
+        func = Function(([Integer, Real, List(Integer)], Void))
         if is_global:
             stack.add_global("func", func)
         else:
@@ -322,14 +322,14 @@ class TestTransformer:
     def test_function_call_invalid_arguments_count_few(self):
         with pytest.raises(ValueError):
             stack = Stack()
-            stack.add_variable("func", Function([Integer, Integer], Integer))
+            stack.add_variable("func", Function(([Integer, Integer], Integer)))
             tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"])])
             parser.handle(tree, stack)
 
     def test_function_call_invalid_arguments_count_many(self):
         with pytest.raises(ValueError):
             stack = Stack()
-            stack.add_variable("func", Function([Integer, Integer], Integer))
+            stack.add_variable("func", Function(([Integer, Integer], Integer)))
             tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("int_literal", ["1"]),
                                            lark.Tree("int_literal", ["1"])])
             parser.handle(tree, stack)
@@ -338,7 +338,7 @@ class TestTransformer:
         with pytest.raises(ValueError):
             stack = Stack()
             stack.add_variable("var", Set(Real))
-            stack.add_variable("func", Function([Integer, List(Integer)], Integer))
+            stack.add_variable("func", Function((([Integer, List(Integer)]), Integer)))
             tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("variable", ["var"])])
             parser.handle(tree, stack)
 
