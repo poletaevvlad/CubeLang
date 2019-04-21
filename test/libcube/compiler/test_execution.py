@@ -4,6 +4,7 @@ from libcube.compiler.parser import parser
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Function, Void, Real
 from libcube.compiler.executor import ExecutionContext
+from libcube.stdlib import stdlib
 
 from unittest.mock import MagicMock
 
@@ -90,3 +91,49 @@ def test_execution_integration():
     context.execute()
     return_value = context.globals["print"].call_args[0][0]
     assert abs(return_value - math.pi) < 0.01
+
+
+def test_pascals_triangle():
+    """
+    Computes five lines of Pascal's triangle:
+                     1
+                   1   1
+                 1   2   1
+               1   3   3   1
+            1   4   6   4    1
+    Values are returned via `print` function line by line separated by `0`.
+    """
+    code = """
+        let result: list of list of int        
+        let row_size: int = 1
+        
+        repeat 5 times
+            let row: list of int = new_list(row_size, 1)
+            let i: int = 1
+            while i < row_size - 1 do
+                row[i] = (result[size(result) - 1][i]) + (result[size(result) - 1][i - 1])
+                i = i + 1 
+            end
+            add_last(result, row)
+            row_size = row_size + 1
+        end
+        
+        for row in result do
+            for x in row do
+                print(x)
+            end
+            print(0)
+        end
+    """
+    stack = Stack()
+    stack.add_global("print", Function(([Integer], Void)))
+    stdlib.initialize_stack(stack)
+
+    expressions = parser.parse(code, stack)
+
+    print_fn = MagicMock()
+    context = ExecutionContext(dict(print=print_fn, **stdlib.exec_globals))
+    context.compile(expressions)
+    context.execute()
+    return_value = [x[0][0] for x in print_fn.call_args_list]
+    assert return_value == [1, 0, 1, 1, 0, 1, 2, 1, 0, 1, 3, 3, 1, 0, 1, 4, 6, 4, 1, 0]
