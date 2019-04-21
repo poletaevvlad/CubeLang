@@ -58,8 +58,8 @@ class Parser:
         lines = []
         for op_index, op in enumerate(operators):
             this_name = "op_" + str(op_index)
-            next_name = "op_" + str(op_index + 1) if op_index < len(operators) - 1 else "atom"
-            lines.append(f"?{this_name}.{len(operators) - op_index}: {next_name} | ")
+            next_name = "op_" + str(op_index + 1) if op_index < len(operators) - 1 else "op_if"
+            lines.append(f"?{this_name}: {next_name} | ")
             lines.append(" | ".join(f"{this_name} \"{operator.symbol}\" {next_name} -> op_{op_index}_{index}"
                                     for index, operator in enumerate(op)))
             lines.append("\n")

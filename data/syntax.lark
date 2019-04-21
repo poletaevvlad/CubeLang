@@ -12,18 +12,20 @@ do_expression: "do" clause "while" expression
 repeat_expression: "repeat" expression "times" clause "end"
 for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 
-?op_a.7: if_expression | op_0
+collection_item: op_item "[" expression "]"
+
+?op_if: if_expression | op_item
+?op_item: atom | collection_item
+
 ?atom: INT_LITERAL -> int_literal
            | FLOAT_LITERAL -> float_literal
            | IDENTIFIER -> variable
-           | collection_item
            | "(" expression ")" 
            | "-" expression -> negation
            | IDENTIFIER "(" (expression ",")* expression ")" -> func_call
 
-?expression: op_a
+?expression: op_0
 
-collection_item: expression "[" expression "]"
 ?assignable: IDENTIFIER | collection_item
 
 ?type: "int" -> type_int
@@ -36,7 +38,7 @@ collection_item: expression "[" expression "]"
 
 var_decl: "let" (IDENTIFIER ",")* IDENTIFIER ":" type ("=" expression)?
 argument: IDENTIFIER ":" type ("=" expression)?
-func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? clause*
+// func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? clause*
 var_assignment: assignable "=" expression
 
 ?cube_command: "R" -> cube_right
@@ -52,6 +54,8 @@ var_assignment: assignable "=" expression
 
 cube_instruction: cube_action+
 
-?statement: var_decl | func_decl | expression | var_assignment | while_expression 
+cube_side_dereference: expression "[" expression "," expression "]"
+
+?statement: var_decl | expression | var_assignment | while_expression
           | do_expression | repeat_expression | for_expression | cube_instruction
 clause: (statement _NEWLINE)* statement?

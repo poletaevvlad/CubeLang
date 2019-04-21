@@ -109,7 +109,7 @@ def test_pascals_triangle():
             let row: list of int = new_list(row_size, 1)
             let i: int = 1
             while i < row_size - 1 do
-                row[i] = (result[size(result) - 1][i]) + (result[size(result) - 1][i - 1])
+                row[i] = result[size(result) - 1][i] + result[size(result) - 1][i - 1]
                 i = i + 1 
             end
             add_last(result, row)
