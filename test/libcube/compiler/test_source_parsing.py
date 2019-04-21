@@ -3,7 +3,7 @@ import pytest
 
 from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
-    RepeatLoopExpression, ForLoopExpression
+    RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function, Color, Side
 import typing
@@ -367,3 +367,25 @@ class TestTransformer:
         tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
         with pytest.raises(ValueError):
             parser.handle(tree, stack)
+
+    @pytest.mark.parametrize("data, side", [
+        ("cube_top", "top"), ("cube_bottom", "bottom"),
+        ("cube_left", "left"), ("cube_right", "right"),
+        ("cube_front", "front"), ("cube_back", "back")
+    ])
+    def test_cube_turning(self, data, side):
+        tree = lark.Tree(data, [])
+        expr = parser.handle(tree, Stack())
+        assert isinstance(expr, CubeTurningExpression)
+        assert expr.side == side
+        assert expr.amount == 1
+
+    @pytest.mark.parametrize("data, amount", [
+        ("cube_double", 2), ("cube_opposite", 3)
+    ])
+    def test_cube_turning_amount(self, data, amount):
+        tree = lark.Tree(data, [lark.Tree("cube_front", [])])
+        expr = parser.handle(tree, Stack())
+        assert isinstance(expr, CubeTurningExpression)
+        assert expr.side == "front"
+        assert expr.amount == amount

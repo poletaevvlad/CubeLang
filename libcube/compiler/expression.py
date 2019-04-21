@@ -235,3 +235,13 @@ class ForLoopExpression(Expression):
     def __init__(self, iterator: str, loop_range: Expression, actions: List[Expression]):
         super().__init__(Void, [0])
         self.add_intermediate(ForLoopExpression.Intermediate(iterator, loop_range, actions))
+
+
+class CubeTurningExpression(Expression):
+    def __init__(self, side: str, amount: int):
+        super(CubeTurningExpression, self).__init__(Void, [])
+        self.side: str = side
+        self.amount: int = amount
+
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+        stream.push_line(f"cube_turn({self.side}, {self.amount})")

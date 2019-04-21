@@ -39,6 +39,19 @@ argument: IDENTIFIER ":" type ("=" expression)?
 func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? clause*
 var_assignment: assignable "=" expression
 
+?cube_command: "R" -> cube_right
+            | "L" -> cube_left
+            | "U" -> cube_top
+            | "D" -> cube_bottom
+            | "F" -> cube_front
+            | "B" -> cube_back
+
+?cube_action: cube_command
+            | cube_command "2" -> cube_double
+            | cube_command "'" -> cube_opposite
+
+cube_instruction: cube_action+
+
 ?statement: var_decl | func_decl | expression | var_assignment | while_expression 
-          | do_expression | repeat_expression | for_expression
+          | do_expression | repeat_expression | for_expression | cube_instruction
 clause: (statement _NEWLINE)* statement?

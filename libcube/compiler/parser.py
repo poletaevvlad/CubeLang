@@ -4,7 +4,7 @@ from typing import Union, NamedTuple, Tuple, List, Callable, Dict, IO, Iterator
 from lark import Tree, Lark
 
 from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
-    RepeatLoopExpression, ForLoopExpression
+    RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function, Color, Side
 
@@ -294,3 +294,22 @@ def handle_var_assignment(tree: Tree, stack: Stack):
                          f"{var_data.type}")
 
     return Expression.merge(Void, ["var_" + str(var_data.number), " = ", 0], expression)
+
+
+@parser.handler("cube_right")
+@parser.handler("cube_left")
+@parser.handler("cube_top")
+@parser.handler("cube_bottom")
+@parser.handler("cube_front")
+@parser.handler("cube_back")
+def handle_cube_turning(tree: Tree, _stack: Stack):
+    side = tree.data[5:]
+    return CubeTurningExpression(side, 1)
+
+
+@parser.handler("cube_double")
+@parser.handler("cube_opposite")
+def handle_cube_turning_double(tree: Tree, stack: Stack):
+    turning_expression: CubeTurningExpression = parser.handle(tree.children[0], stack)
+    turning_expression.amount = 2 if tree.data == "cube_double" else 3
+    return turning_expression
