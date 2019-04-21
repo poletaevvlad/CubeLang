@@ -7,23 +7,25 @@ from typing import List
 from unittest.mock import MagicMock
 
 
-@pytest.mark.parametrize("around, front, top", [
-    (Side.FRONT, Side.FRONT, Side.RIGHT),
-    (Side.BACK, Side.FRONT, Side.LEFT),
-    (Side.RIGHT, Side.BOTTOM, Side.FRONT),
-    (Side.LEFT, Side.TOP, Side.BACK),
-    (Side.TOP, Side.RIGHT, Side.TOP),
-    (Side.BOTTOM, Side.LEFT, Side.TOP)
+@pytest.mark.parametrize("around, front, top, twice", [
+    (Side.FRONT, Side.FRONT, Side.RIGHT, False),
+    (Side.BACK, Side.FRONT, Side.LEFT, False),
+    (Side.RIGHT, Side.BOTTOM, Side.FRONT, False),
+    (Side.LEFT, Side.TOP, Side.BACK, False),
+    (Side.TOP, Side.RIGHT, Side.TOP, False),
+    (Side.BOTTOM, Side.LEFT, Side.TOP, False),
+
+    (Side.FRONT, Side.FRONT, Side.BOTTOM, True),
+    (Side.LEFT, Side.BACK, Side.BOTTOM, True)
 ])
-def test_rotations(around: Side, front: Side, top: Side) -> None:
+def test_rotations(around: Side, front: Side, top: Side, twice: bool) -> None:
     orientation = Orientation(Side.FRONT, Side.TOP)
-    action = Rotate(around)
+    action = Rotate(around, twice)
     # noinspection PyTypeChecker
     orientation = action.perform(None, orientation)
 
     assert orientation.front == front
     assert orientation.top == top
-
 
 class Object(object):
     pass

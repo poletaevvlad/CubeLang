@@ -21,7 +21,7 @@ class Side (enum.Enum):
 
 
 class Orientation:
-    _OPPOSITES = {
+    OPPOSITES = {
         Side.LEFT: Side.RIGHT, Side.RIGHT: Side.LEFT,
         Side.TOP: Side.BOTTOM, Side.BOTTOM: Side.TOP,
         Side.FRONT: Side.BACK, Side.BACK: Side.FRONT
@@ -42,7 +42,7 @@ class Orientation:
 
     @property
     def to_top(self) -> "Orientation":
-        return Orientation(self.top, Orientation._OPPOSITES[self.front])
+        return Orientation(self.top, Orientation.OPPOSITES[self.front])
 
     @property
     def to_left(self) -> "Orientation":
@@ -58,7 +58,7 @@ class Orientation:
 
     @property
     def to_bottom(self) -> "Orientation":
-        return Orientation(Orientation._OPPOSITES[self.top], self.front)
+        return Orientation(Orientation.OPPOSITES[self.top], self.front)
 
     def get_side_rotation(self) -> int:
         return Orientation._RELATIVE_SIDES[self.front].index(self.top)

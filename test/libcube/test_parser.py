@@ -2,7 +2,7 @@ from pytest import raises
 import pytest
 
 from libcube.parser import ParsingError, parse_actions, get_action_representation
-from libcube.actions import Turn, Action
+from libcube.actions import Turn, Action, Rotate
 from libcube.orientation import Side
 
 
@@ -31,6 +31,17 @@ def test_valid_parsing():
         assert action.side == side
         assert action.turns == turns
 
+def test_rotation():
+    actions = list(parse_actions("X X Y' Z2"))
+    expected_sides = [Side.RIGHT, Side.RIGHT, Side.BOTTOM, Side.FRONT]
+    expected_twice = [False, False, False, True]
+
+    assert len(actions) == len(expected_sides)
+    for action, side, twice in zip(actions, expected_sides, expected_twice):
+        assert isinstance(action, Rotate)
+        assert action.twice == twice
+        assert action.axis_side == side
+
 
 @pytest.mark.parametrize("action, expected", [
     (Turn(Side.FRONT, 1, 1), "F"),
@@ -40,7 +51,14 @@ def test_valid_parsing():
     (Turn(Side.RIGHT, 1, 2), "R2"),
     (Turn(Side.BACK, 1, 1), "B'"),
     (Turn(Side.TOP, 1, 3), "U"),
-    (Turn(Side.BOTTOM, 1, 2), "D2")
+    (Turn(Side.BOTTOM, 1, 2), "D2"),
+
+    (Rotate(Side.FRONT, False), "Z"),
+    (Rotate(Side.BACK, False), "Z'"),
+    (Rotate(Side.BACK, True), "Z2"),
+    (Rotate(Side.FRONT, True), "Z2"),
+    (Rotate(Side.RIGHT, False), "X"),
+    (Rotate(Side.BOTTOM, False), "Y'")
 ])
 def test_representation(action: Action, expected: str):
     actual = get_action_representation(action)

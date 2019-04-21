@@ -12,10 +12,11 @@ class Action(ABC):
 
 
 class Rotate(Action):
-    def __init__(self, around: Side) -> None:
+    def __init__(self, around: Side, twice: bool = False) -> None:
         self.axis_side: Side = around
+        self.twice = twice
 
-    def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
+    def perform_single(self, orientation: Orientation) -> Orientation:
         if self.axis_side == Side.FRONT:
             return orientation.rotate_clockwise()
         elif self.axis_side == Side.BACK:
@@ -28,6 +29,12 @@ class Rotate(Action):
             return orientation.to_right
         else:
             return orientation.to_left
+
+    def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
+        if self.twice:
+            return self.perform_single(self.perform_single(orientation))
+        else:
+            return self.perform_single(orientation)
 
 
 class Turn(Action):

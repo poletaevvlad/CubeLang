@@ -1,8 +1,8 @@
 from typing import Iterator, Callable, Dict, Optional
 import string
 
-from .actions import Turn, Action
-from .orientation import Side
+from .actions import Turn, Action, Rotate
+from .orientation import Side, Orientation
 
 ActionFactory = Callable[[bool, bool], Action]
 
@@ -10,6 +10,12 @@ ActionFactory = Callable[[bool, bool], Action]
 def create_turn_factory(side: Side) -> ActionFactory:
     def factory(double: bool, opposite: bool) -> Action:
         return Turn(side, 1, 2 if double else 3 if opposite else 1)
+    return factory
+
+
+def create_rotate_factory(side: Side) -> ActionFactory:
+    def factory(double: bool, opposite: bool) -> Action:
+        return Rotate(Orientation.OPPOSITES[side] if opposite else side, double)
     return factory
 
 
@@ -22,9 +28,15 @@ sides_letters: Dict[Side, str] = {
     Side.BOTTOM: "D"
 }
 
+rotation_letters: Dict[Side, str] = {
+    Side.RIGHT: "X",
+    Side.TOP: "Y",
+    Side.FRONT: "Z",
+}
+
 action_factories: Dict[str, ActionFactory] = {
-    sides_letters[side]: create_turn_factory(side)
-    for side in sides_letters
+    **{letter: create_turn_factory(side) for side, letter in sides_letters.items()},
+    **{letter: create_rotate_factory(side) for side, letter in rotation_letters.items()}
 }
 
 
@@ -71,5 +83,16 @@ def get_action_representation(action: Action) -> str:
             return letter + "2"
         else:
             return letter + "'"
+    elif isinstance(action, Rotate):
+        if action.axis_side in rotation_letters:
+            letter = rotation_letters[action.axis_side]
+        else:
+            letter = rotation_letters[Orientation.OPPOSITES[action.axis_side]]
+            if not action.twice:
+                letter += "'"
+        if action.twice:
+            return letter + "2"
+        else:
+            return letter
     else:
         raise ValueError(f"Unknown action type: {type(Action)}")
