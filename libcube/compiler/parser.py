@@ -290,19 +290,41 @@ def handle_func_call(tree: Tree, stack: Stack):
 
 @parser.handler("var_assignment")
 def handle_var_assignment(tree: Tree, stack: Stack):
-    var_name: str = tree.children[0]
-    var_data = stack.get_variable(var_name)
-    if var_data is None:
-        raise ValueError(f"Undefined symbol: {var_data}")
-    elif var_data.number < 0:
-        raise ValueError(f"Attempting to read to readonly value {var_data}")
-
+    var_name = tree.children[0]
     expression: Expression = parser.handle(tree.children[1], stack)
-    if not var_data.type.is_assignable(expression.type):
-        raise ValueError(f"Value of type {expression.type} cannot be assigned to a varaible of type "
-                         f"{var_data.type}")
 
-    return Expression.merge(Void, ["var_" + str(var_data.number), " = ", 0], expression)
+    if isinstance(var_name, str):
+        var_data = stack.get_variable(var_name)
+        if var_data is None:
+            raise ValueError(f"Undefined symbol: {var_data}")
+        elif var_data.number < 0:
+            raise ValueError(f"Attempting to read to readonly value {var_data}")
+        var_type = var_data.type
+        result = Expression.merge(Void, ["var_" + str(var_data.number), " = ", 0], expression)
+    else:
+        # var_name is an array item reference
+        var_expression = parser.handle(var_name, stack)
+        var_type = var_expression.type
+        result = Expression.merge(Void, [0, " = ", 1], var_expression, expression)
+
+    if not var_type.is_assignable(expression.type):
+        raise ValueError(f"Value of type {expression.type} cannot be assigned to a varaible of type "
+                         f"{var_type}")
+    return result
+
+
+@parser.handler("collection_item")
+def handle_collection_item(tree: Tree, stack: Stack):
+    list_reference: Expression = parser.handle(tree.children[0], stack)
+    list_type = list_reference.type
+    if not isinstance(list_type, ListType):
+        raise ValueError(f"{list_reference.type} is not a list")
+
+    index: Expression = parser.handle(tree.children[1], stack)
+    if index.type != Integer:
+        raise ValueError(f"List index must be of type int, not {index.type}")
+
+    return Expression.merge(list_type.item_type, ["(", 0, ")[", 1, "]"], list_reference, index)
 
 
 @parser.handler("cube_right")

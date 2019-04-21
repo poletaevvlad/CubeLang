@@ -23,7 +23,7 @@ for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 
 ?expression: op_a
 
-collection_item: IDENTIFIER "[" expression "]"
+collection_item: expression "[" expression "]"
 ?assignable: IDENTIFIER | collection_item
 
 ?type: "int" -> type_int

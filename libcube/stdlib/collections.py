@@ -80,7 +80,13 @@ def remove_last(collection: typing.List):
 
 @stdlib.function([List(T), Integer], T)
 def remove_at(collection: typing.List, index: int):
-    """ Removes and returns an element of a list at specified location"""
+    """ Removes and returns an element of a list at specified location. """
     element = collection[index]
     del collection[index]
     return element
+
+
+@stdlib.function([Integer, T], List(T))
+def new_list(size: int, value):
+    """ Creates a new list of length `size` and fills it with `value`s. """
+    return [value] * size
