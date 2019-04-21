@@ -1,6 +1,7 @@
 from typing import Dict, Any, List
 
 from ..compiler.types import Type, Function
+from ..compiler.stack import Stack
 
 
 class Library:
@@ -19,6 +20,10 @@ class Library:
             return function
 
         return wrapper
+
+    def initialize_stack(self, stack: Stack):
+        for name, function in self.global_functions.items():
+            stack.add_global(name, function)
 
 
 stdlib = Library()
