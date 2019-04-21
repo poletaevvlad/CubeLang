@@ -156,9 +156,8 @@ class WhileLoopExpression(Expression):
                 self.condition.generate_intermediates(cond_vars, temp_pool, stream)
                 stream.push_line("while " + self.condition.generate_expression_line(cond_vars) + ":")
                 stream.indent()
-                for action in self.actions[:-1]:
+                for action in self.actions:
                     action.generate(temp_pool, stream, None)
-                self.actions[-1].generate(temp_pool, stream, var_name)
                 self.condition.generate_intermediates(cond_vars, temp_pool, stream)
                 stream.unindent()
 
@@ -180,9 +179,8 @@ class RepeatLoopExpression(Expression):
                 line = self.times.generate_line(temp_pool, stream)
                 stream.push_line(f"for tmp_{counter} in range({line}):")
                 stream.indent()
-                for action in self.actions[:-1]:
+                for action in self.actions:
                     action.generate(temp_pool, stream, None)
-                self.actions[-1].generate(temp_pool, stream, var_name)
                 stream.unindent()
 
     def __init__(self, times: Expression, actions: List[Expression]):
@@ -200,9 +198,8 @@ class DoWhileLoopExpression(Expression):
         def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
             stream.push_line("while True:")
             stream.indent()
-            for action in self.actions[:-1]:
+            for action in self.actions:
                 action.generate(temp_pool, stream, None)
-            self.actions[-1].generate(temp_pool, stream, var_name)
 
             condition = self.condition.generate_line(temp_pool, stream)
             stream.push(f"if not ({condition}):")
@@ -227,9 +224,8 @@ class ForLoopExpression(Expression):
             range_expression = self.range.generate_line(temp_pool, stream)
             stream.push(f"for {self.iterator} in {range_expression}:")
             stream.indent()
-            for action in self.actions[:-1]:
+            for action in self.actions:
                 action.generate(temp_pool, stream, None)
-            self.actions[-1].generate(temp_pool, stream, var_name)
             stream.unindent()
 
     def __init__(self, iterator: str, loop_range: Expression, actions: List[Expression]):

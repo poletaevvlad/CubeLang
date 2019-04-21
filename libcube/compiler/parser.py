@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Union, NamedTuple, Tuple, List, Callable, Dict, IO, Iterator
+from collections.abc import Iterable
 
 from lark import Tree, Lark
 
@@ -167,15 +168,23 @@ def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
     return [Expression(Void, ["var_" + str(num), " = ", var_type.default_value()]) for num in nums]
 
 
+def flatten(x):
+    if isinstance(x, Iterable):
+        for y in x:
+            yield from flatten(y)
+    else:
+        yield x
+
+
 def handle_clause(tree: Tree, stack: Stack) -> List[Expression]:
     if tree.data == "clause":
         stack.add_frame()
-        expressions = [parser.handle(subtree, stack) for subtree in tree.children]
+        expressions = list(flatten(parser.handle(subtree, stack) for subtree in tree.children))
         stack.pop_frame()
         return expressions
     else:
         stack.add_frame()
-        expressions = [parser.handle(tree, stack)]
+        expressions = list(flatten(parser.handle(tree, stack)))
         stack.pop_frame()
         return expressions
 

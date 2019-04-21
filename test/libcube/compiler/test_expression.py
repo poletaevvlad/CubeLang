@@ -134,10 +134,10 @@ class TestWhileLoop:
 
         expr = WhileLoopExpression(condition, [Expression(Integer, "b"), Expression(Integer, "c")])
         stream = CodeStream()
-        expr.generate(VariablesPool(), stream, "res")
+        expr.generate(VariablesPool(), stream, None)
 
         res = stream.get_contents()
-        assert res == "tmp_0 = b\nwhile a tmp_0:\n    b\n    res = c\n    tmp_0 = b\n"
+        assert res == "tmp_0 = b\nwhile a tmp_0:\n    b\n    c\n    tmp_0 = b\n"
 
 
 class TestRepeatLoop:
@@ -146,10 +146,10 @@ class TestRepeatLoop:
         iterations.add_intermediate(Expression(Void, ["b"]))
         expr = RepeatLoopExpression(iterations, [Expression(Void, "a"), Expression(Void, "b")])
         stream = CodeStream()
-        expr.generate(VariablesPool(), stream, "res")
+        expr.generate(VariablesPool(), stream, None)
 
         res = stream.get_contents()
-        assert res == "tmp_1 = b\nfor tmp_0 in range(a tmp_1):\n    a\n    res = b\n"
+        assert res == "tmp_1 = b\nfor tmp_0 in range(a tmp_1):\n    a\n    b\n"
 
 
 class TestDoWhileLoop:
@@ -158,10 +158,10 @@ class TestDoWhileLoop:
         conditon.add_intermediate(Expression(Void, ["b"]))
         expr = DoWhileLoopExpression(conditon, [Expression(Void, "a"), Expression(Void, "b")])
         stream = CodeStream()
-        expr.generate(VariablesPool(), stream, "res")
+        expr.generate(VariablesPool(), stream, None)
 
         res = stream.get_contents()
-        assert res == "while True:\n    a\n    res = b\n    tmp_0 = b\n    if not (a tmp_0):\n        break\n"
+        assert res == "while True:\n    a\n    b\n    tmp_0 = b\n    if not (a tmp_0):\n        break\n"
 
 
 class TestForLoop:
@@ -171,9 +171,9 @@ class TestForLoop:
         expr = ForLoopExpression("i", range_expression, [Expression(Void, "x"), Expression(Integer, "y")])
 
         stream = CodeStream()
-        expr.generate(VariablesPool(), stream, "res")
+        expr.generate(VariablesPool(), stream, None)
         res = stream.get_contents()
-        assert res == "tmp_0 = x\nfor i in range(tmp_0):\n    x\n    res = y\n"
+        assert res == "tmp_0 = x\nfor i in range(tmp_0):\n    x\n    y\n"
 
 
 def test_cube_rotation():
