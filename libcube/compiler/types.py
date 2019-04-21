@@ -116,6 +116,9 @@ class Function(Type):
         super().__init__("Function", "")
         self.overloads = [Function.FunctionOverload(*x) for x in overloads]
 
+    def prepend_overload(self, arguments: typing.List[Type], return_type: Type):
+        self.overloads.insert(0, self.FunctionOverload(arguments, return_type))
+
     def __hash__(self):
         return hash(tuple((tuple(x.arguments), x.return_type) for x in self.overloads))
 
