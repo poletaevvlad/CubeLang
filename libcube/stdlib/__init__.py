@@ -19,3 +19,8 @@ class Library:
             return function
 
         return wrapper
+
+
+stdlib = Library()
+
+from .collections import *
