@@ -3,6 +3,7 @@ from libcube.stdlib import Library
 from libcube.compiler.types import Integer, Real, Void, Function
 
 
+# noinspection PyUnresolvedReferences
 def test_library():
     lib = Library()
 
@@ -11,10 +12,11 @@ def test_library():
         pass
 
     assert lib.exec_globals["func"] == func
-    assert lib.global_functions["func"].overloads[0].arguments == [Integer, Real]
-    assert lib.global_functions["func"].overloads[0].return_type == Void
+    assert lib.global_values["func"].overloads[0].arguments == [Integer, Real]
+    assert lib.global_values["func"].overloads[0].return_type == Void
 
 
+# noinspection PyUnresolvedReferences
 def test_library_multiple():
     lib = Library()
 
@@ -25,11 +27,19 @@ def test_library_multiple():
 
     assert lib.exec_globals["func"] == func
 
-    overloads = lib.global_functions["func"].overloads
+    overloads = lib.global_values["func"].overloads
     assert overloads[0].arguments == [Integer]
     assert overloads[0].return_type == Void
     assert overloads[1].arguments == [Real]
     assert overloads[1].return_type == Integer
+
+
+def test_library_value():
+    lib = Library()
+    lib.add_value("a", Integer, 12)
+
+    assert lib.global_values["a"] == Integer
+    assert lib.exec_globals["a"] == 12
 
 
 def test_library_init_stack():
