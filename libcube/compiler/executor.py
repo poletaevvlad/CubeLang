@@ -1,4 +1,5 @@
-from typing import Iterator, Dict, Any, Optional
+from types import CodeType
+from typing import Iterator, Dict, Any
 from .expression import Expression
 from .codeio import CodeStream
 from .stack import VariablesPool
@@ -6,7 +7,7 @@ from .stack import VariablesPool
 
 class ExecutionContext:
     def __init__(self, globals: Dict[str, Any]):
-        self.source: Optional[str] = None
+        self.source: CodeType = None
         self.globals: Dict[str, Any] = globals
 
     def compile(self, program: Iterator[Expression]):
@@ -16,7 +17,7 @@ class ExecutionContext:
         for expression in program:
             expression.generate(variables, stream)
 
-        self.source = stream.get_contents()
+        self.source = compile(stream.get_contents(), "<string>", "exec")
 
     def execute(self):
         if self.source is None:

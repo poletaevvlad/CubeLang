@@ -29,8 +29,6 @@ def test_execution_simple():
     }
     context = ExecutionContext(globals)
     context.compile(expressions)
-    assert context.source == "var_0 = -15\nvar_1 = (var_0) * (abs((var_0) + (a)))\nprint((var_0) * (var_1))\n"
-
     context.execute()
     assert tuple(globals["print"].call_args[0]) == (1125,)
 
