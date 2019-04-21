@@ -1,9 +1,12 @@
 from typing import Callable
 
 from libcube.actions import Action, Turn
-from libcube.orientation import Side
+from libcube.orientation import Side, Orientation
 from libcube.cube_runtime import CubeRuntime
+from libcube.cube import Cube
 from unittest.mock import MagicMock
+from unittest.mock import patch
+import pytest
 
 
 def test_runtime_globals():
@@ -23,3 +26,26 @@ def test_action_callback():
     action = callback.call_args_list[0][0][0]
     assert isinstance(action, Turn)
     assert action.side == Side.LEFT
+
+
+@pytest.mark.parametrize("side, orientation", [
+    (Side.FRONT, Orientation(Side.FRONT, Side.TOP)),
+    (Side.LEFT, Orientation(Side.LEFT, Side.TOP)),
+    (Side.RIGHT, Orientation(Side.RIGHT, Side.TOP)),
+    (Side.BACK, Orientation(Side.BACK, Side.TOP)),
+    (Side.TOP, Orientation(Side.TOP, Side.BACK)),
+    (Side.BOTTOM, Orientation(Side.BOTTOM, Side.FRONT))
+])
+def test_get_color(side, orientation):
+    class Colors:
+        def __getitem__(self, item):
+            pass
+
+    class Side:
+        def __init__(self):
+            self.colors = Colors()
+
+    with patch.object(Cube, 'get_side', return_value=Side()) as mock_method:
+        runtime = CubeRuntime(lambda action: None)
+        runtime.get_color(side, 0, 0)
+        mock_method.assert_called_once_with(orientation)

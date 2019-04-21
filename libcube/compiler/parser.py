@@ -344,3 +344,18 @@ def handle_cube_turning_double(tree: Tree, stack: Stack):
     turning_expression: CubeTurningExpression = parser.handle(tree.children[0], stack)
     turning_expression.amount = 2 if tree.data == "cube_double" else 3
     return turning_expression
+
+
+@parser.handler("cube_color_reference")
+def handle_dereference(tree: Tree, stack: Stack):
+    side_expression: Expression = parser.handle(tree.children[0], stack)
+    if side_expression.type != Side:
+        raise ValueError(f"Value of type 'side' expected, but '{side_expression.type}' found")
+
+    index1: Expression = parser.handle(tree.children[1], stack)
+    index2: Expression = parser.handle(tree.children[2], stack)
+    if index1.type != Integer or index2.type != Integer:
+        raise ValueError("Cube side indices must be integers")
+
+    return Expression.merge(Color, ["cube_get_color(", 0, ", ", 1, ", ", 2, ")"],
+                            side_expression, index1, index2)

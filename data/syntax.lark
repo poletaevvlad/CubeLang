@@ -13,9 +13,10 @@ repeat_expression: "repeat" expression "times" clause "end"
 for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 
 collection_item: op_item "[" expression "]"
+cube_color_reference: op_item "[" expression "," expression "]"
 
 ?op_if: if_expression | op_item
-?op_item: atom | collection_item
+?op_item: atom | collection_item | cube_color_reference
 
 ?atom: INT_LITERAL -> int_literal
            | FLOAT_LITERAL -> float_literal
@@ -47,14 +48,10 @@ var_assignment: assignable "=" expression
             | "D" -> cube_bottom
             | "F" -> cube_front
             | "B" -> cube_back
-
 ?cube_action: cube_command
             | cube_command "2" -> cube_double
             | cube_command "'" -> cube_opposite
-
 cube_instruction: cube_action+
-
-cube_side_dereference: expression "[" expression "," expression "]"
 
 ?statement: var_decl | expression | var_assignment | while_expression
           | do_expression | repeat_expression | for_expression | cube_instruction

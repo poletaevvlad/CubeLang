@@ -482,3 +482,39 @@ def test_cube_turning_amount(data, amount):
     assert isinstance(expr, CubeTurningExpression)
     assert expr.side == "front"
     assert expr.amount == amount
+
+
+class TestColorReference:
+    tree = lark.Tree("cube_color_reference", [
+        lark.Tree("variable", ["a"]),
+        lark.Tree("variable", ["b"]),
+        lark.Tree("variable", ["c"])
+    ])
+
+    def create_stack(self, a: Type, b: Type, c: Type) -> Stack:
+        stack = Stack()
+        stack.add_global("a", a)
+        stack.add_global("b", b)
+        stack.add_global("c", c)
+        return stack
+
+    def test_normal(self):
+        stack = self.create_stack(Side, Integer, Integer)
+        expr = parser.handle(TestColorReference.tree, stack)
+        assert expr.type == Color
+        assert "".join(expr.expression) == "cube_get_color(a, b, c)"
+
+    def test_side_invalid_type_1(self):
+        stack = self.create_stack(Color, Integer, Integer)
+        with pytest.raises(ValueError):
+            parser.handle(TestColorReference.tree, stack)
+
+    def test_side_invalid_type_2(self):
+        stack = self.create_stack(Side, Real, Integer)
+        with pytest.raises(ValueError):
+            parser.handle(TestColorReference.tree, stack)
+
+    def test_side_invalid_type_3(self):
+        stack = self.create_stack(Side, Integer, Real)
+        with pytest.raises(ValueError):
+            parser.handle(TestColorReference.tree, stack)

@@ -25,6 +25,8 @@ class CubeRuntime:
 
         self.functions = Library()
         self.functions.add_function("cube_turn", self.perform_turn, [types.Side, types.Integer], types.Void)
+        self.functions.add_function("cube_get_color", self.get_color,
+                                    [types.Color, types.Integer, types.Integer], types.Color)
 
         for name, side in CubeRuntime.SIDE_NAMES.items():
             self.functions.add_value(name, types.Side, side)
@@ -35,3 +37,18 @@ class CubeRuntime:
         action = Turn(side, 1, amount)
         self.orientation = action.perform(self.cube, self.orientation)
         self.callback(action)
+
+    def get_color(self, side: Side, i: int, j: int):
+        if side == Side.FRONT:
+            local_orientation = self.orientation
+        elif side == Side.LEFT:
+            local_orientation = self.orientation.to_left
+        elif side == Side.RIGHT:
+            local_orientation = self.orientation.to_right
+        elif side == Side.BACK:
+            local_orientation = self.orientation.to_left.to_left
+        elif side == Side.TOP:
+            local_orientation = self.orientation.to_top
+        else:
+            local_orientation = self.orientation.to_bottom
+        return self.cube.get_side(local_orientation).colors[i, j]
