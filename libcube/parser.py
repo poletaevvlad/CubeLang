@@ -2,7 +2,7 @@ from typing import Iterator, Callable, Dict, Optional
 import string
 
 from .actions import Turn, Action, Rotate
-from .orientation import Side, Orientation
+from .orientation import Side
 
 ActionFactory = Callable[[bool, bool], Action]
 
@@ -15,7 +15,7 @@ def create_turn_factory(side: Side) -> ActionFactory:
 
 def create_rotate_factory(side: Side) -> ActionFactory:
     def factory(double: bool, opposite: bool) -> Action:
-        return Rotate(Orientation.OPPOSITES[side] if opposite else side, double)
+        return Rotate(side.opposite() if opposite else side, double)
     return factory
 
 
@@ -87,7 +87,7 @@ def get_action_representation(action: Action) -> str:
         if action.axis_side in rotation_letters:
             letter = rotation_letters[action.axis_side]
         else:
-            letter = rotation_letters[Orientation.OPPOSITES[action.axis_side]]
+            letter = rotation_letters[action.axis_side.opposite()]
             if not action.twice:
                 letter += "'"
         if action.twice:
