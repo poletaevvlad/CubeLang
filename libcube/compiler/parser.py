@@ -54,20 +54,21 @@ class Parser:
         self.callbacks: Dict[str, Callback] = dict()
 
     @staticmethod
-    def _generate_operators(operators: List[List[BinaryOperator]]) -> str:
+    def _generate_operators(operator_groups: List[List[BinaryOperator]]) -> str:
         lines = []
-        for op_index, op in enumerate(operators):
+        for op_index, op in enumerate(operator_groups):
             this_name = "op_" + str(op_index)
-            next_name = "op_" + str(op_index + 1) if op_index < len(operators) - 1 else "op_if"
+            next_name = "op_" + str(op_index + 1) if op_index < len(operator_groups) - 1 else "op_if"
             lines.append(f"?{this_name}: {next_name} | ")
-            lines.append(" | ".join(f"{this_name} \"{operator.symbol}\" {next_name} -> op_{op_index}_{index}"
-                                    for index, operator in enumerate(op)))
+            lines.append(" | ".join(f"{this_name} \"{op.symbol}\" {next_name} -> op_{op_index}_{index}"
+                                    for index, op in enumerate(op)))
             lines.append("\n")
         return "".join(lines)
 
-    def handler(self, name: str) -> Callable[[Callback], Callback]:
+    def handler(self, *names: str) -> Callable[[Callback], Callback]:
         def wrapper(func: Callback) -> Callback:
-            self.callbacks[name] = func
+            for name in names:
+                self.callbacks[name] = func
             return func
         return wrapper
 
@@ -133,17 +134,12 @@ def handle_variable(tree: Tree, stack: Stack) -> Expression:
     return Expression(variable.type, var_name)
 
 
-@parser.handler("type_int")
-@parser.handler("type_real")
-@parser.handler("type_bool")
-@parser.handler("type_color")
-@parser.handler("type_side")
+@parser.handler("type_int", "type_real", "type_bool", "type_color", "type_side")
 def handle_scalar_type(tree: Tree, _stack: Stack) -> Type:
     return TYPE_NAMES[tree.data]
 
 
-@parser.handler("type_list")
-@parser.handler("type_set")
+@parser.handler("type_list", "type_set")
 def handle_compound_type(tree: Tree, stack: Stack) -> Type:
     constructor = {"type_list": ListType, "type_set": Set}[tree.data]
     inner_type: Type = parser.handle(tree.children[0], stack)
@@ -327,19 +323,13 @@ def handle_collection_item(tree: Tree, stack: Stack):
     return Expression.merge(list_type.item_type, ["(", 0, ")[", 1, "]"], list_reference, index)
 
 
-@parser.handler("cube_right")
-@parser.handler("cube_left")
-@parser.handler("cube_top")
-@parser.handler("cube_bottom")
-@parser.handler("cube_front")
-@parser.handler("cube_back")
+@parser.handler("cube_right", "cube_left", "cube_top", "cube_bottom", "cube_front", "cube_back")
 def handle_cube_turning(tree: Tree, _stack: Stack):
     side = tree.data[5:]
     return CubeTurningExpression(side, 1)
 
 
-@parser.handler("cube_double")
-@parser.handler("cube_opposite")
+@parser.handler("cube_double", "cube_opposite")
 def handle_cube_turning_double(tree: Tree, stack: Stack):
     turning_expression: CubeTurningExpression = parser.handle(tree.children[0], stack)
     turning_expression.amount = 2 if tree.data == "cube_double" else 3
