@@ -1,48 +1,18 @@
-from pathlib import Path
-from typing import Union, NamedTuple, Tuple, List, Callable, Dict, IO, Iterator
 from collections.abc import Iterable
+from pathlib import Path
+from typing import Union, List, Callable, Dict, IO, Iterator
 
 from lark import Tree, Lark
 
-from .expression import Expression, TemplateType, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
+from .expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
+from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function, Color, Side
 
-
 TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool, "type_color": Color, "type_side": Side}
 
-
-class BinaryOperator(NamedTuple):
-    symbol: str
-    expression: TemplateType
-    arguments: List[Tuple[Tuple[Type, Type], Type]]
-
-
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
-
-BINARY_OPERATORS = [[
-    BinaryOperator("xor", ["(", 0, ") != (", 1, ")"], [((Bool, Bool), Bool)]),
-], [
-    BinaryOperator("or", ["(", 0, ") or (", 1, ")"], [((Bool, Bool), Bool)]),
-], [
-    BinaryOperator("and", ["(", 0, ") and (", 1, ")"], [((Bool, Bool), Bool)]),
-], [
-    BinaryOperator("==", ["(", 0, ") == (", 1, ")"], [((Real, Real), Bool), ((Bool, Bool), Bool)]),
-    BinaryOperator("!=", ["(", 0, ") != (", 1, ")"], [((Real, Real), Bool), ((Bool, Bool), Bool)]),
-], [
-    BinaryOperator("<", ["(", 0, ") < (", 1, ")"], [((Real, Real), Bool)]),
-    BinaryOperator(">", ["(", 0, ") > (", 1, ")"], [((Real, Real), Bool)]),
-    BinaryOperator("<=", ["(", 0, ") <= (", 1, ")"], [((Real, Real), Bool)]),
-    BinaryOperator(">=", ["(", 0, ") >= (", 1, ")"], [((Real, Real), Bool)])
-], [
-    BinaryOperator("+", ["(", 0, ") + (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
-    BinaryOperator("-", ["(", 0, ") - (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)])
-], [
-    BinaryOperator("*", ["(", 0, ") * (", 1, ")"], [((Integer, Integer), Integer), ((Real, Real), Real)]),
-    BinaryOperator("/", ["(", 0, ") / (", 1, ")"], [((Real, Real), Real)]),
-    BinaryOperator("mod", ["(", 0, ") % (", 1, ")"], [((Integer, Integer), Integer)])
-]]
 
 
 class Parser:
@@ -349,3 +319,8 @@ def handle_dereference(tree: Tree, stack: Stack):
 
     return Expression.merge(Color, ["cube_get_color(", 0, ", ", 1, ", ", 2, ")"],
                             side_expression, index1, index2)
+
+
+@parser.handler("cube_instruction")
+def handle_cube_instruction(tree: Tree, stack: Stack):
+    return [parser.handle(m, stack) for m in tree.children]
