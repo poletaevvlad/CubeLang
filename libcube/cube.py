@@ -1,9 +1,13 @@
 from typing import Tuple, Dict, List, Generic, TypeVar, Iterator, Optional
 from .orientation import Side, Color, Orientation
 from .sides import CubeSide, ICubeSide, CubeSideView
-from .listutils import shift_list
 
 T = TypeVar("T")
+
+
+def shift_list(list: List[T], amount: int = 1) -> List[T]:
+    return list[amount:] + list[:amount]
+
 
 
 class Cube(Generic[T]):

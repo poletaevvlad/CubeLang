@@ -1,12 +1,22 @@
 from typing import List
 
-from libcube.cube import Cube
+from libcube.cube import Cube, shift_list
 from libcube.sides import CubeSide, CubeSideView, ICubeSide
 from libcube.orientation import Orientation, Side, Color
 from libcube.parser import parse_actions
 
 from unittest.mock import MagicMock
 import pytest
+
+
+def test_shift_list() -> None:
+    lst = [1, 2, 3, 4, 5]
+    assert shift_list(lst) == [2, 3, 4, 5, 1]
+
+
+def test_shift_list_2() -> None:
+    lst = [1, 2, 3, 4, 5]
+    assert shift_list(lst, 2) == [3, 4, 5, 1, 2]
 
 
 def test_get_side():
