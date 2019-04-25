@@ -268,7 +268,7 @@ def test_orient_full():
     for action in parse_actions("RUR'U'"):
         action.perform(cube, Orientation())
 
-    a = PatternGroup("A")
+    a = PatternGroup()
     match = cube.orient(Orientation(),
                         top=Pattern([[Color.WHITE, None, None], [None, a, None], [a, None, None]]),
                         front=Pattern([[None, None, None], [None, None, Color.ORANGE], [None, None, None]]),
@@ -303,8 +303,8 @@ def test_orient_not_matching_groups():
     for action in parse_actions("RUR'U'"):
         action.perform(cube, Orientation())
 
-    a = PatternGroup("a")
-    b = PatternGroup("b")
+    a = PatternGroup()
+    b = PatternGroup()
     match = cube.orient(Orientation(),
                         front=Pattern([[a, a, b], [None, None, None], [None, None, None]]),
                         right=Pattern([[a, None, None], [None, None, None], [a, None, b]]))

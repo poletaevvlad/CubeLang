@@ -36,8 +36,8 @@ COLORS = [
 
 def test_pattern_match_correct():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup("A")
-    g2 = PatternGroup("B")
+    g1 = PatternGroup()
+    g2 = PatternGroup()
     pattern = Pattern([
         [None, Color.GREEN, None],
         [g1, g1, None],
@@ -49,7 +49,7 @@ def test_pattern_match_correct():
 
 def test_pattern_match_wrong_color():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup("A")
+    g1 = PatternGroup()
     pattern = Pattern([
         [None, Color.RED, None],
         [g1, g1, None],
@@ -60,8 +60,8 @@ def test_pattern_match_wrong_color():
 
 def test_pattern_match_wrong_known():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup("A")
-    g2 = PatternGroup("B")
+    g1 = PatternGroup()
+    g2 = PatternGroup()
     pattern = Pattern([
         [None, Color.GREEN, None],
         [g1, Color.WHITE, None],
@@ -72,7 +72,7 @@ def test_pattern_match_wrong_known():
 
 def test_pattern_match_wrong_found():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup("A")
+    g1 = PatternGroup()
     pattern = Pattern([
         [None, None, None],
         [g1, None, None],

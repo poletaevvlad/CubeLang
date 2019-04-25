@@ -4,14 +4,7 @@ from .cube import ICubeSide
 
 
 class PatternGroup:
-    def __init__(self, name: str):
-        self.name = name
-
-    def __eq__(self, other):
-        return isinstance(other, PatternGroup) and other.name == self.name
-
-    def __hash__(self):
-        return hash(self.name)
+    pass
 
 
 class Pattern:
