@@ -1,13 +1,13 @@
 from typing import Tuple, Dict, List, Generic, TypeVar, Iterator, Optional
 from .orientation import Side, Color, Orientation
 from .sides import CubeSide, ICubeSide, CubeSideView
+from .pattern import Pattern
 
 T = TypeVar("T")
 
 
 def shift_list(list: List[T], amount: int = 1) -> List[T]:
     return list[amount:] + list[:amount]
-
 
 
 class Cube(Generic[T]):
@@ -118,3 +118,34 @@ class Cube(Generic[T]):
         elif side == Side.BOTTOM:
             return j, self.shape[2] - 1, i
         raise ValueError("Unknown value for `side` argument")
+
+    def orient(self, orientation: Orientation, keep: Optional[Side] = None,
+               front: Optional[Pattern] = None, top: Optional[Pattern] = None,
+               left: Optional[Pattern] = None, right: Optional[Pattern] = None,
+               back: Optional[Pattern] = None, bottom: Optional[Pattern] = None) -> Optional[Orientation]:
+        def match(pattern: Optional[Pattern], front_orientation: Orientation, values: Dict) -> bool:
+            if pattern is None:
+                return True
+            new_values = pattern.match(self.get_side(front_orientation), values)
+            if new_values is None:
+                return False
+            for key in new_values:
+                if key in values and values[key] != new_values[key]:
+                    return False
+            values.update(new_values)
+            return True
+
+        def perform_matching(new_front):
+            values = {}
+            yield match(front, new_front, values)
+            yield match(top, new_front.to_top, values)
+            yield match(left, new_front.to_left, values)
+            yield match(right, new_front.to_right, values)
+            yield match(bottom, new_front.to_bottom, values)
+            yield match(back, new_front.to_left.to_left, values)
+
+        for possible_front in orientation.iterate_rotations(keep):
+            if all(perform_matching(possible_front)):
+                return possible_front
+        else:
+            return None

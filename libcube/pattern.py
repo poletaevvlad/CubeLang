@@ -33,7 +33,7 @@ class Pattern:
 
         result = dict()
         for row, column, cell in self._get_items():
-            color = side.colors[row][column]
+            color = side.colors[row, column]
             if isinstance(cell, Color):
                 if cell != color:
                     return None

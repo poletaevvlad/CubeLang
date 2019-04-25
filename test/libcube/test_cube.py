@@ -4,6 +4,7 @@ from libcube.cube import Cube, shift_list
 from libcube.sides import CubeSide, CubeSideView, ICubeSide
 from libcube.orientation import Orientation, Side, Color
 from libcube.parser import parse_actions
+from libcube.pattern import Pattern, PatternGroup
 
 from unittest.mock import MagicMock
 import pytest
@@ -260,3 +261,51 @@ def test_cube_flip_flop():
         for action in parse_actions("RUR'U'"):
             action.perform(cube, Orientation())
     assert_cube(cube, "RRR/RRR/RRR", "GGG/GGG/GGG", "OOO/OOO/OOO", "BBB/BBB/BBB", "YYY/YYY/YYY", "WWW/WWW/WWW")
+
+
+def test_orient_full():
+    cube = Cube((3, 3, 3))
+    for action in parse_actions("RUR'U'"):
+        action.perform(cube, Orientation())
+
+    a = PatternGroup("A")
+    match = cube.orient(Orientation(),
+                        top=Pattern([[Color.WHITE, None, None], [None, a, None], [a, None, None]]),
+                        front=Pattern([[None, None, None], [None, None, Color.ORANGE], [None, None, None]]),
+                        right=Pattern([[None, None, None], [Color.YELLOW, None, None], [a, None, None]]),
+                        back=Pattern([[None, None, None], [None, None, None], [Color.BLUE, None, None]]),
+                        left=Pattern([[None, Color.ORANGE, None], [None, None, None], [None, Color.GREEN, None]]),
+                        bottom=Pattern([[Color.BLUE, None, Color.RED], [None, None, None], [None, None, None]]))
+    assert Orientation(Side.RIGHT, Side.BOTTOM) == match
+
+
+def test_orient_keep():
+    cube = Cube((3, 3, 3))
+    for action in parse_actions("RUR'U'"):
+        action.perform(cube, Orientation())
+
+    match = cube.orient(Orientation(), keep=Side.LEFT,
+                        bottom=Pattern([[Color.WHITE, None, None], [None, None, None], [None, None, None]]))
+    assert Orientation(Side.FRONT, Side.TOP) == match
+
+
+def test_orient_not_matching_side():
+    cube = Cube((3, 3, 3))
+    for action in parse_actions("RUR'U'"):
+        action.perform(cube, Orientation())
+    match = cube.orient(Orientation(),
+                        front=Pattern([[Color.WHITE, Color.GREEN, None], [None, None, None], [None, None, None]]))
+    assert match is None
+
+
+def test_orient_not_matching_groups():
+    cube = Cube((3, 3, 3))
+    for action in parse_actions("RUR'U'"):
+        action.perform(cube, Orientation())
+
+    a = PatternGroup("a")
+    b = PatternGroup("b")
+    match = cube.orient(Orientation(),
+                        front=Pattern([[a, a, b], [None, None, None], [None, None, None]]),
+                        right=Pattern([[a, None, None], [None, None, None], [a, None, b]]))
+    assert match is None
