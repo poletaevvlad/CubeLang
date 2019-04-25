@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 from compiler.codeio import CodeStream
 from .types import Type, Void
@@ -106,42 +106,56 @@ class Expression:
 
 class ConditionExpression(Expression):
     class Intermediate(Expression):
-        def __init__(self, type: Type, condition: Expression, then_clause: List[Expression],
+        def __init__(self, returns_value: bool, actions: List[Tuple[Expression, List[Expression]]],
                      else_clause: List[Expression]):
-            super(ConditionExpression.Intermediate, self).__init__(type, [])
-            self.condition: Expression = condition
-            self.then_clause: List[Expression] = then_clause
+            super(ConditionExpression.Intermediate, self).__init__(Void, [])
+            self.returns_value = returns_value
+            self.actions: List[Tuple[Expression, List[Expression]]] = actions
             self.else_clause: List[Expression] = else_clause
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
-            condition = self.condition.generate_line(temp_pool, stream)
-            stream.push_line("if " + condition + ":")
-            stream.indent()
-            for line in self.then_clause[:-1]:
+        @staticmethod
+        def _generate_clause(clause: List[Expression], temp_pool: VariablesPool,
+                             stream: CodeStream, var_name: Optional[str]):
+            for line in clause[:-1]:
                 line.generate(temp_pool, stream, None)
-            self.then_clause[-1].generate(temp_pool, stream, None if self.type is None else var_name)
-            stream.unindent()
+            clause[-1].generate(temp_pool, stream, var_name)
 
-            if len(self.else_clause) > 0:
+        def _generate_if(self, actions: List[Tuple[Expression, List[Expression]]], temp_pool: VariablesPool,
+                         stream: CodeStream, var_name: Optional[str]):
+            condition = actions[0][0].generate_line(temp_pool, stream)
+            stream.push_line(f"if {condition}:")
+            stream.indent()
+            self._generate_clause(actions[0][1], temp_pool, stream, var_name)
+            stream.unindent()
+            if len(actions) > 1 or len(self.else_clause) > 0:
                 stream.push_line("else:")
                 stream.indent()
-                for line in self.else_clause[:-1]:
-                    line.generate(temp_pool, stream, None)
-                self.else_clause[-1].generate(temp_pool, stream, None if self.type is None else var_name)
+                if len(actions) > 1:
+                    self._generate_if(actions[1:], temp_pool, stream, var_name)
+                else:
+                    self._generate_clause(self.else_clause, temp_pool, stream, var_name)
                 stream.unindent()
 
-    def __init__(self, condition: Expression, then_clause: List[Expression], else_clause: List[Expression]):
-        expr_type = Void
-        if len(else_clause) > 0:
-            expr_type1 = then_clause[-1].type
-            expr_type2 = else_clause[-1].type
-            if expr_type1.is_assignable(expr_type2):
-                expr_type = expr_type1
-            elif expr_type2.is_assignable(expr_type1):
-                expr_type = expr_type2
+        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+            if not self.returns_value:
+                var_name = None
+            self._generate_if(self.actions, temp_pool, stream, var_name)
 
-        super(ConditionExpression, self).__init__(expr_type, [0])
-        self.add_intermediate(ConditionExpression.Intermediate(expr_type, condition, then_clause, else_clause))
+    def __init__(self, actions: List[Tuple[Expression, List[Expression]]], else_clause: List[Expression]):
+        if len(else_clause) > 0:
+            res_type = else_clause[-1].type
+            for action in actions:
+                action_type = action[1][-1].type
+                if action_type.is_assignable(res_type):
+                    res_type = action_type
+                elif not res_type.is_assignable(action_type):
+                    res_type = Void
+                    break
+        else:
+            res_type = Void
+
+        super(ConditionExpression, self).__init__(res_type, [0])
+        self.add_intermediate(ConditionExpression.Intermediate(res_type, actions, else_clause))
 
 
 class WhileLoopExpression(Expression):

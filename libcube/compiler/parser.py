@@ -157,15 +157,19 @@ def handle_clause(tree: Tree, stack: Stack) -> List[Expression]:
 
 @parser.handler("if_expression")
 def handle_if_expression(tree: Tree, stack: Stack) -> Expression:
-    condition = parser.handle(tree.children[0], stack)
-    if not Bool.is_assignable(condition.type):
-        raise ValueError("Only expression of boolean type can be used as an if condition")
-    then_clause = handle_clause(tree.children[1], stack)
-    if len(tree.children) > 2:
-        else_clause = handle_clause(tree.children[2], stack)
+    actions = []
+    for i in range(0, len(tree.children) - 1, 2):
+        condition = parser.handle(tree.children[i], stack)
+        if not Bool.is_assignable(condition.type):
+            raise ValueError("Only expression of boolean type can be used as an if condition")
+        then_clause = handle_clause(tree.children[i + 1], stack)
+        actions.append((condition, then_clause))
+
+    if len(tree.children) % 2 == 1:
+        else_clause = handle_clause(tree.children[-1], stack)
     else:
         else_clause = []
-    return ConditionExpression(condition, then_clause, else_clause)
+    return ConditionExpression(actions, else_clause)
 
 
 @parser.handler("while_expression")

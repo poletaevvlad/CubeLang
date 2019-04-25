@@ -146,18 +146,59 @@ def test_if_expression():
 
     intermediate = expression.intermediates[0]
     assert isinstance(intermediate, ConditionExpression.Intermediate)
-    assert intermediate.condition.expression == ["True"]
-    assert intermediate.then_clause[0].expression == ["1"]
-    assert intermediate.then_clause[1].expression == ["2.0"]
+    assert intermediate.actions[0][0].expression == ["True"]
+    assert intermediate.actions[0][1][0].expression == ["1"]
+    assert intermediate.actions[0][1][1].expression == ["2.0"]
     assert len(intermediate.else_clause) == 0
+
+
+def test_if_elseif():
+    tree = lark.Tree("if_expression", [
+        lark.Tree("bool_literal_true", []),
+        lark.Tree("int_literal", "1"),
+        lark.Tree("bool_literal_false", []),
+        lark.Tree("int_literal", "2")
+    ])
+    expression = parser.handle(tree, Stack())
+    assert isinstance(expression, ConditionExpression)
+    assert expression.type == Void
+
+    intermediate = expression.intermediates[0]
+    assert isinstance(intermediate, ConditionExpression.Intermediate)
+    assert intermediate.actions[0][0].expression == ["True"]
+    assert intermediate.actions[0][1][0].expression == ["1"]
+    assert intermediate.actions[1][0].expression == ["False"]
+    assert intermediate.actions[1][1][0].expression == ["2"]
+    assert len(intermediate.else_clause) == 0
+
+
+def test_if_elseif_else():
+    tree = lark.Tree("if_expression", [
+        lark.Tree("bool_literal_true", []),
+        lark.Tree("int_literal", ["1"]),
+        lark.Tree("bool_literal_false", []),
+        lark.Tree("int_literal", ["2"]),
+        lark.Tree("float_literal", ["3.1"])
+    ])
+    expression = parser.handle(tree, Stack())
+    assert isinstance(expression, ConditionExpression)
+    assert expression.type == Real
+
+    intermediate = expression.intermediates[0]
+    assert isinstance(intermediate, ConditionExpression.Intermediate)
+    assert intermediate.actions[0][0].expression == ["True"]
+    assert intermediate.actions[0][1][0].expression == ["1"]
+    assert intermediate.actions[1][0].expression == ["False"]
+    assert intermediate.actions[1][1][0].expression == ["2"]
+    assert intermediate.else_clause[0].expression == ["3.1"]
 
 
 def test_if_else_expression():
     tree = lark.Tree("if_expression", [
         lark.Tree("bool_literal_false", []),
-        lark.Tree("int_literal", "1"),
+        lark.Tree("int_literal", ["1"]),
         lark.Tree("clause", [
-            lark.Tree("float_literal", "2")
+            lark.Tree("float_literal", ["2"])
         ])
     ])
     expression = parser.handle(tree, Stack())
@@ -166,8 +207,8 @@ def test_if_else_expression():
 
     intermediate = expression.intermediates[0]
     assert isinstance(intermediate, ConditionExpression.Intermediate)
-    assert intermediate.condition.expression == ["False"]
-    assert intermediate.then_clause[0].expression == ["1"]
+    assert intermediate.actions[0][0].expression == ["False"]
+    assert intermediate.actions[0][1][0].expression == ["1"]
     assert intermediate.else_clause[0].expression == ["2.0"]
 
 
@@ -184,7 +225,7 @@ def test_if_wrong_type():
 def test_while():
     tree = lark.Tree("while_expression", [
         lark.Tree("bool_literal_true", []),
-        lark.Tree("int_literal", "1")
+        lark.Tree("int_literal", ["1"])
     ])
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, WhileLoopExpression)

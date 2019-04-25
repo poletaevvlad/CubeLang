@@ -66,8 +66,7 @@ def test_merge():
 
 class TestConditions:
     def test_simple(self):
-        expr = ConditionExpression(Expression(Bool, ["a"]),
-                                   [Expression(Integer, "b"), Expression(Integer, "c")],
+        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b"), Expression(Integer, "c")])],
                                    [])
         pool = VariablesPool()
         stream = CodeStream()
@@ -78,8 +77,7 @@ class TestConditions:
         assert expr.type == Void
 
     def test_else(self):
-        expr = ConditionExpression(Expression(Bool, ["a"]),
-                                   [Expression(Integer, "b")],
+        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")])],
                                    [Expression(Real, "c"), Expression(Bool, "d")])
         pool = VariablesPool()
         stream = CodeStream()
@@ -88,9 +86,18 @@ class TestConditions:
         assert res == "if a:\n    b\nelse:\n    c\n    d\n"
         assert expr.type == Void
 
+    def test_elseif(self):
+        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")]),
+                                    (Expression(Bool, ["c"]), [Expression(Integer, "d")])],
+                                   [Expression(Real, "e")])
+        pool = VariablesPool()
+        stream = CodeStream()
+        expr.generate(pool, stream, None)
+        res = stream.get_contents()
+        assert res == "if a:\n    b\nelse:\n    if c:\n        d\n    else:\n        e\n"
+
     def test_expression(self):
-        expr = ConditionExpression(Expression(Bool, ["a"]),
-                                   [Expression(Integer, "b")],
+        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")])],
                                    [Expression(Real, "c"), Expression(Integer, "d")])
         pool = VariablesPool()
         stream = CodeStream()
@@ -102,7 +109,7 @@ class TestConditions:
 
     def test_merge(self):
         expr1 = Expression(Integer, ["a"])
-        expr2 = ConditionExpression(Expression(Bool, ["a"]), [Expression(Integer, "b")], [Expression(Integer, "d")])
+        expr2 = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")])], [Expression(Integer, "d")])
         merged = Expression.merge(Bool, [0, " -- ", 1], expr1, expr2)
 
         pool = VariablesPool()

@@ -6,7 +6,8 @@ INT_LITERAL.2: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
 IDENTIFIER: /(?!else)[a-zA-Z_][a-zA-Z_\d]*/
 
-if_expression: "if" expression "then" clause ("else" clause)? "end"
+_elif_clause: "else-if" expression "then" clause
+if_expression: "if" expression "then" clause (_elif_clause)* ("else" clause)? "end"
 while_expression: "while" expression "do" clause "end"
 do_expression: "do" clause "while" expression
 repeat_expression: "repeat" expression "times" clause "end"
