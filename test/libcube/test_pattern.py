@@ -79,3 +79,20 @@ def test_pattern_match_wrong_found():
         [g1, None, None]
     ])
     assert pattern.match(side, dict()) is None
+
+
+def test_parsing_valid():
+    pattern = "--R/Gxy/xOy/yyy"
+    parsed = Pattern.parse(pattern)
+    assert parsed.values[0][0] is None
+    assert parsed.values[0][1] is None
+    assert parsed.values[0][2] == Color.RED
+
+    assert parsed.values[1][0] == Color.GREEN
+    assert parsed.values[1][1] != parsed.values[1][2]
+    assert parsed.values[2][0] == parsed.values[1][1]
+    assert parsed.values[2][2] == parsed.values[1][2]
+    assert all(x == parsed.values[1][2] for x in parsed.values[3])
+
+# TODO: Either add test for exceptional control flow or remove parsing
+#       if functionality isn't needed
