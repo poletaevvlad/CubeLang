@@ -113,3 +113,18 @@ def test_regular_orientation(front: Side, top: Side) -> None:
     orientation = Orientation.regular(front)
     assert orientation.front == front
     assert orientation.top == top
+
+
+@pytest.mark.parametrize("keeping, expected", [
+    (Side.FRONT, {(R, T), (R, F), (R, B), (R, D)}),
+    (Side.BOTTOM, {(R, T), (F, T), (L, T), (B, T)}),
+    (Side.LEFT, {(R, T), (T, L), (L, D), (D, R)}),
+    (None, {(F, T), (F, R), (F, L), (F, D),  (R, T), (R, F), (R, B), (R, D),
+            (B, T), (B, L), (B, R), (B, D),  (L, T), (L, F), (L, B), (L, D),
+            (T, F), (T, L), (T, R), (T, B),  (D, F), (D, L), (D, R), (D, B)})
+])
+def test_iterate_orientations(keeping, expected):
+    orientation = Orientation(Side.RIGHT, Side.TOP)
+    rotations = list(orientation.iterate_rotations(keeping))
+    assert len(expected) == len(rotations)
+    assert {Orientation(a, b) for a, b in expected} == set(rotations)

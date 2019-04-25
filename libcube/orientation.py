@@ -1,5 +1,5 @@
 import enum
-from typing import Any
+from typing import Any, Iterable, Optional, Callable
 
 
 class Color (enum.Enum):
@@ -87,3 +87,26 @@ class Orientation:
             return Orientation(side, Side.FRONT)
         else:
             return Orientation(side, Orientation._RELATIVE_SIDES[side][0])
+
+    def iterate_rotations(self, keeping: Optional[Side] = None) -> Iterable["Orientation"]:
+        def orientation_changes(orientation: Orientation, action: Callable[[Orientation], Orientation]):
+            for _ in range(4):
+                yield orientation
+                orientation = action(orientation)
+
+        def iterate_cube_rotations() -> Iterable["Orientation"]:
+            if keeping == Side.FRONT or keeping == Side.BACK:
+                yield from orientation_changes(self, lambda x: x.rotate_clockwise())
+            elif keeping == Side.LEFT or keeping == Side.RIGHT:
+                yield from orientation_changes(self, lambda x: x.to_top)
+            else:
+                yield from orientation_changes(self, lambda x: x.to_left)
+            if keeping is None:
+                yield self.to_top
+                yield self.to_bottom
+
+        if keeping is not None:
+            yield from iterate_cube_rotations()
+        else:
+            for rotation in iterate_cube_rotations():
+                yield from orientation_changes(rotation, lambda x: x.rotate_clockwise())
