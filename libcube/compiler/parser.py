@@ -8,7 +8,8 @@ from .expression import Expression, ConditionExpression, WhileLoopExpression, Do
     RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
 from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
-from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function, Color, Side
+from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function, Color, Side, \
+    Pattern
 
 TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool, "type_color": Color, "type_side": Side}
 
@@ -328,3 +329,25 @@ def handle_dereference(tree: Tree, stack: Stack):
 @parser.handler("cube_instruction")
 def handle_cube_instruction(tree: Tree, stack: Stack):
     return [parser.handle(m, stack) for m in tree.children]
+
+
+@parser.handler("pattern")
+def handle_pattern(tree: Tree, _stack: Stack):
+    colors = {"G": "green", "R": "red", "O": "orange", "Y": "yellow",
+              "W": "white", "B": "blue", "-": "None"}
+
+    text = tree.children[0].split("/")
+    pattern_lines = []
+    for line in text:
+        pattern_line = []
+        if len(line) != len(text[0]):
+            raise ValueError("Inconsistent line length in pattern literal")
+        for char in line:
+            if char in colors:
+                pattern_line.append(colors[char])
+            else:
+                pattern_line.append('"' + char + '"')
+        pattern_lines.append("[" + ", ".join(pattern_line) + "]")
+
+    pattern_array = ', '.join(pattern_lines)
+    return Expression(Pattern, [f"Pattern([{pattern_array}])"])

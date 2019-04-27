@@ -5,7 +5,7 @@ from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
 from libcube.compiler.stack import Stack
-from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function, Color, Side
+from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function, Color, Side, Pattern
 import typing
 
 
@@ -532,7 +532,8 @@ class TestColorReference:
         lark.Tree("variable", ["c"])
     ])
 
-    def create_stack(self, a: Type, b: Type, c: Type) -> Stack:
+    @staticmethod
+    def create_stack(a: Type, b: Type, c: Type) -> Stack:
         stack = Stack()
         stack.add_global("a", a)
         stack.add_global("b", b)
@@ -559,3 +560,16 @@ class TestColorReference:
         stack = self.create_stack(Side, Integer, Real)
         with pytest.raises(ValueError):
             parser.handle(TestColorReference.tree, stack)
+
+
+class TestPatterns:
+    def test_valid(self):
+        tree = lark.Tree("pattern", ["-RG/-rg/rrO"])
+        expr: Expression = parser.handle(tree, Stack())
+        assert expr.type == Pattern
+        assert expr.expression == ['Pattern([[None, red, green], [None, "r", "g"], ["r", "r", orange]])']
+
+    def test_inconsisted_line_lengths(self):
+        tree = lark.Tree("pattern", ["-RG/-/rrO"])
+        with pytest.raises(ValueError):
+            parser.handle(tree, Stack())

@@ -5,6 +5,7 @@ _NEWLINE: /(\n|\r|\r\n)+/
 INT_LITERAL.2: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
 IDENTIFIER: /(?!else)[a-zA-Z_][a-zA-Z_\d]*/
+PATTERN: /([-WYORGBa-z]+\/)+[-WYORGBa-z]+/
 
 _elif_clause: "else-if" expression "then" clause
 if_expression: "if" expression "then" clause (_elif_clause)* ("else" clause)? "end"
@@ -29,6 +30,8 @@ cube_color_reference: op_item "[" expression "," expression "]"
 ?expression: op_0
 
 ?assignable: IDENTIFIER | collection_item
+
+pattern: "(" PATTERN ")"
 
 ?type: "int" -> type_int
      | "real" -> type_real

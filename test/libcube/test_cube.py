@@ -4,7 +4,7 @@ from libcube.cube import Cube, shift_list
 from libcube.sides import CubeSide, CubeSideView, ICubeSide
 from libcube.orientation import Orientation, Side, Color
 from libcube.parser import parse_actions
-from libcube.pattern import Pattern, PatternGroup
+from libcube.pattern import Pattern
 
 from unittest.mock import MagicMock
 import pytest
@@ -268,11 +268,10 @@ def test_orient_full():
     for action in parse_actions("RUR'U'"):
         action.perform(cube, Orientation())
 
-    a = PatternGroup()
     match = cube.orient(Orientation(),
-                        top=Pattern([[Color.WHITE, None, None], [None, a, None], [a, None, None]]),
+                        top=Pattern([[Color.WHITE, None, None], [None, "a", None], ["a", None, None]]),
                         front=Pattern([[None, None, None], [None, None, Color.ORANGE], [None, None, None]]),
-                        right=Pattern([[None, None, None], [Color.YELLOW, None, None], [a, None, None]]),
+                        right=Pattern([[None, None, None], [Color.YELLOW, None, None], ["a", None, None]]),
                         back=Pattern([[None, None, None], [None, None, None], [Color.BLUE, None, None]]),
                         left=Pattern([[None, Color.ORANGE, None], [None, None, None], [None, Color.GREEN, None]]),
                         bottom=Pattern([[Color.BLUE, None, Color.RED], [None, None, None], [None, None, None]]))
@@ -303,9 +302,7 @@ def test_orient_not_matching_groups():
     for action in parse_actions("RUR'U'"):
         action.perform(cube, Orientation())
 
-    a = PatternGroup()
-    b = PatternGroup()
     match = cube.orient(Orientation(),
-                        front=Pattern([[a, a, b], [None, None, None], [None, None, None]]),
-                        right=Pattern([[a, None, None], [None, None, None], [a, None, b]]))
+                        front=Pattern([["a", "a", "b"], [None, None, None], [None, None, None]]),
+                        right=Pattern([["a", None, None], [None, None, None], ["a", None, "b"]]))
     assert match is None

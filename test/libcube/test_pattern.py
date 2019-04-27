@@ -3,7 +3,7 @@ from typing import Tuple, List
 from libcube.cube import ICubeSide
 from libcube.orientation import Color
 from libcube.sides import Component
-from libcube.pattern import Pattern, PatternGroup
+from libcube.pattern import Pattern
 
 
 class MockCubeSide(ICubeSide[None]):
@@ -36,23 +36,20 @@ COLORS = [
 
 def test_pattern_match_correct():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup()
-    g2 = PatternGroup()
     pattern = Pattern([
         [None, Color.GREEN, None],
-        [g1, g1, None],
-        [None, g2, g2]
+        ["g1", "g1", None],
+        [None, "g2", "g2"]
     ])
-    match = pattern.match(side, {g1: Color.WHITE})
-    assert match == {g2: Color.YELLOW}
+    match = pattern.match(side, {"g1": Color.WHITE})
+    assert match == {"g2": Color.YELLOW}
 
 
 def test_pattern_match_wrong_color():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup()
     pattern = Pattern([
         [None, Color.RED, None],
-        [g1, g1, None],
+        ["g1", "g1", None],
         [None, None, None]
     ])
     assert pattern.match(side, dict()) is None
@@ -60,39 +57,19 @@ def test_pattern_match_wrong_color():
 
 def test_pattern_match_wrong_known():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup()
-    g2 = PatternGroup()
     pattern = Pattern([
         [None, Color.GREEN, None],
-        [g1, Color.WHITE, None],
-        [None, g2, g2]
+        ["g1", Color.WHITE, None],
+        [None, "g2", "g2"]
     ])
-    assert pattern.match(side, {g1: Color.YELLOW}) is None
+    assert pattern.match(side, {"g1": Color.YELLOW}) is None
 
 
 def test_pattern_match_wrong_found():
     side = MockCubeSide(COLORS)
-    g1 = PatternGroup()
     pattern = Pattern([
         [None, None, None],
-        [g1, None, None],
-        [g1, None, None]
+        ["g1", None, None],
+        ["g1", None, None]
     ])
     assert pattern.match(side, dict()) is None
-
-
-def test_parsing_valid():
-    pattern = "--R/Gxy/xOy/yyy"
-    parsed = Pattern.parse(pattern)
-    assert parsed.values[0][0] is None
-    assert parsed.values[0][1] is None
-    assert parsed.values[0][2] == Color.RED
-
-    assert parsed.values[1][0] == Color.GREEN
-    assert parsed.values[1][1] != parsed.values[1][2]
-    assert parsed.values[2][0] == parsed.values[1][1]
-    assert parsed.values[2][2] == parsed.values[1][2]
-    assert all(x == parsed.values[1][2] for x in parsed.values[3])
-
-# TODO: Either add test for exceptional control flow or remove parsing
-#       if functionality isn't needed

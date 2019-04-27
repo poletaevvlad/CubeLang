@@ -50,6 +50,7 @@ Real.is_assignable = MethodType(lambda self, fr: fr in {Integer, Real}, Real)
 Color = Type("Color", "white")
 Side = Type("Side", "front")
 Bool = Type("Bool", "False")
+Pattern = Type("Pattern", "None")
 
 
 class CollectionType(Type):
