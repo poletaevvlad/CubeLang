@@ -11,7 +11,8 @@ from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
     CollectionType, Function, Color, Side, Pattern
-from .errors import assert_type, ValueTypeError, UnresolvedReferenceError, FunctionArgumentsError
+from .errors import assert_type, ValueTypeError, UnresolvedReferenceError, \
+    FunctionArgumentsError, CompileTimeError
 
 TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
               "type_color": Color, "type_side": Side, "type_pattern": Pattern}
@@ -75,8 +76,9 @@ for precedence, operators in enumerate(BINARY_OPERATORS):
                 if all(ar1.is_assignable(ar2) for ar1, ar2 in zip(operand_types, arg_types)):
                     return Expression.merge(result_type, op.expression, expr1, expr2)
             else:
-                raise ValueError(f"Operator '{op.symbol}' is not applicable to values "
-                                 f"of type {arg_types[0]} and {arg_types[1]}")
+                message = f"Operator '{op.symbol}' is not applicable to values"\
+                          f" of type {arg_types[0]} and {arg_types[1]}"
+                raise CompileTimeError(tree, message)
 
 
 @parser.handler("int_literal")
@@ -271,7 +273,7 @@ def handle_var_assignment(tree: Tree, stack: Stack):
         if var_data is None:
             raise UnresolvedReferenceError(var_name)
         elif var_data.number < 0:
-            raise ValueError(f"Attempting to write to readonly value {var_data}")
+            raise CompileTimeError(tree, f"Attempting to write to readonly value {var_data}")
         var_type = var_data.type
         result = Expression.merge(Void, ["var_" + str(var_data.number), " = ", 0], expression)
     else:
@@ -343,7 +345,7 @@ def handle_pattern(tree: Tree, _stack: Stack):
     for line in text:
         pattern_line = []
         if len(line) != len(text[0]):
-            raise ValueError("Inconsistent line length in pattern literal")
+            raise CompileTimeError(tree, "Inconsistent line length in pattern literal")
         for char in line:
             if char in colors:
                 pattern_line.append(colors[char])
@@ -363,23 +365,23 @@ def handle_orient_params(tree: Tree, stack: Stack):
     previous_keys = set()
     patterns_present = False
 
-    for i in range(0, len(tree.children), 2):
-        key = tree.children[i]
+    for j in range(0, len(tree.children), 2):
+        key = tree.children[j]
         expression.append(key + "=")
-        expression.append(i // 2)
-        argument = parser.handle(tree.children[i + 1], stack)
+        expression.append(j // 2)
+        argument = parser.handle(tree.children[j + 1], stack)
         merging.append(argument)
         if key in previous_keys:
-            raise ValueError(f"Key {key} has already been specified")
+            raise CompileTimeError(key, f"Key {key} has already been specified")
         elif key == "keeping":
-            assert_type(tree.children[i + 1], argument, Side)
+            assert_type(tree.children[j + 1], argument, Side)
         else:
             patterns_present = True
-            assert_type(tree.children[i + 1], argument, Pattern)
+            assert_type(tree.children[j + 1], argument, Pattern)
         previous_keys.add(key)
         expression.append(", ")
 
     expression[-1] = ")"
     if not patterns_present:
-        raise ValueError("No side patterns are present")
+        raise CompileTimeError(tree, "No side patterns are present")
     return Expression.merge(Bool, expression, *merging)

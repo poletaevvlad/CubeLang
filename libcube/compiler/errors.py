@@ -23,7 +23,7 @@ class ValueTypeError(CompileTimeError):
 
 
 class UnresolvedReferenceError(CompileTimeError):
-    def __init__(self, node:lark.Tree, name: Optional[str] = None):
+    def __init__(self, node: lark.Tree, name: Optional[str] = None):
         if name is None:
             name = str(node)
         message = f"Unresolved symbol: `{name}`"

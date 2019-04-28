@@ -7,7 +7,7 @@ from libcube.compiler.expression import Expression, ConditionExpression, \
     ForLoopExpression, CubeTurningExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.errors import ValueTypeError, UnresolvedReferenceError, \
-    FunctionArgumentsError
+    FunctionArgumentsError, CompileTimeError
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, \
     Function, Color, Side, Pattern
 import typing
@@ -66,7 +66,7 @@ def test_operators(op1_type: str, op2_type: str, op_name: str, res_type: Type, r
 ])
 def test_wrong_operand(operator, arg1, arg2):
     tree = tr(operator, arg1, arg2)
-    with pytest.raises(ValueError):
+    with pytest.raises(CompileTimeError):
         parser.handle(tree, Stack())
 
 
@@ -407,7 +407,7 @@ def test_var_assignment_readonly():
     stack = Stack()
     stack.add_global("var", Real)
     tree = tr("var_assignment", "var", tr("int_literal", "0"))
-    with pytest.raises(ValueError):
+    with pytest.raises(CompileTimeError):
         parser.handle(tree, stack)
 
 
@@ -421,7 +421,7 @@ def test_var_assignment_type_error():
     stack = Stack()
     stack.add_global("var", List(Integer))
     tree = tr("var_assignment", "var", tr("int_literal", "0"))
-    with pytest.raises(ValueError):
+    with pytest.raises(CompileTimeError):
         parser.handle(tree, stack)
 
 
@@ -541,7 +541,7 @@ class TestPatterns:
 
     def test_inconsisted_line_lengths(self):
         tree = tr("pattern", "-RG/-/rrO")
-        with pytest.raises(ValueError):
+        with pytest.raises(CompileTimeError):
             parser.handle(tree, Stack())
 
 
@@ -580,12 +580,12 @@ class TestOrientParameters:
 
     def test_no_pattern_params(self):
         tree = tr("orient_params", "keeping", tr("variable", "c"))
-        with pytest.raises(ValueError):
+        with pytest.raises(CompileTimeError):
             parser.handle(tree, self.create_stack())
 
     def test_duplicate_params(self):
         tree = tr("orient_params",
                   "front", tr("variable", "a"),
                   "front", tr("variable", "b"))
-        with pytest.raises(ValueError):
+        with pytest.raises(CompileTimeError):
             parser.handle(tree, self.create_stack())
