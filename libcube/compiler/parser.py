@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Union, List, Callable, Dict, IO, Iterator
 
-from lark import Tree, Lark
+from lark import Tree, Lark, Token
 
 from .expression import Expression, ConditionExpression, WhileLoopExpression, \
     DoWhileLoopExpression, RepeatLoopExpression, ForLoopExpression, \
@@ -11,7 +11,7 @@ from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
     CollectionType, Function, Color, Side, Pattern
-from .errors import assert_type, ValueTypeError
+from .errors import assert_type, ValueTypeError, UnresolvedReferenceError
 
 TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
               "type_color": Color, "type_side": Side, "type_pattern": Pattern}
@@ -103,7 +103,7 @@ def handle_bool_literal_false(_tree: Tree, _stack: Stack) -> Expression:
 def handle_variable(tree: Tree, stack: Stack) -> Expression:
     variable = stack.get_variable(tree.children[0])
     if variable is None:
-        raise ValueError(f"Undefined symbol: '{tree.children[0]}'")
+        raise UnresolvedReferenceError(tree.children[0])
     var_name = "var_" + str(variable.number) if variable.number >= 0 else tree.children[0]
     return Expression(variable.type, var_name)
 
@@ -241,14 +241,14 @@ def handle_func_call(tree: Tree, stack: Stack):
                 yield ", "
                 yield index
 
-    function_name: str = tree.children[0]
+    function_name = tree.children[0]
     func_data = stack.get_variable(function_name)
     if func_data is None:
-        raise ValueError(f"Undefined symbol: {function_name}")
+        raise UnresolvedReferenceError(function_name)
 
     func_type: Function = func_data.type
     if not isinstance(func_type, Function):
-        raise ValueError(f"{function_name} is not a function")
+        raise ValueTypeError(function_name, f"{function_name} is not a function", None, func_type)
 
     if func_data.number >= 0:
         function_name = "var_" + str(func_data.number)
@@ -267,10 +267,10 @@ def handle_var_assignment(tree: Tree, stack: Stack):
     var_name = tree.children[0]
     expression: Expression = parser.handle(tree.children[1], stack)
 
-    if isinstance(var_name, str):
+    if isinstance(var_name, Token):
         var_data = stack.get_variable(var_name)
         if var_data is None:
-            raise ValueError(f"Undefined symbol: {var_data}")
+            raise UnresolvedReferenceError(var_name)
         elif var_data.number < 0:
             raise ValueError(f"Attempting to read to readonly value {var_data}")
         var_type = var_data.type

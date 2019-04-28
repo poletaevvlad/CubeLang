@@ -8,7 +8,7 @@ from typing import Optional, Union
 class CompileTimeError(Exception):
     def __init__(self, node: lark.Tree, message: str):
         super(CompileTimeError, self).__init__(message)
-        if hasattr(node.meta, "line"):
+        if isinstance(node, lark.Token) or hasattr(node.meta, "line"):
             self.start_line = node.line
             self.start_column = node.column
             self.end_line = node.end_line
@@ -20,6 +20,14 @@ class ValueTypeError(CompileTimeError):
         super(ValueTypeError, self).__init__(node, message)
         self.expected = expected
         self.actual = actual
+
+
+class UnresolvedReferenceError(CompileTimeError):
+    def __init__(self, node:lark.Tree, name: Optional[str] = None):
+        if name is None:
+            name = str(node)
+        message = f"Unresolved symbol: `{name}`"
+        super(UnresolvedReferenceError, self).__init__(node, message)
 
 
 def assert_type(node: lark.Tree, expression: Union[Expression, Type],

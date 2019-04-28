@@ -5,7 +5,7 @@ from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
 from libcube.compiler.stack import Stack
-from libcube.compiler.errors import ValueTypeError
+from libcube.compiler.errors import ValueTypeError, UnresolvedReferenceError
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function, Color, Side, Pattern
 import typing
 
@@ -24,12 +24,17 @@ def test_operator_generation():
                       "op_2 \"g\" op_if -> op_2_2\n")
 
 
+def tr(name: str, *children: typing.Union[lark.Tree, str]) -> typing.Union[lark.Tree, lark.Token]:
+    return lark.Tree(name, [lark.Token("", x) if isinstance(x, str) else x
+                            for x in children])
+
+
 @pytest.mark.parametrize("name, value, exp_type, exp_value", [
     ("int_literal", "1", Integer, "1"),
     ("float_literal", "1.4", Real, "1.4")
 ])
 def test_literal(name: str, value: str, exp_type: Type, exp_value: str):
-    tree = lark.Tree(name, [value])
+    tree = tr(name, value)
     expr = parser.handle(tree, Stack())
     assert isinstance(expr, Expression)
     assert expr.type == exp_type
@@ -44,7 +49,7 @@ def test_literal(name: str, value: str, exp_type: Type, exp_value: str):
     ("int_literal", "int_literal", "op_6_1", Real, "(1) / (2)")
 ])
 def test_operators(op1_type: str, op2_type: str, op_name: str, res_type: Type, res_expr: str):
-    tree = lark.Tree(op_name, [lark.Tree(op1_type, ["1"]), lark.Tree(op2_type, ["2"])])
+    tree = tr(op_name, tr(op1_type, "1"), tr(op2_type, "2"))
 
     expr: Expression = parser.handle(tree, Stack())
     assert expr.type == res_type
@@ -53,17 +58,17 @@ def test_operators(op1_type: str, op2_type: str, op_name: str, res_type: Type, r
 
 
 @pytest.mark.parametrize("operator, arg1, arg2", [
-    ("op_5_0", lark.Tree("float_literal", ["1"]), lark.Tree("bool_literal_true", [])),
-    ("op_5_0", lark.Tree("bool_literal_true", []), lark.Tree("float_literal", ["2"]))
+    ("op_5_0", tr("float_literal", "1"), tr("bool_literal_true")),
+    ("op_5_0", tr("bool_literal_true"), tr("float_literal", "2"))
 ])
 def test_wrong_operand(operator, arg1, arg2):
-    tree = lark.Tree(operator, [arg1, arg2])
+    tree = tr(operator, arg1, arg2)
     with pytest.raises(ValueError):
         parser.handle(tree, Stack())
 
 
 def test_variable_exist():
-    tree = lark.Tree("variable", "a")
+    tree = tr("variable", "a")
     stack = Stack()
     stack.add_variable("a", Integer)
     expression: Expression = parser.handle(tree, stack)
@@ -72,7 +77,7 @@ def test_variable_exist():
 
 
 def test_global_variable_exist():
-    tree = lark.Tree("variable", "a")
+    tree = tr("variable", "a")
     stack = Stack()
     stack.add_global("a", Real)
     expression: Expression = parser.handle(tree, stack)
@@ -81,27 +86,27 @@ def test_global_variable_exist():
 
 
 def test_undefined_variable():
-    tree = lark.Tree("variable", "a")
-    with pytest.raises(ValueError):
+    tree = tr("variable", "a")
+    with pytest.raises(UnresolvedReferenceError):
         parser.handle(tree, Stack())
 
 
 @pytest.mark.parametrize("tree, expected", [
-    (lark.Tree("type_int", []), Integer),
-    (lark.Tree("type_real", []), Real),
-    (lark.Tree("type_bool", []), Bool),
-    (lark.Tree("type_side", []), Side),
-    (lark.Tree("type_color", []), Color),
-    (lark.Tree("type_pattern", []), Pattern),
-    (lark.Tree("type_list", [lark.Tree("type_bool", [])]), List(Bool)),
-    (lark.Tree("type_set", [lark.Tree("type_real", [])]), Set(Real)),
+    (tr("type_int"), Integer),
+    (tr("type_real"), Real),
+    (tr("type_bool"), Bool),
+    (tr("type_side"), Side),
+    (tr("type_color"), Color),
+    (tr("type_pattern"), Pattern),
+    (tr("type_list", tr("type_bool")), List(Bool)),
+    (tr("type_set", tr("type_real")), Set(Real)),
 ])
 def test_type_handle(tree: lark.Tree, expected: Type):
     assert parser.handle(tree, Stack()) == expected
 
 
 def test_var_declaration():
-    tree = lark.Tree("var_decl", ["a", "b", "c", lark.Tree("type_int", [])])
+    tree = tr("var_decl", "a", "b", "c", tr("type_int"))
     stack = Stack()
 
     expressions = parser.handle(tree, stack)
@@ -115,7 +120,7 @@ def test_var_declaration():
 
 
 def test_var_declaration_value():
-    tree = lark.Tree("var_decl", ["a", "b", "c", lark.Tree("type_int", []), lark.Tree("int_literal", "1")])
+    tree = tr("var_decl", "a", "b", "c", tr("type_int"), tr("int_literal", "1"))
     stack = Stack()
 
     values: typing.List[Expression] = parser.handle(tree, stack)
@@ -129,19 +134,15 @@ def test_var_declaration_value():
 
 
 def test_var_declaration_wrong_type():
-    tree = lark.Tree("var_decl", ["a", lark.Tree("type_int", []), lark.Tree("float_literal", "1")])
+    tree = tr("var_decl", "a", tr("type_int"), tr("float_literal", "1"))
     with pytest.raises(ValueTypeError):
         parser.handle(tree, Stack())
 
 
 def test_if_expression():
-    tree = lark.Tree("if_expression", [
-        lark.Tree("bool_literal_true", []),
-        lark.Tree("clause", [
-            lark.Tree("int_literal", "1"),
-            lark.Tree("float_literal", "2")
-        ])
-    ])
+    tree = tr("if_expression",
+              tr("bool_literal_true"),
+              tr("clause", tr("int_literal", "1"), tr("float_literal", "2")))
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, ConditionExpression)
     assert expression.type == Void
@@ -155,12 +156,11 @@ def test_if_expression():
 
 
 def test_if_elseif():
-    tree = lark.Tree("if_expression", [
-        lark.Tree("bool_literal_true", []),
-        lark.Tree("int_literal", "1"),
-        lark.Tree("bool_literal_false", []),
-        lark.Tree("int_literal", "2")
-    ])
+    tree = tr("if_expression",
+              tr("bool_literal_true"),
+              tr("int_literal", "1"),
+              tr("bool_literal_false"),
+              tr("int_literal", "2"))
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, ConditionExpression)
     assert expression.type == Void
@@ -175,13 +175,12 @@ def test_if_elseif():
 
 
 def test_if_elseif_else():
-    tree = lark.Tree("if_expression", [
-        lark.Tree("bool_literal_true", []),
-        lark.Tree("int_literal", ["1"]),
-        lark.Tree("bool_literal_false", []),
-        lark.Tree("int_literal", ["2"]),
-        lark.Tree("float_literal", ["3.1"])
-    ])
+    tree = tr("if_expression",
+              tr("bool_literal_true"),
+              tr("int_literal", "1"),
+              tr("bool_literal_false"),
+              tr("int_literal", "2"),
+              tr("float_literal", "3.1"))
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, ConditionExpression)
     assert expression.type == Real
@@ -196,13 +195,10 @@ def test_if_elseif_else():
 
 
 def test_if_else_expression():
-    tree = lark.Tree("if_expression", [
-        lark.Tree("bool_literal_false", []),
-        lark.Tree("int_literal", ["1"]),
-        lark.Tree("clause", [
-            lark.Tree("float_literal", ["2"])
-        ])
-    ])
+    tree = tr("if_expression",
+              tr("bool_literal_false"),
+              tr("int_literal", "1"),
+              tr("clause", tr("float_literal", "2")))
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, ConditionExpression)
     assert expression.type == Real
@@ -215,20 +211,18 @@ def test_if_else_expression():
 
 
 def test_if_wrong_type():
-    tree = lark.Tree("if_expression", [
-        lark.Tree("int_literal", ["1"]),
-        lark.Tree("float_literal", ["2"]),
-        lark.Tree("float_literal", ["3"])
-    ])
+    tree = tr("if_expression",
+              tr("int_literal", "1"),
+              tr("float_literal", "2"),
+              tr("float_literal", "3"))
     with pytest.raises(ValueTypeError):
         parser.handle(tree, Stack())
 
 
 def test_while():
-    tree = lark.Tree("while_expression", [
-        lark.Tree("bool_literal_true", []),
-        lark.Tree("int_literal", ["1"])
-    ])
+    tree = tr("while_expression",
+              tr("bool_literal_true"),
+              tr("int_literal", "1"))
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, WhileLoopExpression)
     assert expression.type == Void
@@ -241,17 +235,15 @@ def test_while():
 
 def test_while_type_error():
     with pytest.raises(ValueTypeError):
-        parser.handle(lark.Tree("while_expression", [
-            lark.Tree("int_literal", "2"),
-            lark.Tree("int_literal", "1")
-        ]), Stack())
+        parser.handle(tr("while_expression",
+                         tr("int_literal", "2"),
+                         tr("int_literal", "1")), Stack())
 
 
 def test_do_while():
-    tree = lark.Tree("do_expression", [
-        lark.Tree("int_literal", "2"),
-        lark.Tree("bool_literal_true", [])
-    ])
+    tree = tr("do_expression",
+              tr("int_literal", "2"),
+              tr("bool_literal_true"))
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, DoWhileLoopExpression)
     assert expression.type == Void
@@ -264,17 +256,15 @@ def test_do_while():
 
 def test_do_while_type_error():
     with pytest.raises(ValueTypeError):
-        parser.handle(lark.Tree("do_expression", [
-            lark.Tree("int_literal", "2"),
-            lark.Tree("int_literal", "1")
-        ]), Stack())
+        parser.handle(tr("do_expression",
+                         tr("int_literal", "2"),
+                         tr("int_literal", "1")), Stack())
 
 
 def test_repeat():
-    tree = lark.Tree("repeat_expression", [
-        lark.Tree("int_literal", ["2"]),
-        lark.Tree("bool_literal_true", [])
-    ])
+    tree = tr("repeat_expression",
+              tr("int_literal", "2"),
+              tr("bool_literal_true"))
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, RepeatLoopExpression)
     assert expression.type == Void
@@ -287,21 +277,19 @@ def test_repeat():
 
 def test_repeat_error():
     with pytest.raises(ValueTypeError):
-        parser.handle(lark.Tree("repeat_expression", [
-            lark.Tree("float_literal", "2"),
-            lark.Tree("int_literal", "1")
-        ]), Stack())
+        parser.handle(tr("repeat_expression",
+                         tr("float_literal", "2"),
+                         tr("int_literal", "1")), Stack())
 
 
 def test_for_loop_existing_var():
     stack = Stack()
     stack.add_variable("var", Real)
     stack.add_variable("range", List(Integer))
-    tree = lark.Tree("for_expression", [
-        "var",
-        lark.Tree("variable", ["range"]),
-        lark.Tree("int_literal", ["1"])
-    ])
+    tree = tr("for_expression",
+              "var",
+              tr("variable", "range"),
+              tr("int_literal", "1"))
     expression = parser.handle(tree, stack)
     assert isinstance(expression, ForLoopExpression)
     intermediate = expression.intermediates[0]
@@ -314,14 +302,10 @@ def test_for_loop_existing_var():
 def test_for_loop_new_var():
     stack = Stack()
     stack.add_variable("range", List(Integer))
-    tree = lark.Tree("for_expression", [
-        "var",
-        lark.Tree("variable", ["range"]),
-        lark.Tree("clause", [
-            lark.Tree("int_literal", ["1"]),
-            lark.Tree("variable", ["var"])
-        ])
-    ])
+    tree = tr("for_expression",
+              "var",
+              tr("variable", "range"),
+              tr("clause", tr("int_literal", "1"), tr("variable", "var")))
     expression = parser.handle(tree, stack)
     assert isinstance(expression, ForLoopExpression)
     intermediate = expression.intermediates[0]
@@ -335,11 +319,10 @@ def test_for_loop_new_var():
 
 def test_for_loop_wrong_range():
     with pytest.raises(ValueTypeError):
-        tree = lark.Tree("for_expression", [
-            "var",
-            lark.Tree("int_literal", ["1"]),
-            lark.Tree("int_literal", ["1"])
-        ])
+        tree = tr("for_expression",
+                  "var",
+                  tr("int_literal", "1"),
+                  tr("int_literal", "1"))
         parser.handle(tree, Stack())
 
 
@@ -348,11 +331,10 @@ def test_for_loop_wrong_iterator_type():
         stack = Stack()
         stack.add_variable("var", Bool)
         stack.add_variable("range", List(Integer))
-        tree = lark.Tree("for_expression", [
-            "var",
-            lark.Tree("variable", ["range"]),
-            lark.Tree("int_literal", ["1"])
-        ])
+        tree = tr("for_expression",
+                  "var",
+                  tr("variable", "range"),
+                  tr("int_literal", "1"))
         parser.handle(tree, stack)
 
 
@@ -366,12 +348,11 @@ def test_function_call(is_global):
     else:
         stack.add_variable("func", func)
 
-    tree = lark.Tree("func_call", [
-        "func",
-        lark.Tree("int_literal", ["1"]),
-        lark.Tree("int_literal", ["2"]),
-        lark.Tree("variable", ["array"]),
-    ])
+    tree = tr("func_call",
+              "func",
+              tr("int_literal", "1"),
+              tr("int_literal", "2"),
+              tr("variable", "array"))
     expression = parser.handle(tree, stack)
 
     assert expression.type == Void
@@ -380,8 +361,8 @@ def test_function_call(is_global):
 
 
 def test_function_call_invalid_name():
-    with pytest.raises(ValueError):
-        tree = lark.Tree("func_call", ["func"])
+    with pytest.raises(UnresolvedReferenceError):
+        tree = tr("func_call", "func")
         parser.handle(tree, Stack())
 
 
@@ -389,7 +370,7 @@ def test_function_call_invalid_arguments_count_few():
     with pytest.raises(ValueError):
         stack = Stack()
         stack.add_variable("func", Function(([Integer, Integer], Integer)))
-        tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"])])
+        tree = tr("func_call", "func", tr("int_literal", "1"))
         parser.handle(tree, stack)
 
 
@@ -397,8 +378,8 @@ def test_function_call_invalid_arguments_count_many():
     with pytest.raises(ValueError):
         stack = Stack()
         stack.add_variable("func", Function(([Integer, Integer], Integer)))
-        tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("int_literal", ["1"]),
-                                       lark.Tree("int_literal", ["1"])])
+        tree = tr("func_call", "func", tr("int_literal", "1"), tr("int_literal", "1"),
+                  tr("int_literal", "1"))
         parser.handle(tree, stack)
 
 
@@ -407,14 +388,14 @@ def test_function_call_invalid_argument_types():
         stack = Stack()
         stack.add_variable("var", Set(Real))
         stack.add_variable("func", Function((([Integer, List(Integer)]), Integer)))
-        tree = lark.Tree("func_call", ["func", lark.Tree("int_literal", ["1"]), lark.Tree("variable", ["var"])])
+        tree = tr("func_call", "func", tr("int_literal", "1"), tr("variable", "var"))
         parser.handle(tree, stack)
 
 
 def test_var_assignment():
     stack = Stack()
     stack.add_variable("var", Real)
-    tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["42"])])
+    tree = tr("var_assignment", "var", tr("int_literal", "42"))
     expression = parser.handle(tree, stack)
     assert expression.expression == ["var_0", " = ", "42"]
 
@@ -422,21 +403,21 @@ def test_var_assignment():
 def test_var_assignment_readonly():
     stack = Stack()
     stack.add_global("var", Real)
-    tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
+    tree = tr("var_assignment", "var", tr("int_literal", "0"))
     with pytest.raises(ValueError):
         parser.handle(tree, stack)
 
 
 def test_var_assignment_undefined():
-    tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
-    with pytest.raises(ValueError):
+    tree = tr("var_assignment", "var", tr("int_literal", "0"))
+    with pytest.raises(UnresolvedReferenceError):
         parser.handle(tree, Stack())
 
 
 def test_var_assignment_type_error():
     stack = Stack()
     stack.add_global("var", List(Integer))
-    tree = lark.Tree("var_assignment", ["var", lark.Tree("int_literal", ["0"])])
+    tree = tr("var_assignment", "var", tr("int_literal", "0"))
     with pytest.raises(ValueError):
         parser.handle(tree, stack)
 
@@ -444,13 +425,9 @@ def test_var_assignment_type_error():
 def test_var_assignment_list():
     stack = Stack()
     stack.add_global("a", List(Real))
-    tree = lark.Tree("var_assignment", [
-        lark.Tree("collection_item", [
-            lark.Tree("variable", ["a"]),
-            lark.Tree("int_literal", ["2"])
-        ]),
-        lark.Tree("int_literal", ["42"])
-    ])
+    tree = tr("var_assignment",
+              tr("collection_item", tr("variable", "a"), tr("int_literal", "2")),
+              tr("int_literal", "42"))
     expression = parser.handle(tree, stack)
     assert expression.expression == ["(", "a", ")[", "2", "]", " = ", "42"]
 
@@ -458,13 +435,9 @@ def test_var_assignment_list():
 def test_var_assignment_list_type_error():
     stack = Stack()
     stack.add_global("a", List(Bool))
-    tree = lark.Tree("var_assignment", [
-        lark.Tree("collection_item", [
-            lark.Tree("variable", ["a"]),
-            lark.Tree("int_literal", ["2"])
-        ]),
-        lark.Tree("int_literal", ["42"])
-    ])
+    tree = tr("var_assignment",
+              tr("collection_item", tr("variable", "a"), tr("int_literal", "2")),
+              tr("int_literal", "42"))
     with pytest.raises(ValueTypeError):
         parser.handle(tree, stack)
 
@@ -472,10 +445,9 @@ def test_var_assignment_list_type_error():
 def test_list_reference():
     stack = Stack()
     stack.add_global("a", List(Bool))
-    tree = lark.Tree("collection_item", [
-        lark.Tree("variable", ["a"]),
-        lark.Tree("int_literal", ["12"])
-    ])
+    tree = tr("collection_item",
+              tr("variable", "a"),
+              tr("int_literal", "12"))
     expression = parser.handle(tree, stack)
     assert expression.expression == ["(", "a", ")[", "12", "]"]
     assert expression.type == Bool
@@ -484,10 +456,7 @@ def test_list_reference():
 def test_list_reference_not_array():
     stack = Stack()
     stack.add_global("a", Real)
-    tree = lark.Tree("collection_item", [
-        lark.Tree("variable", ["a"]),
-        lark.Tree("int_literal", ["12"])
-    ])
+    tree = tr("collection_item", tr("variable", "a"), tr("int_literal", "12"))
     with pytest.raises(ValueTypeError):
         parser.handle(tree, stack)
 
@@ -495,10 +464,7 @@ def test_list_reference_not_array():
 def test_list_reference_wrong_index_type():
     stack = Stack()
     stack.add_global("a", List(Integer))
-    tree = lark.Tree("collection_item", [
-        lark.Tree("variable", ["a"]),
-        lark.Tree("float_literal", ["12.2"])
-    ])
+    tree = tr("collection_item", tr("variable", "a"), tr("float_literal", "12.2"))
     with pytest.raises(ValueTypeError):
         parser.handle(tree, stack)
 
@@ -509,7 +475,7 @@ def test_list_reference_wrong_index_type():
     ("cube_front", "front"), ("cube_back", "back")
 ])
 def test_cube_turning(data, side):
-    tree = lark.Tree(data, [])
+    tree = tr(data)
     expr = parser.handle(tree, Stack())
     assert isinstance(expr, CubeTurningExpression)
     assert expr.side == side
@@ -520,7 +486,7 @@ def test_cube_turning(data, side):
     ("cube_double", 2), ("cube_opposite", 3)
 ])
 def test_cube_turning_amount(data, amount):
-    tree = lark.Tree(data, [lark.Tree("cube_front", [])])
+    tree = tr(data, tr("cube_front"))
     expr = parser.handle(tree, Stack())
     assert isinstance(expr, CubeTurningExpression)
     assert expr.side == "front"
@@ -528,11 +494,10 @@ def test_cube_turning_amount(data, amount):
 
 
 class TestColorReference:
-    tree = lark.Tree("cube_color_reference", [
-        lark.Tree("variable", ["a"]),
-        lark.Tree("variable", ["b"]),
-        lark.Tree("variable", ["c"])
-    ])
+    tree = tr("cube_color_reference",
+              tr("variable", "a"),
+              tr("variable", "b"),
+              tr("variable", "c"))
 
     @staticmethod
     def create_stack(a: Type, b: Type, c: Type) -> Stack:
@@ -566,13 +531,13 @@ class TestColorReference:
 
 class TestPatterns:
     def test_valid(self):
-        tree = lark.Tree("pattern", ["-RG/-rg/rrO"])
+        tree = tr("pattern", "-RG/-rg/rrO")
         expr: Expression = parser.handle(tree, Stack())
         assert expr.type == Pattern
         assert expr.expression == ['Pattern([[None, red, green], [None, "r", "g"], ["r", "r", orange]])']
 
     def test_inconsisted_line_lengths(self):
-        tree = lark.Tree("pattern", ["-RG/-/rrO"])
+        tree = tr("pattern", "-RG/-/rrO")
         with pytest.raises(ValueError):
             parser.handle(tree, Stack())
 
@@ -587,41 +552,37 @@ class TestOrientParameters:
         return stack
 
     def test_valid(self):
-        tree = lark.Tree("orient_params", [
-            "front", lark.Tree("variable", ["a"]),
-            "left", lark.Tree("variable", ["b"]),
-            "keeping", lark.Tree("variable", ["c"])
-        ])
+        tree = tr("orient_params",
+                  "front", tr("variable", "a"),
+                  "left", tr("variable", "b"),
+                  "keeping", tr("variable", "c"))
         expr = parser.handle(tree, self.create_stack())
 
         assert expr.expression == ["orient(", "front=", "a", ", ", "left=", "b", ", ", "keeping=", "c", ")"]
         assert expr.type == Bool
 
     def test_invalid_keeping_type(self):
-        tree = lark.Tree("orient_params", [
-            "front", lark.Tree("variable", ["a"]),
-            "keeping", lark.Tree("variable", ["a"])
-        ])
+        tree = tr("orient_params",
+                  "front", tr("variable", "a"),
+                  "keeping", tr("variable", "a"))
         with pytest.raises(ValueTypeError):
             parser.handle(tree, self.create_stack())
 
     def test_invalid_pattern_type(self):
-        tree = lark.Tree("orient_params", [
-            "front", lark.Tree("variable", ["c"]),
-            "keeping", lark.Tree("variable", ["c"])
-        ])
+        tree = tr("orient_params",
+                  "front", tr("variable", "c"),
+                  "keeping", tr("variable", "c"))
         with pytest.raises(ValueTypeError):
             parser.handle(tree, self.create_stack())
 
     def test_no_pattern_params(self):
-        tree = lark.Tree("orient_params", ["keeping", lark.Tree("variable", ["c"])])
+        tree = tr("orient_params", "keeping", tr("variable", "c"))
         with pytest.raises(ValueError):
             parser.handle(tree, self.create_stack())
 
     def test_duplicate_params(self):
-        tree = lark.Tree("orient_params", [
-            "front", lark.Tree("variable", ["a"]),
-            "front", lark.Tree("variable", ["b"])
-        ])
+        tree = tr("orient_params",
+                  "front", tr("variable", "a"),
+                  "front", tr("variable", "b"))
         with pytest.raises(ValueError):
             parser.handle(tree, self.create_stack())
