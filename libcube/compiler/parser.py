@@ -353,3 +353,35 @@ def handle_pattern(tree: Tree, _stack: Stack):
 
     pattern_array = ', '.join(pattern_lines)
     return Expression(Pattern, [f"Pattern([{pattern_array}])"])
+
+
+@parser.handler("orient_params")
+def handle_orient_params(tree: Tree, stack: Stack):
+    assert len(tree.children) % 2 == 0
+    expression = ["orient("]
+    merging = []
+    previous_keys = set()
+    patterns_present = False
+
+    for i in range(0, len(tree.children), 2):
+        key = tree.children[i]
+        expression.append(key + "=")
+        expression.append(i // 2)
+        argument = parser.handle(tree.children[i + 1], stack)
+        merging.append(argument)
+        if key in previous_keys:
+            raise ValueError(f"Key {key} has already been specified")
+        elif key == "keeping":
+            if not Side.is_assignable(argument.type):
+                raise ValueError("Expected value of type Side")
+        else:
+            patterns_present = True
+            if not Pattern.is_assignable(argument.type):
+                raise ValueError("Expected value of type Pattern")
+        previous_keys.add(key)
+        expression.append(", ")
+
+    expression[-1] = ")"
+    if not patterns_present:
+        raise ValueError("No side patterns are present")
+    return Expression.merge(Bool, expression, *merging)

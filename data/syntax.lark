@@ -17,7 +17,7 @@ for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 ORIENT_PARAM_NAME: "front" | "back" | "left" | "right" | "top" | "bottom" | "keeping"
 orient_params: ORIENT_PARAM_NAME ":" expression ("," ORIENT_PARAM_NAME ":" expression)*
 _else_orient: "else-orient" orient_params " then" clause
-orient_expression: "orient" orient_params "then" clause (_else_orient)* ("else" clause)? "end"
+orient_expression: "orient" orient_params "then" clause (_else_orient)* ("else" clause)? "end" -> if_expression
 
 collection_item: op_item "[" expression "]"
 cube_color_reference: op_item "[" expression "," expression "]"

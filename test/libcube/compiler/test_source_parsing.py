@@ -574,3 +574,53 @@ class TestPatterns:
         tree = lark.Tree("pattern", ["-RG/-/rrO"])
         with pytest.raises(ValueError):
             parser.handle(tree, Stack())
+
+
+class TestOrientParameters:
+    @staticmethod
+    def create_stack():
+        stack = Stack()
+        stack.add_global("a", Pattern)
+        stack.add_global("b", Pattern)
+        stack.add_global("c", Side)
+        return stack
+
+    def test_valid(self):
+        tree = lark.Tree("orient_params", [
+            "front", lark.Tree("variable", ["a"]),
+            "left", lark.Tree("variable", ["b"]),
+            "keeping", lark.Tree("variable", ["c"])
+        ])
+        expr = parser.handle(tree, self.create_stack())
+
+        assert expr.expression == ["orient(", "front=", "a", ", ", "left=", "b", ", ", "keeping=", "c", ")"]
+        assert expr.type == Bool
+
+    def test_invalid_keeping_type(self):
+        tree = lark.Tree("orient_params", [
+            "front", lark.Tree("variable", ["a"]),
+            "keeping", lark.Tree("variable", ["a"])
+        ])
+        with pytest.raises(ValueError):
+            parser.handle(tree, self.create_stack())
+
+    def test_invalid_patterm_type(self):
+        tree = lark.Tree("orient_params", [
+            "front", lark.Tree("variable", ["c"]),
+            "keeping", lark.Tree("variable", ["c"])
+        ])
+        with pytest.raises(ValueError):
+            parser.handle(tree, self.create_stack())
+
+    def test_no_pattern_params(self):
+        tree = lark.Tree("orient_params", ["keeping", lark.Tree("variable", ["c"])])
+        with pytest.raises(ValueError):
+            parser.handle(tree, self.create_stack())
+
+    def test_duplicate_params(self):
+        tree = lark.Tree("orient_params", [
+            "front", lark.Tree("variable", ["a"]),
+            "front", lark.Tree("variable", ["b"])
+        ])
+        with pytest.raises(ValueError):
+            parser.handle(tree, self.create_stack())
