@@ -2,11 +2,14 @@ import lark
 import pytest
 
 from libcube.compiler.parser import parser, BinaryOperator
-from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
-    RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
+from libcube.compiler.expression import Expression, ConditionExpression, \
+    WhileLoopExpression, DoWhileLoopExpression, RepeatLoopExpression, \
+    ForLoopExpression, CubeTurningExpression
 from libcube.compiler.stack import Stack
-from libcube.compiler.errors import ValueTypeError, UnresolvedReferenceError
-from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function, Color, Side, Pattern
+from libcube.compiler.errors import ValueTypeError, UnresolvedReferenceError, \
+    FunctionArgumentsError
+from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, \
+    Function, Color, Side, Pattern
 import typing
 
 
@@ -367,7 +370,7 @@ def test_function_call_invalid_name():
 
 
 def test_function_call_invalid_arguments_count_few():
-    with pytest.raises(ValueError):
+    with pytest.raises(FunctionArgumentsError):
         stack = Stack()
         stack.add_variable("func", Function(([Integer, Integer], Integer)))
         tree = tr("func_call", "func", tr("int_literal", "1"))
@@ -375,7 +378,7 @@ def test_function_call_invalid_arguments_count_few():
 
 
 def test_function_call_invalid_arguments_count_many():
-    with pytest.raises(ValueError):
+    with pytest.raises(FunctionArgumentsError):
         stack = Stack()
         stack.add_variable("func", Function(([Integer, Integer], Integer)))
         tree = tr("func_call", "func", tr("int_literal", "1"), tr("int_literal", "1"),
@@ -384,7 +387,7 @@ def test_function_call_invalid_arguments_count_many():
 
 
 def test_function_call_invalid_argument_types():
-    with pytest.raises(ValueError):
+    with pytest.raises(FunctionArgumentsError):
         stack = Stack()
         stack.add_variable("var", Set(Real))
         stack.add_variable("func", Function((([Integer, List(Integer)]), Integer)))

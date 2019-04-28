@@ -1,8 +1,8 @@
 import lark
-from .types import Type
+from .types import Type, Function
 from .expression import Expression
 
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 
 class CompileTimeError(Exception):
@@ -28,6 +28,15 @@ class UnresolvedReferenceError(CompileTimeError):
             name = str(node)
         message = f"Unresolved symbol: `{name}`"
         super(UnresolvedReferenceError, self).__init__(node, message)
+
+
+class FunctionArgumentsError(CompileTimeError):
+    def __init__(self, node: lark.Tree, function_name: str,
+                 function: Function, arguments: List[Type]):
+        super(FunctionArgumentsError, self).__init__(node, "Invalid function name")
+        self.function_name = function_name
+        self.function = function
+        self.arguments = arguments
 
 
 def assert_type(node: lark.Tree, expression: Union[Expression, Type],

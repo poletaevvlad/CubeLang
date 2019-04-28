@@ -11,7 +11,7 @@ from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
     CollectionType, Function, Color, Side, Pattern
-from .errors import assert_type, ValueTypeError, UnresolvedReferenceError
+from .errors import assert_type, ValueTypeError, UnresolvedReferenceError, FunctionArgumentsError
 
 TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
               "type_color": Color, "type_side": Side, "type_pattern": Pattern}
@@ -257,8 +257,7 @@ def handle_func_call(tree: Tree, stack: Stack):
     arg_types = [x.type for x in arguments]
     return_type = func_type.takes_arguments(arg_types)
     if return_type is None:
-        raise ValueError(f"Function {function_name} does not accept arguments: {arg_types!r}")
-
+        raise FunctionArgumentsError(tree, function_name, func_type, arg_types)
     return Expression.merge(return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"], *arguments)
 
 
@@ -272,7 +271,7 @@ def handle_var_assignment(tree: Tree, stack: Stack):
         if var_data is None:
             raise UnresolvedReferenceError(var_name)
         elif var_data.number < 0:
-            raise ValueError(f"Attempting to read to readonly value {var_data}")
+            raise ValueError(f"Attempting to write to readonly value {var_data}")
         var_type = var_data.type
         result = Expression.merge(Void, ["var_" + str(var_data.number), " = ", 0], expression)
     else:
