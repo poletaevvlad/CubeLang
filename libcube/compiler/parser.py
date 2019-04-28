@@ -11,6 +11,7 @@ from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
     CollectionType, Function, Color, Side, Pattern
+from .errors import assert_type, ValueTypeError
 
 TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
               "type_color": Color, "type_side": Side, "type_pattern": Pattern}
@@ -131,8 +132,7 @@ def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
 
     if index != len(tree.children) - 1:
         value: Expression = parser.handle(tree.children[index + 1], stack)
-        if not (var_type.is_assignable(value.type)):
-            raise ValueError(f"Value of type {value.type} cannot be assigned to variable of type {var_type}")
+        assert_type(tree.children[index + 1], value, var_type)
         return [Expression.merge(Void, ["var_" + str(num), " = ", 0], value) for num in nums]
     return [Expression(Void, ["var_" + str(num), " = ", var_type.default_value()]) for num in nums]
 
@@ -161,11 +161,11 @@ def handle_clause(tree: Tree, stack: Stack) -> List[Expression]:
 @parser.handler("if_expression")
 def handle_if_expression(tree: Tree, stack: Stack) -> Expression:
     actions = []
-    for i in range(0, len(tree.children) - 1, 2):
-        condition = parser.handle(tree.children[i], stack)
-        if not Bool.is_assignable(condition.type):
-            raise ValueError("Only expression of boolean type can be used as an if condition")
-        then_clause = handle_clause(tree.children[i + 1], stack)
+    for j in range(0, len(tree.children) - 1, 2):
+        condition = parser.handle(tree.children[j], stack)
+        assert_type(tree.children[j], condition, Bool,
+                    "Only expression of boolean type can be used as an if condition")
+        then_clause = handle_clause(tree.children[j + 1], stack)
         actions.append((condition, then_clause))
 
     if len(tree.children) % 2 == 1:
@@ -178,8 +178,8 @@ def handle_if_expression(tree: Tree, stack: Stack) -> Expression:
 @parser.handler("while_expression")
 def handle_while_expression(tree: Tree, stack: Stack) -> Expression:
     condition = parser.handle(tree.children[0], stack)
-    if not Bool.is_assignable(condition.type):
-        raise ValueError("Only expression of boolean type can be used as a while condition")
+    assert_type(tree.children[0], condition, Bool,
+                "Only expression of boolean type can be used as a while condition")
     actions = handle_clause(tree.children[1], stack)
     return WhileLoopExpression(condition, actions)
 
@@ -187,8 +187,8 @@ def handle_while_expression(tree: Tree, stack: Stack) -> Expression:
 @parser.handler("do_expression")
 def handle_do_expression(tree: Tree, stack: Stack) -> Expression:
     condition = parser.handle(tree.children[1], stack)
-    if not Bool.is_assignable(condition.type):
-        raise ValueError("Only expression of boolean type can be used as a do-while condition")
+    assert_type(tree.children[1], condition, Bool,
+                "Only expression of boolean type can be used as a do-while condition")
     actions = handle_clause(tree.children[0], stack)
     return DoWhileLoopExpression(condition, actions)
 
@@ -196,8 +196,8 @@ def handle_do_expression(tree: Tree, stack: Stack) -> Expression:
 @parser.handler("repeat_expression")
 def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
     iterations = parser.handle(tree.children[0], stack)
-    if not Integer.is_assignable(iterations.type):
-        raise ValueError("Iterations count must be integer")
+    assert_type(tree.children[0], iterations, Integer,
+                "Iterations count must be integer")
     actions = handle_clause(tree.children[1], stack)
     return RepeatLoopExpression(iterations, actions)
 
@@ -206,17 +206,18 @@ def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
 def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
     var_name = tree.children[0]
     range_expression = parser.handle(tree.children[1], stack)
-    range_type = range_expression.type
+    range_type: CollectionType = range_expression.type
+
     if not isinstance(range_type, CollectionType):
-        raise ValueError("For loop range must be a list or a set")
+        raise ValueTypeError(tree.children[1], "For loop range must be a list or a set", None, range_type)
 
     in_stack = stack.get_variable(var_name)
     if in_stack is not None:
         if in_stack.number >= 0:
             var_name = "var_" + str(in_stack.number)
-        if not in_stack.type.is_assignable(range_type.item_type):
-            raise ValueError(f"Value of type {range_type} cannot be assigned to a for loop iterator of type "
-                             f"{in_stack.type}")
+        assert_type(tree.children[1], range_type.item_type, in_stack.type,
+                    f"Value of type {range_type.item_type} cannot be assigned to a for "
+                    f"loop iterator of type {in_stack.type}")
         stack.add_frame()
     else:
         stack.add_frame()
@@ -280,9 +281,9 @@ def handle_var_assignment(tree: Tree, stack: Stack):
         var_type = var_expression.type
         result = Expression.merge(Void, [0, " = ", 1], var_expression, expression)
 
-    if not var_type.is_assignable(expression.type):
-        raise ValueError(f"Value of type {expression.type} cannot be assigned to a varaible of type "
-                         f"{var_type}")
+    assert_type(tree.children[1], expression, var_type,
+                f"Value of type {expression.type} cannot be assigned to a varaible "
+                f"of type {var_type}")
     return result
 
 
@@ -291,12 +292,12 @@ def handle_collection_item(tree: Tree, stack: Stack):
     list_reference: Expression = parser.handle(tree.children[0], stack)
     list_type = list_reference.type
     if not isinstance(list_type, ListType):
-        raise ValueError(f"{list_reference.type} is not a list")
+        raise ValueTypeError(tree.children[0], f"{list_reference.type} is not a list",
+                             None, tree.children)
 
     index: Expression = parser.handle(tree.children[1], stack)
-    if index.type != Integer:
-        raise ValueError(f"List index must be of type int, not {index.type}")
-
+    assert_type(tree.children[1], index, Integer,
+                f"List index must be of type int, not {index.type}")
     return Expression.merge(list_type.item_type, ["(", 0, ")[", 1, "]"], list_reference, index)
 
 
@@ -316,13 +317,13 @@ def handle_cube_turning_double(tree: Tree, stack: Stack):
 @parser.handler("cube_color_reference")
 def handle_dereference(tree: Tree, stack: Stack):
     side_expression: Expression = parser.handle(tree.children[0], stack)
-    if side_expression.type != Side:
-        raise ValueError(f"Value of type 'side' expected, but '{side_expression.type}' found")
+    assert_type(tree.children[0], side_expression, Side)
 
     index1: Expression = parser.handle(tree.children[1], stack)
+    assert_type(tree.children[1], index1, Integer, "Cube side indices must be integers")
+
     index2: Expression = parser.handle(tree.children[2], stack)
-    if index1.type != Integer or index2.type != Integer:
-        raise ValueError("Cube side indices must be integers")
+    assert_type(tree.children[2], index2, Integer, "Cube side indices must be integers")
 
     return Expression.merge(Color, ["cube_get_color(", 0, ", ", 1, ", ", 2, ")"],
                             side_expression, index1, index2)
@@ -372,12 +373,10 @@ def handle_orient_params(tree: Tree, stack: Stack):
         if key in previous_keys:
             raise ValueError(f"Key {key} has already been specified")
         elif key == "keeping":
-            if not Side.is_assignable(argument.type):
-                raise ValueError("Expected value of type Side")
+            assert_type(tree.children[i + 1], argument, Side)
         else:
             patterns_present = True
-            if not Pattern.is_assignable(argument.type):
-                raise ValueError("Expected value of type Pattern")
+            assert_type(tree.children[i + 1], argument, Pattern)
         previous_keys.add(key)
         expression.append(", ")
 

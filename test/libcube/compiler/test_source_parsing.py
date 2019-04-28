@@ -5,6 +5,7 @@ from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
     RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
 from libcube.compiler.stack import Stack
+from libcube.compiler.errors import ValueTypeError
 from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, Function, Color, Side, Pattern
 import typing
 
@@ -129,7 +130,7 @@ def test_var_declaration_value():
 
 def test_var_declaration_wrong_type():
     tree = lark.Tree("var_decl", ["a", lark.Tree("type_int", []), lark.Tree("float_literal", "1")])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(tree, Stack())
 
 
@@ -219,7 +220,7 @@ def test_if_wrong_type():
         lark.Tree("float_literal", ["2"]),
         lark.Tree("float_literal", ["3"])
     ])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(tree, Stack())
 
 
@@ -239,7 +240,7 @@ def test_while():
 
 
 def test_while_type_error():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(lark.Tree("while_expression", [
             lark.Tree("int_literal", "2"),
             lark.Tree("int_literal", "1")
@@ -262,7 +263,7 @@ def test_do_while():
 
 
 def test_do_while_type_error():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(lark.Tree("do_expression", [
             lark.Tree("int_literal", "2"),
             lark.Tree("int_literal", "1")
@@ -285,7 +286,7 @@ def test_repeat():
 
 
 def test_repeat_error():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(lark.Tree("repeat_expression", [
             lark.Tree("float_literal", "2"),
             lark.Tree("int_literal", "1")
@@ -333,7 +334,7 @@ def test_for_loop_new_var():
 
 
 def test_for_loop_wrong_range():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         tree = lark.Tree("for_expression", [
             "var",
             lark.Tree("int_literal", ["1"]),
@@ -343,7 +344,7 @@ def test_for_loop_wrong_range():
 
 
 def test_for_loop_wrong_iterator_type():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         stack = Stack()
         stack.add_variable("var", Bool)
         stack.add_variable("range", List(Integer))
@@ -464,7 +465,7 @@ def test_var_assignment_list_type_error():
         ]),
         lark.Tree("int_literal", ["42"])
     ])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(tree, stack)
 
 
@@ -487,7 +488,7 @@ def test_list_reference_not_array():
         lark.Tree("variable", ["a"]),
         lark.Tree("int_literal", ["12"])
     ])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(tree, stack)
 
 
@@ -498,7 +499,7 @@ def test_list_reference_wrong_index_type():
         lark.Tree("variable", ["a"]),
         lark.Tree("float_literal", ["12.2"])
     ])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueTypeError):
         parser.handle(tree, stack)
 
 
@@ -549,17 +550,17 @@ class TestColorReference:
 
     def test_side_invalid_type_1(self):
         stack = self.create_stack(Color, Integer, Integer)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueTypeError):
             parser.handle(TestColorReference.tree, stack)
 
     def test_side_invalid_type_2(self):
         stack = self.create_stack(Side, Real, Integer)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueTypeError):
             parser.handle(TestColorReference.tree, stack)
 
     def test_side_invalid_type_3(self):
         stack = self.create_stack(Side, Integer, Real)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueTypeError):
             parser.handle(TestColorReference.tree, stack)
 
 
@@ -601,15 +602,15 @@ class TestOrientParameters:
             "front", lark.Tree("variable", ["a"]),
             "keeping", lark.Tree("variable", ["a"])
         ])
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueTypeError):
             parser.handle(tree, self.create_stack())
 
-    def test_invalid_patterm_type(self):
+    def test_invalid_pattern_type(self):
         tree = lark.Tree("orient_params", [
             "front", lark.Tree("variable", ["c"]),
             "keeping", lark.Tree("variable", ["c"])
         ])
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueTypeError):
             parser.handle(tree, self.create_stack())
 
     def test_no_pattern_params(self):
