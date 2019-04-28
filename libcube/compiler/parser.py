@@ -4,14 +4,16 @@ from typing import Union, List, Callable, Dict, IO, Iterator
 
 from lark import Tree, Lark
 
-from .expression import Expression, ConditionExpression, WhileLoopExpression, DoWhileLoopExpression, \
-    RepeatLoopExpression, ForLoopExpression, CubeTurningExpression
+from .expression import Expression, ConditionExpression, WhileLoopExpression, \
+    DoWhileLoopExpression, RepeatLoopExpression, ForLoopExpression, \
+    CubeTurningExpression
 from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
-from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, CollectionType, Function, Color, Side, \
-    Pattern
+from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
+    CollectionType, Function, Color, Side, Pattern
 
-TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool, "type_color": Color, "type_side": Side}
+TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
+              "type_color": Color, "type_side": Side, "type_pattern": Pattern}
 
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
 
@@ -105,7 +107,7 @@ def handle_variable(tree: Tree, stack: Stack) -> Expression:
     return Expression(variable.type, var_name)
 
 
-@parser.handler("type_int", "type_real", "type_bool", "type_color", "type_side")
+@parser.handler("type_int", "type_real", "type_bool", "type_color", "type_side", "type_pattern")
 def handle_scalar_type(tree: Tree, _stack: Stack) -> Type:
     return TYPE_NAMES[tree.data]
 

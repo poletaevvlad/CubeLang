@@ -91,6 +91,7 @@ def test_undefined_variable():
     (lark.Tree("type_bool", []), Bool),
     (lark.Tree("type_side", []), Side),
     (lark.Tree("type_color", []), Color),
+    (lark.Tree("type_pattern", []), Pattern),
     (lark.Tree("type_list", [lark.Tree("type_bool", [])]), List(Bool)),
     (lark.Tree("type_set", [lark.Tree("type_real", [])]), Set(Real)),
 ])

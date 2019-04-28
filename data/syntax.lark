@@ -14,6 +14,11 @@ do_expression: "do" clause "while" expression
 repeat_expression: "repeat" expression "times" clause "end"
 for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 
+ORIENT_PARAM_NAME: "front" | "back" | "left" | "right" | "top" | "bottom" | "keeping"
+orient_params: ORIENT_PARAM_NAME ":" expression ("," ORIENT_PARAM_NAME ":" expression)*
+_else_orient: "else-orient" orient_params " then" clause
+orient_expression: "orient" orient_params "then" clause (_else_orient)* ("else" clause)? "end"
+
 collection_item: op_item "[" expression "]"
 cube_color_reference: op_item "[" expression "," expression "]"
 
@@ -23,7 +28,7 @@ cube_color_reference: op_item "[" expression "," expression "]"
 ?atom: INT_LITERAL -> int_literal
            | FLOAT_LITERAL -> float_literal
            | IDENTIFIER -> variable
-           | "(" expression ")" 
+           | "(" expression ")"
            | "-" expression -> negation
            | IDENTIFIER "(" (expression ",")* expression ")" -> func_call
 
@@ -38,6 +43,7 @@ pattern: "(" PATTERN ")"
      | "boolean" -> type_bool
      | "side" -> type_side
      | "color" -> type_color
+     | "pattern" -> type_pattern
      | "list" "of" type -> type_list
      | "set" "of" type -> type_set
 
@@ -58,5 +64,5 @@ var_assignment: assignable "=" expression
 cube_instruction: cube_action+
 
 ?statement: var_decl | expression | var_assignment | while_expression
-          | do_expression | repeat_expression | for_expression | cube_instruction
+          | do_expression | repeat_expression | for_expression | cube_instruction | orient_expression
 clause: (statement _NEWLINE)* statement?
