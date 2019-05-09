@@ -31,9 +31,10 @@ def test_valid_parsing():
         assert action.side == side
         assert action.turns == turns
 
+
 def test_rotation():
-    actions = list(parse_actions("X X Y' Z2"))
-    expected_sides = [Side.RIGHT, Side.RIGHT, Side.BOTTOM, Side.FRONT]
+    actions = list(parse_actions("X X' Y' Z2"))
+    expected_sides = [Side.RIGHT, Side.LEFT, Side.BOTTOM, Side.FRONT]
     expected_twice = [False, False, False, True]
 
     assert len(actions) == len(expected_sides)

@@ -27,6 +27,20 @@ def test_rotations(around: Side, front: Side, top: Side, twice: bool) -> None:
     assert orientation.front == front
     assert orientation.top == top
 
+
+# noinspection PyTypeChecker
+@pytest.mark.parametrize("around", [x for x in Side])
+def test_rotation_2(around: Side):
+    action1 = Rotate(around, False)
+    action2 = Rotate(around.opposite(), False)
+
+    initial = Orientation(Side.LEFT, Side.BACK)
+    orientation = action1.perform(None, initial)
+    orientation = action2.perform(None, orientation)
+
+    assert orientation == initial
+
+
 class Object(object):
     pass
 

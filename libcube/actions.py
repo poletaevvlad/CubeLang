@@ -36,6 +36,9 @@ class Rotate(Action):
         else:
             return self.perform_single(orientation)
 
+    def __repr__(self):
+        return f"Rotate({self.axis_side}, {self.twice})"
+
 
 class Turn(Action):
     def __init__(self, side: Side, sides: Union[int, List[int]], turns: int = 1) -> None:
@@ -58,3 +61,6 @@ class Turn(Action):
         for side in self.sides:
             rotate_function(orientation, side * self.index_multiplier, self.turns)
         return orientation
+
+    def __repr__(self):
+        return f"Turn({self.side}, {self.sides}, {self.turns})"
