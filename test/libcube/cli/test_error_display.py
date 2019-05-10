@@ -60,3 +60,20 @@ Function arguments:
 """
     actual = file.getvalue()
     assert expected == actual
+
+
+def test_supplied_argument():
+    args = [Integer, List(Integer), Set(Bool), Bool, Bool]
+    file = StringIO()
+    errors = ErrorsOutput(file)
+    errors.max_width = 25
+    errors.write_supplied_arguments(args)
+    expected = """\
+Supplied arguments:
+    int, list of int, 
+    set of bool, bool, 
+    bool
+
+"""
+    actual = file.getvalue()
+    assert expected == actual

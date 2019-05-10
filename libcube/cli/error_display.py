@@ -1,7 +1,7 @@
 from click import secho
-from typing import IO, Iterable, Tuple, Optional
+from typing import IO, Iterable, Tuple, Optional, List
 import textwrap
-from ..compiler.types import Function, Void
+from ..compiler.types import Function, Void, Type
 
 
 class ErrorsOutput:
@@ -97,6 +97,23 @@ class ErrorsOutput:
             else:
                 self._echo(ending, nl=True)
         self._echo("", nl=True)
+
+    def write_supplied_arguments(self, arguments: List[Type]) -> None:
+        self._echo("Supplied arguments:", nl=True, color="yellow")
+        self._echo(" " * self.text_indent)
+        offset = self.text_indent
+        for i, argument in enumerate(arguments):
+            string = str(argument)
+            if i < len(arguments) - 1:
+                string += ", "
+            if offset + len(string) > self.max_width:
+                self._echo("", nl=True)
+                self._echo(" " * self.text_indent + string)
+                offset = self.text_indent + len(string)
+            else:
+                self._echo(string)
+                offset += len(string)
+        self._echo("\n\n")
 
     def write_error(self, message: str,
                     line: Optional[int] = None,

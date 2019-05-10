@@ -40,6 +40,7 @@ def main(source: IO):
         message = str(e)
         errors.write_error(message, e.start_line, e.start_column)
         if isinstance(e, FunctionArgumentsError):
+            errors.write_supplied_arguments(e.arguments)
             errors.write_function_overloads(e.function_name, e.function)
 
         end_line = e.end_line if e.end_line is not None else e.start_line
