@@ -25,7 +25,7 @@ class Parser:
         path = Path(__file__).parents[2] / "data" / "syntax.lark"
         with open(str(path)) as f:
             grammar = Parser._generate_operators(BINARY_OPERATORS) + f.read()
-        self.lark = Lark(grammar, start="clause")
+        self.lark = Lark(grammar, start="clause", propagate_positions=True)
         self.callbacks: Dict[str, Callback] = dict()
 
     @staticmethod

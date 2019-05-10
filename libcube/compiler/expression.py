@@ -1,6 +1,6 @@
 from typing import List, Optional, Union, Tuple
 
-from compiler.codeio import CodeStream
+from .codeio import CodeStream
 from .types import Type, Void
 
 TemplateType = List[Union[str, int]]

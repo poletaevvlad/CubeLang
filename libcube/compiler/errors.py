@@ -33,7 +33,7 @@ class UnresolvedReferenceError(CompileTimeError):
 class FunctionArgumentsError(CompileTimeError):
     def __init__(self, node: lark.Tree, function_name: str,
                  function: Function, arguments: List[Type]):
-        super(FunctionArgumentsError, self).__init__(node, "Invalid function name")
+        super(FunctionArgumentsError, self).__init__(node, "Invalid function arguments")
         self.function_name = function_name
         self.function = function
         self.arguments = arguments

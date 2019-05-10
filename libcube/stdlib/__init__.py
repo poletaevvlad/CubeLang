@@ -38,3 +38,4 @@ class Library:
 stdlib = Library()
 
 from .collections import *
+from .math import *

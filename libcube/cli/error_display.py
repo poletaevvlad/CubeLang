@@ -1,5 +1,6 @@
 from click import secho
-from typing import IO, Iterable, Tuple
+from typing import IO, Iterable, Tuple, Optional
+import textwrap
 
 
 class ErrorsOutput:
@@ -8,14 +9,15 @@ class ErrorsOutput:
         self.max_width = 80
         self.use_color = True
         self.line_number_margin = 2
+        self.text_indent = 4
 
     def _echo(self, text: str, color: str = None, nl: bool = False) -> None:
         if self.use_color and color is not None:
+            secho(text, self.stream, nl, fg=color)
+        else:
             self.stream.write(text)
             if nl:
                 self.stream.write("\n")
-        else:
-            secho(text, self.stream, nl, color=color)
 
     def _write_lines(self, line_num: str, text: str) -> \
             Iterable[Tuple[int, int]]:
@@ -39,7 +41,7 @@ class ErrorsOutput:
             error_start = max(first, start_col) - first
             error_end = min(last, end_col + 1) - first
             self._echo(" " * (error_start + self.line_number_margin + len(line_num)))
-            self._echo("~" * (error_end - error_start), nl=True)
+            self._echo("^" * (error_end - error_start), "bright_red", nl=True)
 
     def _write_lines_all(self, line_num: str, text: str) -> None:
         for _, _ in self._write_lines(line_num, text):
@@ -66,3 +68,24 @@ class ErrorsOutput:
             line_num = f"{start_line + 1:{line_num_width}}"
             self._write_lines_with_error(line_num, code[start_line],
                                          start_column, end_column)
+
+    def write_error(self, message: str,
+                    line: Optional[int] = None,
+                    column: Optional[int] = None):
+        header = ["[error"]
+        if line is not None or column is not None:
+            header.append(" at")
+            if line is not None:
+                header.append(" line ")
+                header.append(str(line + 1))
+            if column is not None:
+                header.append(" column ")
+                header.append(str(column + 1))
+        header.append("]")
+
+        self._echo("".join(header), "bright_red", nl=True)
+
+        prefix = " " * self.text_indent
+        for line in textwrap.wrap(message, self.max_width - self.text_indent):
+            self._echo(prefix + line, nl=True)
+        self._echo("", nl=True)
