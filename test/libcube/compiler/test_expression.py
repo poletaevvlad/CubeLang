@@ -1,5 +1,5 @@
 from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression, \
-    RepeatLoopExpression, DoWhileLoopExpression, ForLoopExpression, CubeTurningExpression
+    RepeatLoopExpression, DoWhileLoopExpression, ForLoopExpression, CubeTurningExpression, CubeRotationExpression
 from libcube.compiler.types import Integer, Real, Bool, Void, Set
 from libcube.compiler.codeio import CodeStream
 
@@ -183,13 +183,22 @@ class TestForLoop:
         assert res == "tmp_0 = x\nfor i in range(tmp_0):\n    x\n    y\n"
 
 
-def test_cube_rotation():
+def test_cube_turning_single():
     expression = CubeTurningExpression("left", 1)
     stream = CodeStream()
     expression.generate(VariablesPool(), stream, None)
     assert stream.get_contents() == "cube_turn(left, 1)\n"
 
-    expression.amount = 2
+
+def test_cube_turning_double():
+    expression = CubeTurningExpression("left", 2)
     stream = CodeStream()
     expression.generate(VariablesPool(), stream, None)
     assert stream.get_contents() == "cube_turn(left, 2)\n"
+
+
+def test_cube_rotation():
+    expression = CubeRotationExpression("front", False)
+    stream = CodeStream()
+    expression.generate(VariablesPool(), stream, None)
+    assert stream.get_contents() == "cube_rotate(front, False)\n"

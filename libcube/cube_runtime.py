@@ -2,7 +2,7 @@ from .cube import Cube
 from .orientation import Orientation, Side, Color
 from .stdlib import Library
 from .compiler import types
-from .actions import Turn, Action
+from .actions import Turn, Action, Rotate
 from typing import Callable
 
 
@@ -27,6 +27,7 @@ class CubeRuntime:
         self.functions.add_function("cube_turn", self.perform_turn, [types.Side, types.Integer], types.Void)
         self.functions.add_function("cube_get_color", self.get_color,
                                     [types.Color, types.Integer, types.Integer], types.Color)
+        self.functions.add_function("cube_rotate", self.perform_rotate, [types.Side, types.Bool], types.Void)
 
         for name, side in CubeRuntime.SIDE_NAMES.items():
             self.functions.add_value(name, types.Side, side)
@@ -35,6 +36,11 @@ class CubeRuntime:
 
     def perform_turn(self, side: Side, amount: int):
         action = Turn(side, 1, amount)
+        self.orientation = action.perform(self.cube, self.orientation)
+        self.callback(action)
+
+    def perform_rotate(self, side: Side, twice: bool):
+        action = Rotate(side, twice)
         self.orientation = action.perform(self.cube, self.orientation)
         self.callback(action)
 

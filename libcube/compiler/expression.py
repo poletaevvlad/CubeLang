@@ -255,3 +255,13 @@ class CubeTurningExpression(Expression):
 
     def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
         stream.push_line(f"cube_turn({self.side}, {self.amount})")
+
+
+class CubeRotationExpression(Expression):
+    def __init__(self, side: str, twice: bool = False):
+        super(CubeRotationExpression, self).__init__(Void, [])
+        self.side: str = side
+        self.twice: bool = twice
+
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+        stream.push_line(f"cube_rotate({self.side}, {self.twice})")

@@ -58,6 +58,9 @@ var_assignment: assignable "=" expression
             | "D" -> cube_bottom
             | "F" -> cube_front
             | "B" -> cube_back
+            | "X" -> cube_rotate_right
+            | "Y" -> cube_rotate_top
+            | "Z" -> cube_rotate_front
 ?cube_action: cube_command
             | cube_command "2" -> cube_double
             | cube_command "'" -> cube_opposite

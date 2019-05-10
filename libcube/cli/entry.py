@@ -9,12 +9,18 @@ from ..compiler.executor import ExecutionContext
 from ..compiler.parser import parser, Stack
 from ..cube_runtime import CubeRuntime
 from ..stdlib import stdlib
+from ..actions import Action
+from ..parser import get_action_representation
+
+
+def display_action(action: Action):
+    print(get_action_representation(action), end="")
 
 
 @click.command()
 @click.argument("source", type=click.File("r"))
 def main(source: IO):
-    runtime = CubeRuntime(lambda: None)
+    runtime = CubeRuntime(display_action)
 
     stack = Stack()
     stdlib.initialize_stack(stack)

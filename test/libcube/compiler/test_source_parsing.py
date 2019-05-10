@@ -4,7 +4,7 @@ import pytest
 from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, \
     WhileLoopExpression, DoWhileLoopExpression, RepeatLoopExpression, \
-    ForLoopExpression, CubeTurningExpression
+    ForLoopExpression, CubeTurningExpression, CubeRotationExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.errors import ValueTypeError, UnresolvedReferenceError, \
     FunctionArgumentsError, CompileTimeError
@@ -485,6 +485,18 @@ def test_cube_turning(data, side):
     assert expr.amount == 1
 
 
+@pytest.mark.parametrize("data, side", [
+    ("cube_rotate_right", "right"), ("cube_rotate_top", "top"),
+    ("cube_rotate_front", "front")
+])
+def test_cube_rotation(data, side):
+    tree = tr(data)
+    expr = parser.handle(tree, Stack())
+    assert isinstance(expr, CubeRotationExpression)
+    assert expr.side == side
+    assert expr.twice == False
+
+
 @pytest.mark.parametrize("data, amount", [
     ("cube_double", 2), ("cube_opposite", 3)
 ])
@@ -494,6 +506,25 @@ def test_cube_turning_amount(data, amount):
     assert isinstance(expr, CubeTurningExpression)
     assert expr.side == "front"
     assert expr.amount == amount
+
+
+def test_cube_rotation_amount():
+    tree = tr("cube_double", tr("cube_rotate_top"))
+    expr = parser.handle(tree, Stack())
+    assert isinstance(expr, CubeRotationExpression)
+    assert expr.side == "top"
+    assert expr.twice
+
+
+@pytest.mark.parametrize("data, side", [
+    ("cube_rotate_right", "left"), ("cube_rotate_top", "bottom"),
+    ("cube_rotate_front", "back")
+])
+def test_cube_rotation_opposite(data, side):
+    tree = tr("cube_opposite", tr(data))
+    expr = parser.handle(tree, Stack())
+    assert isinstance(expr, CubeRotationExpression)
+    assert expr.side == side
 
 
 class TestColorReference:

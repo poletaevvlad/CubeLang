@@ -6,7 +6,7 @@ from lark import Tree, Lark, Token
 
 from .expression import Expression, ConditionExpression, WhileLoopExpression, \
     DoWhileLoopExpression, RepeatLoopExpression, ForLoopExpression, \
-    CubeTurningExpression
+    CubeTurningExpression, CubeRotationExpression
 from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
@@ -308,11 +308,31 @@ def handle_cube_turning(tree: Tree, _stack: Stack):
     return CubeTurningExpression(side, 1)
 
 
+@parser.handler("cube_rotate_right", "cube_rotate_top", "cube_rotate_front")
+def handle_cube_rotation(tree: Tree, _stack: Stack):
+    side = tree.data[12:]
+    return CubeRotationExpression(side, False)
+
+
 @parser.handler("cube_double", "cube_opposite")
 def handle_cube_turning_double(tree: Tree, stack: Stack):
-    turning_expression: CubeTurningExpression = parser.handle(tree.children[0], stack)
-    turning_expression.amount = 2 if tree.data == "cube_double" else 3
-    return turning_expression
+    expression = parser.handle(tree.children[0], stack)
+    if isinstance(expression, CubeTurningExpression):
+        expression.amount = 2 if tree.data == "cube_double" else 3
+    else:
+        assert isinstance(expression, CubeRotationExpression)
+        if tree.data == "cube_double":
+            expression.twice = True
+        else:
+            opposites = ("front", "back"), ("left", "right"), ("top", "bottom")
+            for a, b in opposites:
+                if expression.side == a:
+                    expression.side = b
+                    break
+                elif expression.side == b:
+                    expression.side = a
+                    break
+    return expression
 
 
 @parser.handler("cube_color_reference")
