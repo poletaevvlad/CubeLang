@@ -35,7 +35,7 @@ class FunctionArgumentsError(CompileTimeError):
                  function: Function, arguments: List[Type]):
         super(FunctionArgumentsError, self).__init__(node, "Invalid function arguments")
         self.function_name = function_name
-        self.function = function
+        self.function: Function = function
         self.arguments = arguments
 
 

@@ -3,8 +3,9 @@ import typing
 
 
 class Type:
-    def __init__(self, name: str, default: str):
+    def __init__(self, name: str, lang_name: str, default: str):
         self.name = name
+        self.lang_name = lang_name
         self.default = default
 
     def is_assignable(self, fr: "Type") -> bool:
@@ -19,6 +20,9 @@ class Type:
     def __hash__(self):
         return hash(self.name)
 
+    def __str__(self):
+        return self.lang_name
+
     def __repr__(self):
         return self.name
 
@@ -31,7 +35,7 @@ class Type:
 
 class GenericTypeVar(Type):
     def __init__(self, name: str):
-        super().__init__(name, "")
+        super().__init__(name, name, "")
 
     def get_generic_vars(self, fr: Type):
         return {self.name: fr}
@@ -42,24 +46,28 @@ class GenericTypeVar(Type):
 
 T = GenericTypeVar("T")
 
-Integer = Type("Integer", "0")
+Integer = Type("Integer", "int", "0")
 
-Real = Type("Real", "0.0")
-Void = Type("Void", "")
+Real = Type("Real", "real", "0.0")
+Void = Type("Void", "void", "")
 Real.is_assignable = MethodType(lambda self, fr: fr in {Integer, Real}, Real)
-Color = Type("Color", "white")
-Side = Type("Side", "front")
-Bool = Type("Bool", "False")
-Pattern = Type("Pattern", "None")
+Color = Type("Color", "color", "white")
+Side = Type("Side", "side", "front")
+Bool = Type("Bool", "bool", "False")
+Pattern = Type("Pattern", "pattern", "None")
 
 
 class CollectionType(Type):
-    def __init__(self, name: str, item_type: typing.Union[Type, GenericTypeVar], default: str):
-        super().__init__(name, default)
+    def __init__(self, name: str, lang_name: str,
+                 item_type: typing.Union[Type, GenericTypeVar], default: str):
+        super().__init__(name, lang_name, default)
         self.item_type = item_type
 
     def __eq__(self, other):
         return type(self) == type(other) and self.item_type == other.item_type
+
+    def __str__(self):
+        return f"{self.lang_name} of {self.item_type}"
 
     def __repr__(self):
         return f"{self.name}({self.item_type!r})"
@@ -76,7 +84,7 @@ class CollectionType(Type):
 
 class List(CollectionType):
     def __init__(self, item_type: Type):
-        super().__init__("List", item_type, "list()")
+        super().__init__("List", "list", item_type, "list()")
 
     def substitute_generic(self, generic_arguments: typing.Dict[str, "Type"]):
         return List(self.item_type.substitute_generic(generic_arguments))
@@ -84,7 +92,7 @@ class List(CollectionType):
 
 class Set(CollectionType):
     def __init__(self, item_type: Type):
-        super().__init__("Set", item_type, "set()")
+        super().__init__("Set", "set", item_type, "set()")
 
     def substitute_generic(self, generic_arguments: typing.Dict[str, "Type"]):
         return Set(self.item_type.substitute_generic(generic_arguments))
@@ -114,7 +122,7 @@ class Function(Type):
         return_type: Type
 
     def __init__(self, *overloads: typing.Tuple[typing.List[Type], Type]):
-        super().__init__("Function", "")
+        super().__init__("Function", "func", "")
         self.overloads = [Function.FunctionOverload(*x) for x in overloads]
 
     def prepend_overload(self, arguments: typing.List[Type], return_type: Type):

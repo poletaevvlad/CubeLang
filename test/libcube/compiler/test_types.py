@@ -18,6 +18,18 @@ def test_repr(type_object: Type, representation: str):
     assert repr(type_object) == representation
 
 
+@pytest.mark.parametrize("type_object, string", [
+    (Integer, "int"),
+    (Real, "real"),
+    (Bool, "bool"),
+    (Void, "void"),
+    (List(Set(Integer)), "list of set of int"),
+    (Set(Bool), "set of bool")
+])
+def test_repr(type_object: Type, string: str):
+    assert str(type_object) == string
+
+
 @pytest.mark.parametrize("type1, type2, result", [
     (Integer, Integer, True),
     (Integer, Real, False),

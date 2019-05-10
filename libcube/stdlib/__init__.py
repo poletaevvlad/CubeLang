@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Callable
 
-from ..compiler.types import Type, Function
+from ..compiler.types import Type, Function, Bool
 from ..compiler.stack import Stack
 
 
@@ -36,6 +36,9 @@ class Library:
 
 
 stdlib = Library()
+stdlib.add_value("true", Bool, True)
+stdlib.add_value("false", Bool, False)
+
 
 from .collections import *
 from .math import *

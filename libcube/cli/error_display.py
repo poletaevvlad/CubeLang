@@ -1,6 +1,7 @@
 from click import secho
 from typing import IO, Iterable, Tuple, Optional
 import textwrap
+from ..compiler.types import Function, Void
 
 
 class ErrorsOutput:
@@ -68,6 +69,34 @@ class ErrorsOutput:
             line_num = f"{start_line + 1:{line_num_width}}"
             self._write_lines_with_error(line_num, code[start_line],
                                          start_column, end_column)
+
+    def write_function_overloads(self, func_name: str, function: Function):
+        self._echo("Function arguments:", nl=True, color="yellow")
+        for overload in function.overloads:
+            indent = self.text_indent + len(func_name) + 1
+            offset = indent
+            self._echo(" " * self.text_indent + func_name + "(")
+            for i, argument in enumerate(overload.arguments):
+                string = str(argument)
+                if i < len(overload.arguments) - 1:
+                    string += ", "
+                if offset + len(string) < self.max_width + 1:
+                    self._echo(string)
+                    offset += len(string)
+                else:
+                    self._echo("", nl=True)
+                    self._echo(" " * indent + string)
+                    offset = indent + len(string)
+            if overload.return_type == Void:
+                ending = ")"
+            else:
+                ending = f"): {overload.return_type}"
+            if offset + len(ending) > self.max_width:
+                self._echo("", nl=True)
+                self._echo(" " * (indent - 1) + ending, nl=True)
+            else:
+                self._echo(ending, nl=True)
+        self._echo("", nl=True)
 
     def write_error(self, message: str,
                     line: Optional[int] = None,
