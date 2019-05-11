@@ -133,7 +133,7 @@ def sample_cube() -> Cube:
 
 def test_rotation_rightmost(sample_cube: Cube) -> None:
     orientation = Orientation(Side.FRONT, Side.RIGHT)
-    sample_cube.rotate_vertical(orientation, -1, 1)
+    sample_cube.turn_vertical(orientation, -1, 1)
 
     assert_cube(sample_cube, "ORG/YRG/OWW", "ROO/RGW/BWG", "YYR/OOW/RGW", "YYY/BBR/OOG",
                 "BGG/BYY/BBW", "WRR/BWG/BOY")
@@ -141,7 +141,7 @@ def test_rotation_rightmost(sample_cube: Cube) -> None:
 
 def test_rotation_leftmost(sample_cube: Cube) -> None:
     orientation = Orientation(Side.BACK, Side.BOTTOM)
-    sample_cube.rotate_vertical(orientation, 1, 3)
+    sample_cube.turn_vertical(orientation, 1, 3)
 
     assert_cube(sample_cube, "BRG/BRG/BWG", "ROO/RGW/RGW", "YYW/OOR/OOR", "OBY/WBY/WRY",
                 "GGG/WYY/RBW", "OGY/YWO/BBB")
@@ -149,7 +149,7 @@ def test_rotation_leftmost(sample_cube: Cube) -> None:
 
 def test_rotation_horizontal(sample_cube: Cube) -> None:
     orientation = Orientation(Side.RIGHT, Side.FRONT)
-    sample_cube.rotate_horizontal(orientation, 1, 1)
+    sample_cube.turn_horizontal(orientation, 1, 1)
 
     assert_cube(sample_cube, "GGG/RRW/OYB", "YOO/GGW/RGW", "YYR/OOW/OOG", "YYW/BBB/OWB",
                 "BGG/BYY/RRR", "YRW/RWO/WBB")
@@ -157,7 +157,7 @@ def test_rotation_horizontal(sample_cube: Cube) -> None:
 
 def test_rotation_horizontal_last(sample_cube: Cube) -> None:
     orientation = Orientation(Side.BOTTOM, Side.LEFT)
-    sample_cube.rotate_horizontal(orientation, -1, 3)
+    sample_cube.turn_horizontal(orientation, -1, 3)
 
     assert_cube(sample_cube, "ORG/YRY/BWW", "OWW/OGG/RRR", "BYR/OOW/YOG", "YYY/BBR/OWW",
                 "BGO/BYO/BBY", "RGG/RWG/WBG")
@@ -165,7 +165,7 @@ def test_rotation_horizontal_last(sample_cube: Cube) -> None:
 
 def test_rotation_slice(sample_cube: Cube) -> None:
     orientation = Orientation(Side.RIGHT, Side.BACK)
-    sample_cube.rotate_slice(orientation, 1, 1)
+    sample_cube.turn_slice(orientation, 1, 1)
 
     assert_cube(sample_cube, "ORY/YRO/BWB", "RRR/GGO/WWO", "WYR/YOW/GOG", "YYY/BBR/OWW",
                 "BGG/BYG/BBG", "RGO/RWO/WBY")
@@ -194,7 +194,7 @@ def test_data_rotation(sample_cube: Cube) -> None:
     orientation = Orientation(Side.FRONT, Side.TOP)
     sample_cube.set_data(orientation, 0, 2, "b")
     sample_cube.set_data(orientation, 1, 2, "a")
-    sample_cube.rotate_vertical(orientation, 3, 1)
+    sample_cube.turn_vertical(orientation, 3, 1)
 
     def get_side(orient: Orientation) -> str:
         return data_to_string(sample_cube.get_side(orient))

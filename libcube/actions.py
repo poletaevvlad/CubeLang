@@ -87,12 +87,11 @@ class Turn(Action):
         else:
             self.type = side
 
-
     def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
         turning_functions = {
-            TurningType.VERTICAL: cube.rotate_vertical,
-            TurningType.HORIZONTAL: cube.rotate_horizontal,
-            TurningType.SLICE: cube.rotate_slice
+            TurningType.VERTICAL: cube.turn_vertical,
+            TurningType.HORIZONTAL: cube.turn_horizontal,
+            TurningType.SLICE: cube.turn_slice
         }
         rotate_function = turning_functions[self.type]
         for side in self.sides:

@@ -56,18 +56,18 @@ def test_from_turn_steps():
 
 class CubeMock(object):
     def __init__(self):
-        self.rotate_slice = None
-        self.rotate_vertical = None
-        self.rotate_horizontal = None
+        self.turn_slice = None
+        self.turn_vertical = None
+        self.turn_horizontal = None
 
 
 @pytest.mark.parametrize("side, func, out_sides, out_amount", [
-    (Side.FRONT, "rotate_slice", [1, 2], 1),
-    (Side.BACK, "rotate_slice", [-1, -2], 3),
-    (Side.RIGHT, "rotate_vertical", [-1, -2], 1),
-    (Side.LEFT, "rotate_vertical", [1, 2], 3),
-    (Side.TOP, "rotate_horizontal", [1, 2], 3),
-    (Side.BOTTOM, "rotate_horizontal", [-1, -2], 1)
+    (Side.FRONT, "turn_slice", [1, 2], 1),
+    (Side.BACK, "turn_slice", [-1, -2], 3),
+    (Side.RIGHT, "turn_vertical", [-1, -2], 1),
+    (Side.LEFT, "turn_vertical", [1, 2], 3),
+    (Side.TOP, "turn_horizontal", [1, 2], 3),
+    (Side.BOTTOM, "turn_horizontal", [-1, -2], 1)
 ])
 def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amount: int) -> None:
     cube: Cube = CubeMock()

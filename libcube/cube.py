@@ -41,7 +41,7 @@ class Cube(Generic[T]):
             index = items_count + 1 + index
         return index - 1
 
-    def rotate_vertical(self, orientation: Orientation, index: int, turns: int) -> None:
+    def turn_vertical(self, orientation: Orientation, index: int, turns: int) -> None:
         faces: List[ICubeSide] = []
         for i in range(4):
             faces.append(self.get_side(orientation))
@@ -60,13 +60,13 @@ class Cube(Generic[T]):
             right_face = self.get_side(orientation.to_right)
             right_face.rotate(turns)
 
-    def rotate_horizontal(self, orientation: Orientation, index: int, turns: int) -> None:
+    def turn_horizontal(self, orientation: Orientation, index: int, turns: int) -> None:
         orientation = orientation.rotate_clockwise()
-        self.rotate_vertical(orientation, index, turns)
+        self.turn_vertical(orientation, index, turns)
 
-    def rotate_slice(self, orientation: Orientation, index: int, turns: int) -> None:
+    def turn_slice(self, orientation: Orientation, index: int, turns: int) -> None:
         orientation = orientation.to_right
-        self.rotate_vertical(orientation, index, 4 - turns)
+        self.turn_vertical(orientation, index, 4 - turns)
 
     def get_data(self, orientation: Orientation, i: int, j: int) -> Optional[T]:
         return self.get_side(orientation)[i, j].data
