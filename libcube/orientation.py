@@ -112,33 +112,26 @@ class Orientation:
                 yield from orientation_changes(rotation, lambda x: x.rotate_clockwise())
 
     def turns_to_origin(self) -> Iterable[Side]:
-        def perform_top():
-            if self.top == Side.LEFT:
-                yield Side.BACK
-            elif self.top == Side.RIGHT:
+        """This method generates unoptimized rotations. For example, it will
+           yield three turns on the right side except one on the left. It is
+           done so for simpler implementation of action rotation.
+        """
+        orientation = self
+        if orientation.front == Side.TOP:
+            while orientation.top != Side.BACK:
                 yield Side.FRONT
-            elif self.top == Side.BACK:
-                yield Side.FRONT
-                yield Side.FRONT
+                orientation = orientation.rotate_clockwise()
             yield Side.RIGHT
-
-        if self.front == Side.TOP:
-            yield from perform_top()
-        elif self.front == Side.BOTTOM:
-            yield from (x.opposite() for x in perform_top())
+        elif orientation.front == Side.BOTTOM:
+            while orientation.top != Side.FRONT:
+                yield Side.FRONT
+                orientation = orientation.rotate_clockwise()
+            for _ in range(3):
+                yield Side.RIGHT
         else:
-            if self.top == Side.BOTTOM:
+            while orientation.top != Side.TOP:
                 yield Side.FRONT
-                yield Side.FRONT
-            elif self.top != Side.TOP:
-                if self.to_left.top == Side.TOP:
-                    yield Side.FRONT
-                else:
-                    yield Side.BACK
-            if self.front == Side.RIGHT:
-                yield Side.BOTTOM
-            elif self.front == Side.LEFT:
+                orientation = orientation.rotate_clockwise()
+            while orientation.front != Side.FRONT:
                 yield Side.TOP
-            elif self.front == Side.BACK:
-                yield Side.TOP
-                yield Side.TOP
+                orientation = orientation.to_right

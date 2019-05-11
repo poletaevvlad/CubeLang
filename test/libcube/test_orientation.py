@@ -128,3 +128,16 @@ def test_iterate_orientations(keeping, expected):
     rotations = list(orientation.iterate_rotations(keeping))
     assert len(expected) == len(rotations)
     assert {Orientation(a, b) for a, b in expected} == set(rotations)
+
+
+@pytest.mark.parametrize("front, top, steps", [
+    (Side.FRONT, Side.TOP, []),
+    (Side.FRONT, Side.BOTTOM, [F, F]),
+    (Side.RIGHT, Side.BACK, [F, F, F, T, T, T]),
+    (Side.TOP, Side.LEFT, [F, R]),
+    (Side.BOTTOM, Side.RIGHT, [F, F, F, R, R, R])
+])
+def test_turns_to_origin(front, top, steps):
+    orientation = Orientation(front, top)
+    actual = list(orientation.turns_to_origin())
+    assert actual == steps
