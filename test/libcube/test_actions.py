@@ -41,6 +41,19 @@ def test_rotation_2(around: Side):
     assert orientation == initial
 
 
+def test_from_turn_steps():
+    turns = [Side.RIGHT, Side.FRONT, Side.FRONT,
+             Side.TOP, Side.TOP, Side.TOP,
+             Side.RIGHT, Side.RIGHT, Side.RIGHT, Side.RIGHT, Side.TOP]
+    actions = list(Rotate.from_turn_steps(turns))
+    expected_sides = [Side.RIGHT, Side.FRONT, Side.BOTTOM, Side.TOP]
+    expected_twice = [False, True, False, False, False]
+    assert len(actions) == len(expected_sides)
+    for action, side, twice in zip(actions, expected_sides, expected_twice):
+        assert action.axis_side == side
+        assert action.twice == twice
+
+
 class Object(object):
     pass
 

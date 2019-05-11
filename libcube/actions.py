@@ -1,8 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Union, List
+from typing import Union, List, Iterable, TypeVar, Tuple
+from itertools import groupby
 
 from .cube import Cube
 from .orientation import Orientation, Side
+
+T = TypeVar("T")
+
+
+def count_occurrences(seq: Iterable[T]) -> Iterable[Tuple[T, int]]:
+    return ((val, sum(1 for _ in group)) for val, group in groupby(seq))
 
 
 class Action(ABC):
@@ -38,6 +45,15 @@ class Rotate(Action):
 
     def __repr__(self):
         return f"Rotate({self.axis_side}, {self.twice})"
+
+    @staticmethod
+    def from_turn_steps(steps: Iterable[Side]) -> Iterable["Rotate"]:
+        for side, turns in count_occurrences(steps):
+            turns = turns % 4
+            if turns == 3:
+                side = side.opposite()
+            if turns != 0:
+                yield Rotate(side, turns == 2)
 
 
 class Turn(Action):
