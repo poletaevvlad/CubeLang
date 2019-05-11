@@ -71,18 +71,22 @@ class Turn(Action):
         Side.FRONT: TurningType.SLICE, Side.BACK: TurningType.SLICE
     }
 
-    def __init__(self, side: Side, indices: Union[int, List[int]], turns: int = 1) -> None:
-        self.type: TurningType = Turn.TYPES[side]
-
+    def __init__(self, side: Union[Side, TurningType], indices: Union[int, List[int]], turns: int = 1) -> None:
         self.sides: List[int] = indices if isinstance(indices, list) else [indices]
+        self.turns: int = turns
 
-        if side in {Side.BACK, Side.RIGHT, Side.BOTTOM}:
-            self.sides = [-x for x in self.sides]
+        self.type: TurningType
+        if isinstance(side, Side):
+            self.type = Turn.TYPES[side]
 
-        if side in {Side.BOTTOM, Side.RIGHT, Side.FRONT}:
-            self.turns: int = turns
+            if side in {Side.BACK, Side.RIGHT, Side.BOTTOM}:
+                self.sides = [-x for x in self.sides]
+
+            if side not in {Side.BOTTOM, Side.RIGHT, Side.FRONT}:
+                self.turns: int = 4 - turns
         else:
-            self.turns: int = 4 - turns
+            self.type = side
+
 
     def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
         turning_functions = {
@@ -98,22 +102,30 @@ class Turn(Action):
     def __repr__(self):
         return f"Turn({self.type}, {self.sides}, {self.turns})"
 
-    def _transform(self, size: int, turn: Side) -> "Turn":
-        pass
-        # if self.side == turn or self.side == turn.opposite():
-        #     return self
-        #
-        # if turn == Side.TOP:
-        #     pass
-        # elif turn == Side.FRONT:
-        #     pass
-        # elif turn == Side.FRONT:
-        #     pass
-        # else:
-        #     raise ValueError("Unsupported turn")
+    def _transform(self, turn: Side) -> "Turn":
+        if Turn.TYPES[turn] == self.type:
+            return self
 
-    def from_orientation(self, size: int, orientation: Orientation) -> "Turn":
+        if turn == Side.TOP:
+            if self.type == TurningType.SLICE:
+                return Turn(TurningType.VERTICAL, self.sides, self.turns)
+            else:  # TurningType.VERTICAL
+                return Turn(TurningType.SLICE, [-x for x in self.sides], self.turns)
+        elif turn == Side.FRONT:
+            if self.type == TurningType.VERTICAL:
+                return Turn(TurningType.HORIZONTAL, self.sides, self.turns)
+            else:  # TurningType.HORIZONTAL
+                return Turn(TurningType.VERTICAL, [-x for x in self.sides], self.turns)
+        elif turn == Side.RIGHT:
+            if self.type == TurningType.SLICE:
+                return Turn(TurningType.HORIZONTAL, self.sides, self.turns)
+            else:  # TurningType.HORIZONTAL
+                return Turn(TurningType.SLICE, [-x for x in self.sides], self.turns)
+        else:
+            raise ValueError("Unsupported turn")
+
+    def from_orientation(self, orientation: Orientation) -> "Turn":
         result: Turn = self
         for turn in orientation.turns_to_origin():
-            result = result._transform(size, turn)
+            result = result._transform(turn)
         return result

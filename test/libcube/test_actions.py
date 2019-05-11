@@ -1,6 +1,6 @@
 from libcube.cube import Cube
 from libcube.orientation import Side, Orientation
-from libcube.actions import Rotate, Turn
+from libcube.actions import Rotate, Turn, TurningType
 
 import pytest
 from typing import List
@@ -85,15 +85,19 @@ def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amoun
         assert arg_index == side
         assert arg_turn == out_amount
 
-#
-# @pytest.mark.parametrize("side, turn, res_side, res_turns, res_sides", [
-#     (Side.TOP, Side.FRONT, Side.RIGHT, 1, 1),
-#     (Side.TOP, Side.RIGHT, Side.BACK, 1, 1),
-#     (Side.TOP, Side.TOP, Side.TOP, 1, 1)
-# ])
-# def test_turning_transform(side: Side, turn: Side, res_side: Side, res_turns: int, res_sides: int):
-#     action = Turn(side, [1], 1)
-#     transformed = action._transform(3, turn)
-#     assert transformed.side == res_side
-#     assert transformed.turns == res_turns
-#     assert transformed.sides[0] == res_sides
+
+@pytest.mark.parametrize("side, turn, res_side, res_sides", [
+    (Side.TOP,   Side.FRONT, TurningType.VERTICAL, -1),
+    (Side.RIGHT, Side.FRONT, TurningType.HORIZONTAL, -1),
+
+    (Side.RIGHT, Side.TOP, TurningType.SLICE, 1),
+    (Side.FRONT, Side.TOP, TurningType.VERTICAL, 1),
+
+    (Side.FRONT, Side.RIGHT, TurningType.HORIZONTAL, 1),
+    (Side.TOP, Side.RIGHT, TurningType.SLICE, -1),
+])
+def test_turning_transform(side: Side, turn: Side, res_side: TurningType, res_sides: int):
+    action = Turn(side, [1], 1)
+    transformed = action._transform(turn)
+    assert transformed.type == res_side
+    assert transformed.sides[0] == res_sides
