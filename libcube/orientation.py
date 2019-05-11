@@ -110,3 +110,35 @@ class Orientation:
         else:
             for rotation in iterate_cube_rotations():
                 yield from orientation_changes(rotation, lambda x: x.rotate_clockwise())
+
+    def turns_to_origin(self) -> Iterable[Side]:
+        def perform_top():
+            if self.top == Side.LEFT:
+                yield Side.BACK
+            elif self.top == Side.RIGHT:
+                yield Side.FRONT
+            elif self.top == Side.BACK:
+                yield Side.FRONT
+                yield Side.FRONT
+            yield Side.RIGHT
+
+        if self.front == Side.TOP:
+            yield from perform_top()
+        elif self.front == Side.BOTTOM:
+            yield from (x.opposite() for x in perform_top())
+        else:
+            if self.top == Side.BOTTOM:
+                yield Side.FRONT
+                yield Side.FRONT
+            elif self.top != Side.TOP:
+                if self.to_left.top == Side.TOP:
+                    yield Side.FRONT
+                else:
+                    yield Side.BACK
+            if self.front == Side.RIGHT:
+                yield Side.BOTTOM
+            elif self.front == Side.LEFT:
+                yield Side.TOP
+            elif self.front == Side.BACK:
+                yield Side.TOP
+                yield Side.TOP
