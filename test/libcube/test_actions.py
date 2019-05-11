@@ -54,8 +54,11 @@ def test_from_turn_steps():
         assert action.twice == twice
 
 
-class Object(object):
-    pass
+class CubeMock(object):
+    def __init__(self):
+        self.rotate_slice = None
+        self.rotate_vertical = None
+        self.rotate_horizontal = None
 
 
 @pytest.mark.parametrize("side, func, out_sides, out_amount", [
@@ -67,7 +70,7 @@ class Object(object):
     (Side.BOTTOM, "rotate_horizontal", [-1, -2], 1)
 ])
 def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amount: int) -> None:
-    cube: Cube = Object()
+    cube: Cube = CubeMock()
     mock = MagicMock()
     setattr(cube, func, mock)
 
@@ -81,3 +84,16 @@ def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amoun
         assert arg_orientation == orientation
         assert arg_index == side
         assert arg_turn == out_amount
+
+#
+# @pytest.mark.parametrize("side, turn, res_side, res_turns, res_sides", [
+#     (Side.TOP, Side.FRONT, Side.RIGHT, 1, 1),
+#     (Side.TOP, Side.RIGHT, Side.BACK, 1, 1),
+#     (Side.TOP, Side.TOP, Side.TOP, 1, 1)
+# ])
+# def test_turning_transform(side: Side, turn: Side, res_side: Side, res_turns: int, res_sides: int):
+#     action = Turn(side, [1], 1)
+#     transformed = action._transform(3, turn)
+#     assert transformed.side == res_side
+#     assert transformed.turns == res_turns
+#     assert transformed.sides[0] == res_sides

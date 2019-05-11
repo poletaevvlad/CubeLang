@@ -1,6 +1,6 @@
 from typing import Callable
 
-from libcube.actions import Action, Turn
+from libcube.actions import Action, Turn, TurningType
 from libcube.orientation import Side, Orientation
 from libcube.cube_runtime import CubeRuntime
 from libcube.cube import Cube
@@ -25,7 +25,7 @@ def test_action_callback():
     callback: MagicMock
     action = callback.call_args_list[0][0][0]
     assert isinstance(action, Turn)
-    assert action.side == Side.LEFT
+    assert action.type == TurningType.VERTICAL
 
 
 @pytest.mark.parametrize("side, orientation", [

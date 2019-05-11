@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Union, List, Iterable, TypeVar, Tuple
 from itertools import groupby
+import enum
 
 from .cube import Cube
 from .orientation import Orientation, Side
+
 
 T = TypeVar("T")
 
@@ -56,27 +58,62 @@ class Rotate(Action):
                 yield Rotate(side, turns == 2)
 
 
+class TurningType(enum.Enum):
+    HORIZONTAL = enum.auto()
+    VERTICAL = enum.auto()
+    SLICE = enum.auto()
+
+
 class Turn(Action):
-    def __init__(self, side: Side, sides: Union[int, List[int]], turns: int = 1) -> None:
-        self.side: Side = side
-        self.sides: List[int] = sides if isinstance(sides, list) else [sides]
+    TYPES = {
+        Side.LEFT: TurningType.VERTICAL, Side.RIGHT: TurningType.VERTICAL,
+        Side.TOP: TurningType.HORIZONTAL, Side.BOTTOM: TurningType.HORIZONTAL,
+        Side.FRONT: TurningType.SLICE, Side.BACK: TurningType.SLICE
+    }
+
+    def __init__(self, side: Side, indices: Union[int, List[int]], turns: int = 1) -> None:
+        self.type: TurningType = Turn.TYPES[side]
+
+        self.sides: List[int] = indices if isinstance(indices, list) else [indices]
+
+        if side in {Side.BACK, Side.RIGHT, Side.BOTTOM}:
+            self.sides = [-x for x in self.sides]
+
         if side in {Side.BOTTOM, Side.RIGHT, Side.FRONT}:
             self.turns: int = turns
         else:
             self.turns: int = 4 - turns
-        self.index_multiplier = 1 if side not in {Side.BACK, Side.RIGHT, Side.BOTTOM} else -1
 
     def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
-        if self.side == Side.LEFT or self.side == Side.RIGHT:
-            rotate_function = cube.rotate_vertical
-        elif self.side == Side.TOP or self.side == Side.BOTTOM:
-            rotate_function = cube.rotate_horizontal
-        else:
-            rotate_function = cube.rotate_slice
-
+        turning_functions = {
+            TurningType.VERTICAL: cube.rotate_vertical,
+            TurningType.HORIZONTAL: cube.rotate_horizontal,
+            TurningType.SLICE: cube.rotate_slice
+        }
+        rotate_function = turning_functions[self.type]
         for side in self.sides:
-            rotate_function(orientation, side * self.index_multiplier, self.turns)
+            rotate_function(orientation, side, self.turns)
         return orientation
 
     def __repr__(self):
-        return f"Turn({self.side}, {self.sides}, {self.turns})"
+        return f"Turn({self.type}, {self.sides}, {self.turns})"
+
+    def _transform(self, size: int, turn: Side) -> "Turn":
+        pass
+        # if self.side == turn or self.side == turn.opposite():
+        #     return self
+        #
+        # if turn == Side.TOP:
+        #     pass
+        # elif turn == Side.FRONT:
+        #     pass
+        # elif turn == Side.FRONT:
+        #     pass
+        # else:
+        #     raise ValueError("Unsupported turn")
+
+    def from_orientation(self, size: int, orientation: Orientation) -> "Turn":
+        result: Turn = self
+        for turn in orientation.turns_to_origin():
+            result = result._transform(size, turn)
+        return result

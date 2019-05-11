@@ -2,7 +2,7 @@ from pytest import raises
 import pytest
 
 from libcube.parser import ParsingError, parse_actions, get_action_representation
-from libcube.actions import Turn, Action, Rotate
+from libcube.actions import Turn, Action, Rotate, TurningType
 from libcube.orientation import Side
 
 
@@ -22,13 +22,15 @@ def test_illegal_character():
 
 def test_valid_parsing():
     actions = list(parse_actions("R  L2  U' RU L"))
-    expected_sides = [Side.RIGHT, Side.LEFT, Side.TOP, Side.RIGHT, Side.TOP, Side.LEFT]
+    expected_sides = [TurningType.VERTICAL, TurningType.VERTICAL,
+                      TurningType.HORIZONTAL, TurningType.VERTICAL,
+                      TurningType.HORIZONTAL, TurningType.VERTICAL]
     expected_turns = [1, 2, 1, 1, 3, 3]
 
     assert len(actions) == len(expected_sides)
-    for action, side, turns in zip(actions, expected_sides, expected_turns):
+    for action, type, turns in zip(actions, expected_sides, expected_turns):
         assert isinstance(action, Turn)
-        assert action.side == side
+        assert action.type == type
         assert action.turns == turns
 
 

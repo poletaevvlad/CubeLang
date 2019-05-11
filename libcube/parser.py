@@ -1,7 +1,7 @@
 from typing import Iterator, Callable, Dict, Optional
 import string
 
-from .actions import Turn, Action, Rotate
+from .actions import Turn, Action, Rotate, TurningType
 from .orientation import Side
 
 ActionFactory = Callable[[bool, bool], Action]
@@ -76,7 +76,12 @@ def parse_actions(algorithm: str) -> Iterator[Action]:
 
 def get_action_representation(action: Action) -> str:
     if isinstance(action, Turn):
-        letter = sides_letters[action.side]
+        if action.type == TurningType.VERTICAL:
+            letter = "L" if action.sides[0] > 0 else "R"
+        elif action.type == TurningType.HORIZONTAL:
+            letter = "U" if action.sides[0] > 0 else "D"
+        else:
+            letter = "F" if action.sides[0] > 0 else "B"
         if action.turns == 1:
             return letter
         elif action.turns == 2:
