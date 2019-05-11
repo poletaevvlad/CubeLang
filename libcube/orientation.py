@@ -120,18 +120,18 @@ class Orientation:
         if orientation.front == Side.TOP:
             while orientation.top != Side.BACK:
                 yield Side.FRONT
-                orientation = orientation.rotate_clockwise()
+                orientation = orientation.rotate_counterclockwise()
             yield Side.RIGHT
         elif orientation.front == Side.BOTTOM:
             while orientation.top != Side.FRONT:
                 yield Side.FRONT
-                orientation = orientation.rotate_clockwise()
+                orientation = orientation.rotate_counterclockwise()
             for _ in range(3):
                 yield Side.RIGHT
         else:
             while orientation.top != Side.TOP:
                 yield Side.FRONT
-                orientation = orientation.rotate_clockwise()
+                orientation = orientation.rotate_counterclockwise()
             while orientation.front != Side.FRONT:
                 yield Side.TOP
                 orientation = orientation.to_right

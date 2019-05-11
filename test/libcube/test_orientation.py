@@ -133,9 +133,9 @@ def test_iterate_orientations(keeping, expected):
 @pytest.mark.parametrize("front, top, steps", [
     (Side.FRONT, Side.TOP, []),
     (Side.FRONT, Side.BOTTOM, [F, F]),
-    (Side.RIGHT, Side.BACK, [F, F, F, T, T, T]),
-    (Side.TOP, Side.LEFT, [F, R]),
-    (Side.BOTTOM, Side.RIGHT, [F, F, F, R, R, R])
+    (Side.RIGHT, Side.BACK, [F, T, T, T]),
+    (Side.TOP, Side.LEFT, [F, F, F, R]),
+    (Side.BOTTOM, Side.RIGHT, [F, R, R, R])
 ])
 def test_turns_to_origin(front, top, steps):
     orientation = Orientation(front, top)

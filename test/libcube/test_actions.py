@@ -101,3 +101,15 @@ def test_turning_transform(side: Side, turn: Side, res_side: TurningType, res_si
     transformed = action._transform(turn)
     assert transformed.type == res_side
     assert transformed.sides[0] == res_sides
+
+
+@pytest.mark.parametrize("orientation, action, type, indices", [
+    (Orientation(Side.BACK, Side.LEFT), Turn(Side.RIGHT, 1, 3), TurningType.HORIZONTAL, -1),
+    (Orientation(Side.TOP, Side.BACK), Turn(Side.TOP, 1, 1), TurningType.SLICE, -1),
+    (Orientation(Side.RIGHT, Side.BOTTOM), Turn(Side.FRONT, 1, 1), TurningType.VERTICAL, -1)
+])
+def test_orientation_changes(orientation: Side, action: Turn, type: TurningType,
+                             indices: int):
+    new_action = action.from_orientation(orientation)
+    assert new_action.type == type
+    assert new_action.sides[0] == indices
