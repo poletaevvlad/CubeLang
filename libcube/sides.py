@@ -96,6 +96,10 @@ class ColorsAccessor(Generic[T]):
     def __init__(self, side: ICubeSide[T]) -> None:
         self.side: ICubeSide[T] = side
 
+    def __repr__(self):
+        return "/".join("".join(self[i, j].name[0] for j in range(self.side.columns))
+                        for i in range(self.side.rows))
+
     def __getitem__(self, item: Tuple[int, int]) -> Color:
         return self.side[item].color
 
