@@ -86,25 +86,27 @@ def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amoun
         assert arg_turn == out_amount
 
 
-@pytest.mark.parametrize("side, turn, res_side, res_sides", [
-    (Side.TOP,   Side.FRONT, TurningType.VERTICAL, -1),
-    (Side.RIGHT, Side.FRONT, TurningType.HORIZONTAL, -1),
+@pytest.mark.parametrize("side, turn, res_side, res_sides, res_turns", [
+    (Side.TOP,   Side.FRONT, TurningType.VERTICAL, 1, 3),
+    (Side.RIGHT, Side.FRONT, TurningType.HORIZONTAL, 1, 3),
 
-    (Side.RIGHT, Side.TOP, TurningType.SLICE, 1),
-    (Side.FRONT, Side.TOP, TurningType.VERTICAL, 1),
+    (Side.RIGHT, Side.TOP, TurningType.SLICE, 1, 1),
+    (Side.FRONT, Side.TOP, TurningType.VERTICAL, 1, 3),
 
-    (Side.FRONT, Side.RIGHT, TurningType.HORIZONTAL, 1),
-    (Side.TOP, Side.RIGHT, TurningType.SLICE, -1),
+    (Side.FRONT, Side.RIGHT, TurningType.HORIZONTAL, 1, 3),
+    (Side.TOP, Side.RIGHT, TurningType.SLICE, -1, 3),
 ])
-def test_turning_transform(side: Side, turn: Side, res_side: TurningType, res_sides: int):
+def test_turning_transform(side: Side, turn: Side, res_side: TurningType,
+                           res_sides: int, res_turns: int):
     action = Turn(side, [1], 1)
     transformed = action._transform(turn)
     assert transformed.type == res_side
+    assert transformed.turns == res_turns
     assert transformed.sides[0] == res_sides
 
 
 @pytest.mark.parametrize("orientation, action, type, indices", [
-    (Orientation(Side.BACK, Side.LEFT), Turn(Side.RIGHT, 1, 3), TurningType.HORIZONTAL, -1),
+    (Orientation(Side.BACK, Side.LEFT), Turn(Side.RIGHT, 1, 3), TurningType.HORIZONTAL, 1),
     (Orientation(Side.TOP, Side.BACK), Turn(Side.TOP, 1, 1), TurningType.SLICE, -1),
     (Orientation(Side.RIGHT, Side.BOTTOM), Turn(Side.FRONT, 1, 1), TurningType.VERTICAL, -1)
 ])

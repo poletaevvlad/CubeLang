@@ -107,17 +107,17 @@ class Turn(Action):
 
         if turn == Side.TOP:
             if self.type == TurningType.SLICE:
-                return Turn(TurningType.VERTICAL, self.sides, self.turns)
+                return Turn(TurningType.VERTICAL, self.sides, 4 - self.turns)
             else:  # TurningType.VERTICAL
                 return Turn(TurningType.SLICE, [-x for x in self.sides], self.turns)
         elif turn == Side.FRONT:
             if self.type == TurningType.VERTICAL:
-                return Turn(TurningType.HORIZONTAL, self.sides, self.turns)
+                return Turn(TurningType.HORIZONTAL, [-x for x in self.sides], 4 - self.turns)
             else:  # TurningType.HORIZONTAL
-                return Turn(TurningType.VERTICAL, [-x for x in self.sides], self.turns)
+                return Turn(TurningType.VERTICAL, self.sides, self.turns)
         elif turn == Side.RIGHT:
             if self.type == TurningType.SLICE:
-                return Turn(TurningType.HORIZONTAL, self.sides, self.turns)
+                return Turn(TurningType.HORIZONTAL, self.sides, 4 - self.turns)
             else:  # TurningType.HORIZONTAL
                 return Turn(TurningType.SLICE, [-x for x in self.sides], self.turns)
         else:
