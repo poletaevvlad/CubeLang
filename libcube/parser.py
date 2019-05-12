@@ -82,12 +82,16 @@ def get_action_representation(action: Action) -> str:
             letter = "U" if action.sides[0] > 0 else "D"
         else:
             letter = "F" if action.sides[0] > 0 else "B"
-        if action.turns == 1:
-            return letter
-        elif action.turns == 2:
+
+        if action.turns == 2:
             return letter + "2"
         else:
-            return letter + "'"
+            turns = action.turns
+            if letter not in {"D", "R", "F"}:
+                turns = 4 - turns
+            if turns == 3:
+                letter += "'"
+            return letter
     elif isinstance(action, Rotate):
         if action.axis_side in rotation_letters:
             letter = rotation_letters[action.axis_side]

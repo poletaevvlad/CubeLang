@@ -34,6 +34,34 @@ def test_valid_parsing():
         assert action.turns == turns
 
 
+@pytest.mark.parametrize("text, type, index, turns", [
+    ("F", TurningType.SLICE, 1, 1),
+    ("F'", TurningType.SLICE, 1, 3),
+    ("B", TurningType.SLICE, -1, 3),
+    ("B'", TurningType.SLICE, -1, 1),
+
+    ("R", TurningType.VERTICAL, -1, 1),
+    ("R'", TurningType.VERTICAL, -1, 3),
+    ("L", TurningType.VERTICAL, 1, 3),
+    ("L'", TurningType.VERTICAL, 1, 1),
+
+    ("U", TurningType.HORIZONTAL, 1, 3),
+    ("U'", TurningType.HORIZONTAL, 1, 1),
+    ("D", TurningType.HORIZONTAL, -1, 1),
+    ("D'", TurningType.HORIZONTAL, -1, 3)
+])
+def test_turn_single(text: str, type: TurningType, index: int, turns: int):
+    actions = list(parse_actions(text))
+    assert len(actions) == 1
+    action = actions[0]
+    assert isinstance(action, Turn)
+    assert action.sides[0] == index
+    assert action.turns == turns
+    assert action.type == type
+
+    assert text == get_action_representation(action)
+
+
 def test_rotation():
     actions = list(parse_actions("X X' Y' Z2"))
     expected_sides = [Side.RIGHT, Side.LEFT, Side.BOTTOM, Side.FRONT]
@@ -50,10 +78,10 @@ def test_rotation():
     (Turn(Side.FRONT, 1, 1), "F"),
     (Turn(Side.FRONT, 1, 2), "F2"),
     (Turn(Side.FRONT, 1, 3), "F'"),
-    (Turn(Side.LEFT, 1, 3), "L"),
+    (Turn(Side.LEFT, 1, 1), "L"),
     (Turn(Side.RIGHT, 1, 2), "R2"),
-    (Turn(Side.BACK, 1, 1), "B'"),
-    (Turn(Side.TOP, 1, 3), "U"),
+    (Turn(Side.BACK, 1, 3), "B'"),
+    (Turn(Side.TOP, 1, 1), "U"),
     (Turn(Side.BOTTOM, 1, 2), "D2"),
 
     (Rotate(Side.FRONT, False), "Z"),
