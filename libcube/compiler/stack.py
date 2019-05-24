@@ -46,3 +46,8 @@ class Stack:
 
     def add_global(self, name: str, var_type: Type) -> None:
         self.globals[name] = VariableDefinition(var_type, -1)
+
+    def create_inner(self) -> "Stack":
+        stack = Stack()
+        stack.globals = self.globals
+        return stack

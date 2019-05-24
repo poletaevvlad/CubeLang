@@ -4,7 +4,8 @@ import pytest
 from libcube.compiler.parser import parser, BinaryOperator
 from libcube.compiler.expression import Expression, ConditionExpression, \
     WhileLoopExpression, DoWhileLoopExpression, RepeatLoopExpression, \
-    ForLoopExpression, CubeTurningExpression, CubeRotationExpression
+    ForLoopExpression, CubeTurningExpression, CubeRotationExpression, \
+    FunctionDeclarationExpression
 from libcube.compiler.stack import Stack
 from libcube.compiler.errors import ValueTypeError, UnresolvedReferenceError, \
     FunctionArgumentsError, CompileTimeError
@@ -494,7 +495,7 @@ def test_cube_rotation(data, side):
     expr = parser.handle(tree, Stack())
     assert isinstance(expr, CubeRotationExpression)
     assert expr.side == side
-    assert expr.twice == False
+    assert not expr.twice
 
 
 @pytest.mark.parametrize("data, amount", [
@@ -620,3 +621,59 @@ class TestOrientParameters:
                   "front", tr("variable", "b"))
         with pytest.raises(CompileTimeError):
             parser.handle(tree, self.create_stack())
+
+
+class TestFunctionDeclaration:
+    def test_default(self):
+        tree = tr("func_decl", "func_name",
+                  tr("argument", "a", tr("type_int")),
+                  tr("argument", "b", tr("type_real")),
+                  tr("type_bool"),
+                  tr("clause", tr("variable", "a"), tr("variable", "b")))
+        stack = Stack()
+        expression = parser.handle(tree, stack)
+        assert isinstance(expression, FunctionDeclarationExpression)
+        assert expression.name == "var_0"
+        assert expression.arguments == ["a", "b"]
+        assert expression.return_type == Bool
+        assert expression.clause[0].expression == ["var_0"]
+        assert expression.clause[0].type == Integer
+        assert expression.clause[1].expression == ["var_1"]
+        assert expression.clause[1].type == Real
+        assert stack.get_variable("func_name").type == Function(([Integer, Real], Bool))
+
+    def test_no_return(self):
+        tree = tr("func_decl", "func_name",
+                  tr("argument", "a", tr("type_int")),
+                  tr("clause", tr("variable", "a")))
+        stack = Stack()
+        expression = parser.handle(tree, stack)
+        assert isinstance(expression, FunctionDeclarationExpression)
+        assert expression.name == "var_0"
+        assert expression.arguments == ["a"]
+        assert expression.return_type == Void
+        assert expression.clause[0].expression == ["var_0"]
+        assert expression.clause[0].type == Integer
+        assert stack.get_variable("func_name").type == Function(([Integer], Void))
+
+    def test_no_arguments(self):
+        tree = tr("func_decl", "func_name",
+                  tr("type_bool"),
+                  tr("clause"))
+        stack = Stack()
+        expression = parser.handle(tree, stack)
+        assert isinstance(expression, FunctionDeclarationExpression)
+        assert expression.name == "var_0"
+        assert expression.arguments == []
+        assert expression.return_type == Bool
+        assert stack.get_variable("func_name").type == Function(([], Bool))
+
+    def test_no_arguments_no_return(self):
+        tree = tr("func_decl", "func_name", tr("clause"))
+        stack = Stack()
+        expression = parser.handle(tree, stack)
+        assert isinstance(expression, FunctionDeclarationExpression)
+        assert expression.name == "var_0"
+        assert expression.arguments == []
+        assert expression.return_type == Void
+        assert stack.get_variable("func_name").type == Function(([], Void))

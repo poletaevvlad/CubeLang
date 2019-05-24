@@ -6,7 +6,7 @@ from lark import Tree, Lark, Token
 
 from .expression import Expression, ConditionExpression, WhileLoopExpression, \
     DoWhileLoopExpression, RepeatLoopExpression, ForLoopExpression, \
-    CubeTurningExpression, CubeRotationExpression
+    CubeTurningExpression, CubeRotationExpression, FunctionDeclarationExpression
 from .operators import BINARY_OPERATORS, BinaryOperator
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
@@ -405,3 +405,30 @@ def handle_orient_params(tree: Tree, stack: Stack):
     if not patterns_present:
         raise CompileTimeError(tree, "No side patterns are present")
     return Expression.merge(Bool, expression, *merging)
+
+
+@parser.handler("func_decl")
+def handle_function_declaration(tree: Tree, stack: Stack):
+    func_name = tree.children[0]
+    inner_stack = stack.create_inner()
+
+    argument_names: List[str] = []
+    argument_types: List[Type] = []
+    i = 1
+    while tree.children[i].data == "argument":
+        arg_node = tree.children[i]
+        argument_names.append(arg_node.children[0])
+        type = parser.handle(arg_node.children[1], stack)
+        argument_types.append(type)
+        inner_stack.add_variable(arg_node.children[0], type)
+        i += 1
+
+    if tree.children[i].data == "clause":
+        return_type = Void
+    else:
+        return_type = parser.handle(tree.children[i], stack)
+
+    func_type = Function((argument_types, return_type))
+    var_num = stack.add_variable(func_name, func_type)
+    clause = handle_clause(tree.children[-1], inner_stack)
+    return FunctionDeclarationExpression(f"var_{var_num}", return_type, argument_names, clause)
