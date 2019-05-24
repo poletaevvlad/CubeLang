@@ -670,3 +670,33 @@ class TestFunctionDeclaration:
         assert expression.arguments == []
         assert expression.return_type == Void
         assert stack.get_variable("func_name").type == Function(([], Void))
+
+
+class TestReturnStatement:
+    def test_return(self):
+        tree = tr("return_statement", tr("int_literal", "1"))
+        stack = Stack()
+        stack.context_return_type = Real
+        expression = parser.handle(tree, stack)
+        assert expression.type == Void
+        assert expression.expression == ["return ", "1"]
+
+    def test_return_wrong_type(self):
+        tree = tr("return_statement", tr("int_literal", "1"))
+        stack = Stack()
+        stack.context_return_type = Bool
+        with pytest.raises(ValueTypeError):
+            parser.handle(tree, stack)
+
+    def test_return_wrong_context(self):
+        tree = tr("return_statement", tr("int_literal", "1"))
+        stack = Stack()
+        with pytest.raises(CompileTimeError):
+            parser.handle(tree, stack)
+
+    def test_return_void(self):
+        tree = tr("return_statement")
+        stack = Stack()
+        stack.context_return_type = Void
+        expression = parser.handle(tree, stack)
+        assert expression.expression == ["return"]

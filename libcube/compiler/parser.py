@@ -410,25 +410,43 @@ def handle_orient_params(tree: Tree, stack: Stack):
 @parser.handler("func_decl")
 def handle_function_declaration(tree: Tree, stack: Stack):
     func_name = tree.children[0]
-    inner_stack = stack.create_inner()
-
     argument_names: List[str] = []
     argument_types: List[Type] = []
-    i = 1
-    while tree.children[i].data == "argument":
-        arg_node = tree.children[i]
+    index = 1
+    while tree.children[index].data == "argument":
+        arg_node = tree.children[index]
         argument_names.append(arg_node.children[0])
         type = parser.handle(arg_node.children[1], stack)
         argument_types.append(type)
-        inner_stack.add_variable(arg_node.children[0], type)
-        i += 1
+        index += 1
 
-    if tree.children[i].data == "clause":
+    if tree.children[index].data == "clause":
         return_type = Void
     else:
-        return_type = parser.handle(tree.children[i], stack)
+        return_type = parser.handle(tree.children[index], stack)
+    inner_stack = stack.create_inner(return_type)
+    for name, type in zip(argument_names, argument_types):
+        inner_stack.add_variable(name, type)
 
     func_type = Function((argument_types, return_type))
     var_num = stack.add_variable(func_name, func_type)
     clause = handle_clause(tree.children[-1], inner_stack)
     return FunctionDeclarationExpression(f"var_{var_num}", return_type, argument_names, clause)
+
+
+@parser.handler("return_statement")
+def handle_return_statement(tree: Tree, stack: Stack):
+    if stack.context_return_type is None:
+        raise CompileTimeError(tree, "`return` cannot be used outside of the function body")
+
+    if len(tree.children) > 0:
+        value = parser.handle(tree.children[0], stack)
+        if not stack.context_return_type.is_assignable(value.type):
+            raise ValueTypeError(tree, f"Value of type {stack.context_return_type} is expected to be returned",
+                                 value.type, stack.context_return_type)
+        return Expression.merge(Void, ["return ", 0], value)
+    else:
+        if stack.context_return_type == Void:
+            return Expression(Void, ["return"])
+        else:
+            raise CompileTimeError(tree, "A value must be returned from this function")

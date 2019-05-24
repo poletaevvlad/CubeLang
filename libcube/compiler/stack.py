@@ -16,10 +16,11 @@ class StackFrame:
 
 
 class Stack:
-    def __init__(self):
+    def __init__(self, return_type: Optional[Type] = None):
         self.globals: Dict[str, VariableDefinition] = {}
         self.stack_top: StackFrame = StackFrame(None)
         self.pool: VariablesPool = VariablesPool()
+        self.context_return_type: Optional[Type] = return_type
 
     def add_frame(self) -> None:
         self.stack_top = StackFrame(self.stack_top)
@@ -47,7 +48,7 @@ class Stack:
     def add_global(self, name: str, var_type: Type) -> None:
         self.globals[name] = VariableDefinition(var_type, -1)
 
-    def create_inner(self) -> "Stack":
-        stack = Stack()
+    def create_inner(self, return_type: Optional[Type]) -> "Stack":
+        stack = Stack(return_type)
         stack.globals = self.globals
         return stack
