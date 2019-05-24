@@ -283,4 +283,6 @@ class FunctionDeclarationExpression(Expression):
             expression.generate(temp_pool, stream, None)
         if self.return_type != Void:
             stream.push_line("return " + self.return_type.default_value())
+        elif len(self.clause) == 0:
+            stream.push_line("pass")
         stream.unindent()

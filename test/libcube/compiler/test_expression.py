@@ -226,3 +226,15 @@ class TestFunctionDeclaration:
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "def func3():\n    a\n"
+
+    def test_no_body(self):
+        expression = FunctionDeclarationExpression("func2", List(Integer), [], [])
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "def func2():\n    return list()\n"
+
+    def test_no_body_no_return(self):
+        expression = FunctionDeclarationExpression("func2", Void, [], [])
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "def func2():\n    pass\n"
