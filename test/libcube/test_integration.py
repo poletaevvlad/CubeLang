@@ -2,6 +2,7 @@ from libcube.compiler import Stack, ExecutionContext, parser
 from libcube.compiler.types import Function, Integer, Void
 from libcube.cube_runtime import CubeRuntime
 from libcube.stdlib import stdlib
+from libcube.cube import Cube
 
 from unittest.mock import MagicMock
 
@@ -19,7 +20,7 @@ def test_flip_flops():
     out_fn = MagicMock()
 
     stack = Stack()
-    cube_context = CubeRuntime(lambda action: None)
+    cube_context = CubeRuntime(Cube((3, 3, 3)), lambda action: None)
     cube_context.functions.initialize_stack(stack)
     stdlib.initialize_stack(stack)
     stack.add_global("out", Function(([Integer], Void)))

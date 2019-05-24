@@ -18,8 +18,8 @@ class CubeRuntime:
         "white": Color.WHITE, "yellow": Color.YELLOW, "orange": Color.ORANGE
     }
 
-    def __init__(self, callback: Callable[[Action], None]):
-        self.cube = Cube((3, 3, 3))
+    def __init__(self, cube: Cube, callback: Callable[[Action], None]):
+        self.cube = cube
         self.orientation = Orientation()
         self.callback = callback
 
