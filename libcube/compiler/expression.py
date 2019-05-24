@@ -265,3 +265,22 @@ class CubeRotationExpression(Expression):
 
     def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
         stream.push_line(f"cube_rotate({self.side}, {self.twice})")
+
+
+class FunctionDeclarationExpression(Expression):
+    def __init__(self, name: str, return_type: Type, arguments: List[str], clause: List[Expression]):
+        super(FunctionDeclarationExpression, self).__init__(Void, [])
+        self.name: str = name
+        self.return_type: Type = return_type
+        self.arguments: List[str] = arguments
+        self.clause: List[Expression] = clause
+
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+        arguments = ", ".join(self.arguments)
+        stream.push_line(f"def {self.name}({arguments}):")
+        stream.indent()
+        for expression in self.clause:
+            expression.generate(temp_pool, stream, None)
+        if self.return_type != Void:
+            stream.push_line("return " + self.return_type.default_value())
+        stream.unindent()

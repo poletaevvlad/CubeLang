@@ -1,6 +1,7 @@
 from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression, \
-    RepeatLoopExpression, DoWhileLoopExpression, ForLoopExpression, CubeTurningExpression, CubeRotationExpression
-from libcube.compiler.types import Integer, Real, Bool, Void, Set
+    RepeatLoopExpression, DoWhileLoopExpression, ForLoopExpression, CubeTurningExpression, CubeRotationExpression, \
+    FunctionDeclarationExpression
+from libcube.compiler.types import Integer, Real, Bool, Void, Set, List
 from libcube.compiler.codeio import CodeStream
 
 
@@ -202,3 +203,26 @@ def test_cube_rotation():
     stream = CodeStream()
     expression.generate(VariablesPool(), stream, None)
     assert stream.get_contents() == "cube_rotate(front, False)\n"
+
+
+class TestFunctionDeclaration:
+    def test_declaration(self):
+        expression = FunctionDeclarationExpression("func_name", Integer, ["x", "y", "z"], [
+            Expression(Void, "a"), Expression(Void, "b")])
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "def func_name(x, y, z):\n    a\n    b\n    return 0\n"
+
+    def test_no_arguments(self):
+        expression = FunctionDeclarationExpression("func2", List(Integer), [], [
+            Expression(Void, "a")])
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "def func2():\n    a\n    return list()\n"
+
+    def test_no_return(self):
+        expression = FunctionDeclarationExpression("func3", Void, [], [
+            Expression(Void, "a")])
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "def func3():\n    a\n"
