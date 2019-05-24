@@ -342,108 +342,101 @@ def test_for_loop_wrong_iterator_type():
         parser.handle(tree, stack)
 
 
-@pytest.mark.parametrize("is_global", [(True,), (False,)])
-def test_function_call(is_global):
-    stack = Stack()
-    stack.add_variable("array", List(Integer))
-    func = Function(([Integer, Real, List(Integer)], Void))
-    if is_global:
-        stack.add_global("func", func)
-    else:
-        stack.add_variable("func", func)
-
-    tree = tr("func_call",
-              "func",
-              tr("int_literal", "1"),
-              tr("int_literal", "2"),
-              tr("variable", "array"))
-    expression = parser.handle(tree, stack)
-
-    assert expression.type == Void
-    func_name = "func" if is_global else "var_1"
-    assert expression.expression == [func_name, "(", "1", ", ", "2", ", ", "var_0", ")"]
-
-
-def test_function_call_invalid_name():
-    with pytest.raises(UnresolvedReferenceError):
-        tree = tr("func_call", "func")
-        parser.handle(tree, Stack())
-
-
-def test_function_call_invalid_arguments_count_few():
-    with pytest.raises(FunctionArgumentsError):
+class TestFunctionCall:
+    @pytest.mark.parametrize("is_global", [(True,), (False,)])
+    def test_function_call(self, is_global):
         stack = Stack()
-        stack.add_variable("func", Function(([Integer, Integer], Integer)))
-        tree = tr("func_call", "func", tr("int_literal", "1"))
-        parser.handle(tree, stack)
+        stack.add_variable("array", List(Integer))
+        func = Function(([Integer, Real, List(Integer)], Void))
+        if is_global:
+            stack.add_global("func", func)
+        else:
+            stack.add_variable("func", func)
+
+        tree = tr("func_call",
+                  "func",
+                  tr("int_literal", "1"),
+                  tr("int_literal", "2"),
+                  tr("variable", "array"))
+        expression = parser.handle(tree, stack)
+
+        assert expression.type == Void
+        func_name = "func" if is_global else "var_1"
+        assert expression.expression == [func_name, "(", "1", ", ", "2", ", ", "var_0", ")"]
+
+    def test_invalid_name(self):
+        with pytest.raises(UnresolvedReferenceError):
+            tree = tr("func_call", "func")
+            parser.handle(tree, Stack())
+
+    def test_invalid_arguments_count_few(self):
+        with pytest.raises(FunctionArgumentsError):
+            stack = Stack()
+            stack.add_variable("func", Function(([Integer, Integer], Integer)))
+            tree = tr("func_call", "func", tr("int_literal", "1"))
+            parser.handle(tree, stack)
+
+    def test_invalid_arguments_count_many(self):
+        with pytest.raises(FunctionArgumentsError):
+            stack = Stack()
+            stack.add_variable("func", Function(([Integer, Integer], Integer)))
+            tree = tr("func_call", "func", tr("int_literal", "1"), tr("int_literal", "1"),
+                      tr("int_literal", "1"))
+            parser.handle(tree, stack)
+
+    def test_invalid_argument_types(self):
+        with pytest.raises(FunctionArgumentsError):
+            stack = Stack()
+            stack.add_variable("var", Set(Real))
+            stack.add_variable("func", Function((([Integer, List(Integer)]), Integer)))
+            tree = tr("func_call", "func", tr("int_literal", "1"), tr("variable", "var"))
+            parser.handle(tree, stack)
 
 
-def test_function_call_invalid_arguments_count_many():
-    with pytest.raises(FunctionArgumentsError):
+class TestVarAssignment:
+    def test_var_assignment(self):
         stack = Stack()
-        stack.add_variable("func", Function(([Integer, Integer], Integer)))
-        tree = tr("func_call", "func", tr("int_literal", "1"), tr("int_literal", "1"),
-                  tr("int_literal", "1"))
-        parser.handle(tree, stack)
+        stack.add_variable("var", Real)
+        tree = tr("var_assignment", "var", tr("int_literal", "42"))
+        expression = parser.handle(tree, stack)
+        assert expression.expression == ["var_0", " = ", "42"]
 
-
-def test_function_call_invalid_argument_types():
-    with pytest.raises(FunctionArgumentsError):
+    def test_readonly(self):
         stack = Stack()
-        stack.add_variable("var", Set(Real))
-        stack.add_variable("func", Function((([Integer, List(Integer)]), Integer)))
-        tree = tr("func_call", "func", tr("int_literal", "1"), tr("variable", "var"))
-        parser.handle(tree, stack)
+        stack.add_global("var", Real)
+        tree = tr("var_assignment", "var", tr("int_literal", "0"))
+        with pytest.raises(CompileTimeError):
+            parser.handle(tree, stack)
 
+    def test_undefined(self):
+        tree = tr("var_assignment", "var", tr("int_literal", "0"))
+        with pytest.raises(UnresolvedReferenceError):
+            parser.handle(tree, Stack())
 
-def test_var_assignment():
-    stack = Stack()
-    stack.add_variable("var", Real)
-    tree = tr("var_assignment", "var", tr("int_literal", "42"))
-    expression = parser.handle(tree, stack)
-    assert expression.expression == ["var_0", " = ", "42"]
+    def test_type_error(self):
+        stack = Stack()
+        stack.add_global("var", List(Integer))
+        tree = tr("var_assignment", "var", tr("int_literal", "0"))
+        with pytest.raises(CompileTimeError):
+            parser.handle(tree, stack)
 
+    def test_list(self):
+        stack = Stack()
+        stack.add_global("a", List(Real))
+        tree = tr("var_assignment",
+                  tr("collection_item", tr("variable", "a"), tr("int_literal", "2")),
+                  tr("int_literal", "42"))
+        expression = parser.handle(tree, stack)
+        assert expression.expression == ["(", "a", ")[", "2", "]", " = ", "42"]
 
-def test_var_assignment_readonly():
-    stack = Stack()
-    stack.add_global("var", Real)
-    tree = tr("var_assignment", "var", tr("int_literal", "0"))
-    with pytest.raises(CompileTimeError):
-        parser.handle(tree, stack)
-
-
-def test_var_assignment_undefined():
-    tree = tr("var_assignment", "var", tr("int_literal", "0"))
-    with pytest.raises(UnresolvedReferenceError):
-        parser.handle(tree, Stack())
-
-
-def test_var_assignment_type_error():
-    stack = Stack()
-    stack.add_global("var", List(Integer))
-    tree = tr("var_assignment", "var", tr("int_literal", "0"))
-    with pytest.raises(CompileTimeError):
-        parser.handle(tree, stack)
-
-
-def test_var_assignment_list():
-    stack = Stack()
-    stack.add_global("a", List(Real))
-    tree = tr("var_assignment",
-              tr("collection_item", tr("variable", "a"), tr("int_literal", "2")),
-              tr("int_literal", "42"))
-    expression = parser.handle(tree, stack)
-    assert expression.expression == ["(", "a", ")[", "2", "]", " = ", "42"]
-
-
-def test_var_assignment_list_type_error():
-    stack = Stack()
-    stack.add_global("a", List(Bool))
-    tree = tr("var_assignment",
-              tr("collection_item", tr("variable", "a"), tr("int_literal", "2")),
-              tr("int_literal", "42"))
-    with pytest.raises(ValueTypeError):
-        parser.handle(tree, stack)
+    def test_list_type_error(self):
+        stack = Stack()
+        stack.add_global("a", List(Bool))
+        tree = tr("var_assignment",
+                  tr("collection_item", tr("variable", "a"), tr("int_literal", "2")),
+                  tr("int_literal", "42"))
+        with pytest.raises(ValueTypeError):
+            parser.handle(tree, stack)
 
 
 def test_list_reference():
