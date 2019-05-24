@@ -364,6 +364,15 @@ class TestFunctionCall:
         func_name = "func" if is_global else "var_1"
         assert expression.expression == [func_name, "(", "1", ", ", "2", ", ", "var_0", ")"]
 
+    def test_no_args(self):
+        stack = Stack()
+        stack.add_global("func", Function(([], Integer)))
+        tree = tr("func_call", "func")
+        expression = parser.handle(tree, stack)
+
+        assert expression.type == Integer
+        assert expression.expression == ["func", "()"]
+
     def test_invalid_name(self):
         with pytest.raises(UnresolvedReferenceError):
             tree = tr("func_call", "func")
@@ -627,7 +636,7 @@ class TestFunctionDeclaration:
         expression = parser.handle(tree, stack)
         assert isinstance(expression, FunctionDeclarationExpression)
         assert expression.name == "var_0"
-        assert expression.arguments == ["a", "b"]
+        assert expression.arguments == ["var_0", "var_1"]
         assert expression.return_type == Bool
         assert expression.clause[0].expression == ["var_0"]
         assert expression.clause[0].type == Integer
@@ -643,7 +652,7 @@ class TestFunctionDeclaration:
         expression = parser.handle(tree, stack)
         assert isinstance(expression, FunctionDeclarationExpression)
         assert expression.name == "var_0"
-        assert expression.arguments == ["a"]
+        assert expression.arguments == ["var_0"]
         assert expression.return_type == Void
         assert expression.clause[0].expression == ["var_0"]
         assert expression.clause[0].type == Integer

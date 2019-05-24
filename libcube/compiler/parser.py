@@ -20,6 +20,9 @@ TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
 
 
+# TODO: Unary minus does not work
+# TODO: Symbols aren't visible inside functions
+
 class Parser:
     def __init__(self):
         path = Path(__file__).parents[2] / "data" / "syntax.lark"
@@ -260,7 +263,10 @@ def handle_func_call(tree: Tree, stack: Stack):
     return_type = func_type.takes_arguments(arg_types)
     if return_type is None:
         raise FunctionArgumentsError(tree, function_name, func_type, arg_types)
-    return Expression.merge(return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"], *arguments)
+    if len(arguments) == 0:
+        return Expression(return_type, [function_name, "()"])
+    else:
+        return Expression.merge(return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"], *arguments)
 
 
 @parser.handler("var_assignment")
@@ -431,7 +437,8 @@ def handle_function_declaration(tree: Tree, stack: Stack):
     func_type = Function((argument_types, return_type))
     var_num = stack.add_variable(func_name, func_type)
     clause = handle_clause(tree.children[-1], inner_stack)
-    return FunctionDeclarationExpression(f"var_{var_num}", return_type, argument_names, clause)
+    return FunctionDeclarationExpression(f"var_{var_num}", return_type,
+                                         [f"var_{i}" for i in range(len(argument_names))], clause)
 
 
 @parser.handler("return_statement")

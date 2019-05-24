@@ -135,3 +135,44 @@ def test_pascals_triangle():
     context.execute()
     return_value = [x[0][0] for x in print_fn.call_args_list]
     assert return_value == [1, 0, 1, 1, 0, 1, 2, 1, 0, 1, 3, 3, 1, 0, 1, 4, 6, 4, 1, 0]
+
+
+def test_functions():
+    code = """
+        func compute()
+            func r(x: int): int
+                func g(x: int): int
+                    return x - 1
+                end
+            
+                let c: int
+                while x != 0 do
+                    x = g(x)
+                    c = c + 1
+                end
+                return c
+            end
+            
+            let i: int = 1
+            while true do
+                if i == 5 then
+                    return
+                end
+                print(r(i))
+                i = i + 1
+            end
+        end
+        compute()
+    """
+    stack = Stack()
+    stack.add_global("print", Function(([Integer], Void)))
+    stdlib.initialize_stack(stack)
+    expressions = parser.parse(code, stack)
+
+    print_fn = MagicMock()
+    context = ExecutionContext(dict(print=print_fn, **stdlib.exec_globals))
+    context.compile(expressions)
+    context.execute()
+    return_value = [x[0][0] for x in print_fn.call_args_list]
+    assert return_value == [1, 2, 3, 4]
+
