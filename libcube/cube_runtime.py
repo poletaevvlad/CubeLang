@@ -4,6 +4,7 @@ from .stdlib import Library
 from .compiler import types
 from .actions import Turn, Action, Rotate
 from typing import Callable
+from .pattern import Pattern
 
 
 class CubeRuntime:
@@ -29,6 +30,7 @@ class CubeRuntime:
                                     [types.Color, types.Integer, types.Integer], types.Color)
         self.functions.add_function("cube_rotate", self.perform_rotate, [types.Side, types.Bool], types.Void)
         self.functions.exec_globals["orient"] = self.perform_orient
+        self.functions.exec_globals["Pattern"] = Pattern
 
         for name, side in CubeRuntime.SIDE_NAMES.items():
             self.functions.add_value(name, types.Side, side)

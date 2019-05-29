@@ -1,8 +1,9 @@
 from libcube.compiler import Stack, ExecutionContext, parser
-from libcube.compiler.types import Function, Integer, Void
+from libcube.compiler.types import Function, Integer, Void, Color
 from libcube.cube_runtime import CubeRuntime
 from libcube.stdlib import stdlib
 from libcube.cube import Cube
+from libcube import orientation
 
 from unittest.mock import MagicMock
 
@@ -32,3 +33,27 @@ def test_flip_flops():
     executor.execute()
 
     out_fn.assert_called_once_with(6)
+
+
+def test_orient():
+    code = """
+        orient top: G--/---/---, bottom: --Y/---/--- then
+            out(red)
+        else-orient top: (-W-/---/---), right: (---/---/-O-) then
+            out(top[1, 1])
+        end
+    """
+
+    out_fn = MagicMock()
+    stack = Stack()
+    cube_context = CubeRuntime(Cube((3, 3, 3)), lambda action: None)
+    cube_context.functions.initialize_stack(stack)
+    stdlib.initialize_stack(stack)
+    stack.add_global("out", Function(([Color], Void)))
+
+    globals = {"out": out_fn, **stdlib.exec_globals, **cube_context.functions.exec_globals}
+
+    executor = ExecutionContext(globals)
+    executor.compile(parser.parse(code, stack))
+    executor.execute()
+    out_fn.assert_called_once_with(orientation.Color.WHITE)

@@ -4,7 +4,7 @@ _NEWLINE: /(\n|\r|\r\n)+/
 
 INT_LITERAL.2: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
-IDENTIFIER: /(?!else)(?!return)[a-zA-Z_][a-zA-Z_\d]*/
+IDENTIFIER: /(?!else)(?!return)[a-z_][a-z_\d]*/
 PATTERN: /([-WYORGBa-z]+\/)+[-WYORGBa-z]+/
 
 _elif_clause: "else-if" expression "then" clause
@@ -28,6 +28,7 @@ cube_color_reference: op_item "[" expression "," expression "]"
 ?atom: INT_LITERAL -> int_literal
            | FLOAT_LITERAL -> float_literal
            | IDENTIFIER -> variable
+           | PATTERN -> pattern
            | "(" expression ")"
            | "-" expression -> negation
            | IDENTIFIER "(" (expression ",")* expression? ")" -> func_call
