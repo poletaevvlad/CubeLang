@@ -709,3 +709,21 @@ class TestReturnStatement:
         stack.context_return_type = Void
         expression = parser.handle(tree, stack)
         assert expression.expression == ["return"]
+
+
+class TestUnaryOperations:
+    @pytest.mark.parametrize("type", [Integer, Real])
+    def test_negation_correct_type(self, type):
+        tree = tr("negation", tr("variable", "a"))
+        stack = Stack()
+        stack.add_global("a", type)
+        expression = parser.handle(tree, stack)
+        assert expression.expression == ["-(", "a", ")"]
+        assert expression.type == type
+
+    def test_negation_illegal_type(self):
+        tree = tr("negation", tr("variable", "a"))
+        stack = Stack()
+        stack.add_global("a", Bool)
+        with pytest.raises(ValueTypeError):
+            expression = parser.handle(tree, stack)

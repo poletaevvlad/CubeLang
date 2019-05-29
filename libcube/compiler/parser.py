@@ -20,7 +20,6 @@ TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
 
 
-# TODO: Unary minus does not work
 # TODO: Symbols aren't visible inside functions
 
 class Parser:
@@ -292,6 +291,15 @@ def handle_var_assignment(tree: Tree, stack: Stack):
                 f"Value of type {expression.type} cannot be assigned to a varaible "
                 f"of type {var_type}")
     return result
+
+
+@parser.handler("negation")
+def handle_negation(tree: Tree, stack: Stack):
+    expr = parser.handle(tree.children[0], stack)
+    if not Real.is_assignable(expr.type):
+        raise ValueTypeError(tree, "Unary minus can only be applied to integer or real values",
+                             Real, expr.type)
+    return Expression.merge(expr.type, ["-(", 0, ")"], expr)
 
 
 @parser.handler("collection_item")
