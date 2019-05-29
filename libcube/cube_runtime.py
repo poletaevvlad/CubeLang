@@ -28,11 +28,23 @@ class CubeRuntime:
         self.functions.add_function("cube_get_color", self.get_color,
                                     [types.Color, types.Integer, types.Integer], types.Color)
         self.functions.add_function("cube_rotate", self.perform_rotate, [types.Side, types.Bool], types.Void)
+        self.functions.exec_globals["orient"] = self.perform_orient
 
         for name, side in CubeRuntime.SIDE_NAMES.items():
             self.functions.add_value(name, types.Side, side)
         for name, color in CubeRuntime.COLOR_NAMES.items():
             self.functions.add_value(name, types.Color, color)
+
+    def perform_orient(self, *args, **kwargs):
+        new_orientation = self.cube.orient(self.orientation, *args, **kwargs)
+        if new_orientation is not None:
+            actions = Rotate.from_turn_steps(self.orientation.turns_to(new_orientation))
+            for action in actions:
+                self.callback(action)
+            self.orientation = new_orientation
+            return True
+        else:
+            return False
 
     def perform_turn(self, side: Side, amount: int):
         action = Turn(side, 1, amount)

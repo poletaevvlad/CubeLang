@@ -1,5 +1,22 @@
 import enum
-from typing import Any, Iterable, Optional, Callable
+from typing import Any, Iterable, Optional, Callable, Tuple, TypeVar
+from itertools import groupby
+from functools import wraps
+
+T = TypeVar("T")
+
+
+def count_occurrences(seq: Iterable[T]) -> Iterable[Tuple[T, int]]:
+    return ((val, sum(1 for _ in group)) for val, group in groupby(seq))
+
+
+def pipe(g):
+    def wrapper(f):
+        @wraps(f)
+        def function(*args, **kwargs):
+            return g(f(*args, **kwargs))
+        return function
+    return wrapper
 
 
 class Color (enum.Enum):
@@ -24,6 +41,19 @@ class Side (enum.Enum):
                      Side.TOP: Side.BOTTOM, Side.BOTTOM: Side.TOP,
                      Side.FRONT: Side.BACK, Side.BACK: Side.FRONT}
         return opposites[self]
+
+
+def _normalize_turns(turns: Iterable[Side]) -> Iterable[Side]:
+    for t, count in count_occurrences(turns):
+        count = count % 4
+        if count == 0:
+            continue
+
+        if t not in {Side.RIGHT, Side.TOP, Side.FRONT}:
+            count = 4 - count
+            t = t.opposite()
+
+        yield from (t for _ in range(count))
 
 
 class Orientation:
@@ -111,27 +141,33 @@ class Orientation:
             for rotation in iterate_cube_rotations():
                 yield from orientation_changes(rotation, lambda x: x.rotate_clockwise())
 
-    def turns_to_origin(self) -> Iterable[Side]:
-        """This method generates unoptimized rotations. For example, it will
-           yield three turns on the right side except one on the left. It is
-           done so for simpler implementation of action rotation.
-        """
+    def _all_turns(self) -> Iterable[Tuple[Side, "Orientation"]]:
+        yield Side.TOP, self.to_right
+        yield Side.BOTTOM, self.to_left
+        yield Side.RIGHT, self.to_bottom
+        yield Side.LEFT, self.to_top
+
+    @pipe(_normalize_turns)
+    def turns_to(self, other: "Orientation") -> Iterable[Side]:
         orientation = self
-        if orientation.front == Side.TOP:
-            while orientation.top != Side.BACK:
-                yield Side.FRONT
-                orientation = orientation.rotate_counterclockwise()
-            yield Side.RIGHT
-        elif orientation.front == Side.BOTTOM:
-            while orientation.top != Side.FRONT:
-                yield Side.FRONT
-                orientation = orientation.rotate_counterclockwise()
-            for _ in range(3):
-                yield Side.RIGHT
-        else:
-            while orientation.top != Side.TOP:
-                yield Side.FRONT
-                orientation = orientation.rotate_counterclockwise()
-            while orientation.front != Side.FRONT:
-                yield Side.TOP
-                orientation = orientation.to_right
+
+        if orientation.front != other.front:
+            for new_side, new_orientation in orientation._all_turns():
+                if new_orientation.front == other.front:
+                    yield new_side
+                    orientation = new_orientation
+                    break
+            else:
+                if orientation.to_bottom.front == other.front:
+                    yield Side.RIGHT
+                    yield Side.RIGHT
+                    orientation = orientation.to_top.to_top
+                else:
+                    yield Side.TOP
+                    yield Side.TOP
+                    orientation = orientation.to_right.to_right
+
+        while orientation.top != other.top:
+            yield Side.FRONT
+            orientation = orientation.rotate_counterclockwise()
+        assert orientation == other

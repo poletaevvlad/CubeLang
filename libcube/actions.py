@@ -1,17 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import Union, List, Iterable, TypeVar, Tuple
-from itertools import groupby
 import enum
+from abc import ABC, abstractmethod
+from typing import Union, List, Iterable, TypeVar
 
 from .cube import Cube
-from .orientation import Orientation, Side
-
+from .orientation import Orientation, Side, count_occurrences
 
 T = TypeVar("T")
-
-
-def count_occurrences(seq: Iterable[T]) -> Iterable[Tuple[T, int]]:
-    return ((val, sum(1 for _ in group)) for val, group in groupby(seq))
 
 
 class Action(ABC):
@@ -125,6 +119,6 @@ class Turn(Action):
 
     def from_orientation(self, orientation: Orientation) -> "Turn":
         result: Turn = self
-        for turn in orientation.turns_to_origin():
+        for turn in orientation.turns_to(Orientation()):
             result = result._transform(turn)
         return result

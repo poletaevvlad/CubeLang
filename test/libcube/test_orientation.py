@@ -1,5 +1,5 @@
 from typing import Tuple
-from libcube.orientation import Side, Orientation
+from libcube.orientation import Side, Orientation, _normalize_turns
 
 import pytest
 
@@ -130,14 +130,23 @@ def test_iterate_orientations(keeping, expected):
     assert {Orientation(a, b) for a, b in expected} == set(rotations)
 
 
-@pytest.mark.parametrize("front, top, steps", [
-    (Side.FRONT, Side.TOP, []),
-    (Side.FRONT, Side.BOTTOM, [F, F]),
-    (Side.RIGHT, Side.BACK, [F, T, T, T]),
-    (Side.TOP, Side.LEFT, [F, F, F, R]),
-    (Side.BOTTOM, Side.RIGHT, [F, R, R, R])
+@pytest.mark.parametrize("from_front, from_top, to_front, to_top, steps", [
+    (F, T, F, T, []),
+    (F, D, F, T, [F, F]),
+    (R, B, F, T, [R, F]),
+    (T, L, F, T, [T, T, T, F, F, F]),
+    (D, R, F, T, [T, T, T, F]),
+    (B, R, F, R, [T, T]),
+    (R, B, F, D, [R, F, F, F]),
+    (R, F, L, D, [T, T, F, F, F]),
 ])
-def test_turns_to_origin(front, top, steps):
-    orientation = Orientation(front, top)
-    actual = list(orientation.turns_to_origin())
+def test_turns_to_origin(from_front, from_top, to_front, to_top, steps):
+    orientation = Orientation(from_front, from_top)
+    actual = list(orientation.turns_to(Orientation(to_front, to_top)))
     assert actual == steps
+
+
+def test_normalize_turns():
+    stream = [R, R, R, R, L, L, T, D, D, D, L]
+    expected = [R, R, T, T, R, R, R]
+    assert expected == list(_normalize_turns(stream))
