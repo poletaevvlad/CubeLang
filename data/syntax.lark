@@ -2,6 +2,9 @@ WHITESPACE: /\s/
 %ignore WHITESPACE
 _NEWLINE: /(\n|\r|\r\n)+/
 
+COMMENT: /#.*/
+%ignore COMMENT
+
 INT_LITERAL.2: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
 IDENTIFIER: /(?!else)(?!return)[a-z_][a-z_\d]*/
