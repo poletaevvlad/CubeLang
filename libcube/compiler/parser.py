@@ -465,3 +465,8 @@ def handle_return_statement(tree: Tree, stack: Stack):
             return Expression(Void, ["return"])
         else:
             raise CompileTimeError(tree, "A value must be returned from this function")
+
+
+@parser.handler("noop_expression")
+def handle_noop_expression(_tree: Tree, _stack: Stack):
+    return Expression(Void, "pass")

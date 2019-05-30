@@ -7,7 +7,7 @@ COMMENT: /#.*/
 
 INT_LITERAL.2: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
-IDENTIFIER: /(?!else)(?!return)[a-z_][a-z_\d]*/
+IDENTIFIER: /(?!noop)(?!else)(?!return)[a-z_][a-z_\d]*/
 PATTERN: /([-WYORGBa-z]+\/)+[-WYORGBa-z]+/
 
 _elif_clause: "else-if" expression "then" clause
@@ -73,5 +73,5 @@ cube_instruction: cube_action+
 
 ?statement: var_decl | expression | var_assignment | while_expression
           | func_decl | return_statement | do_expression | repeat_expression
-          | for_expression | cube_instruction | orient_expression
+          | for_expression | cube_instruction | orient_expression | "noop" -> noop_expression
 clause: (statement _NEWLINE)* statement?

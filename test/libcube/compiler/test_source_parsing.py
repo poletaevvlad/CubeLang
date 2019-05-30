@@ -727,3 +727,10 @@ class TestUnaryOperations:
         stack.add_global("a", Bool)
         with pytest.raises(ValueTypeError):
             expression = parser.handle(tree, stack)
+
+
+def test_noop():
+    tree = tr("noop_expression")
+    expression = parser.handle(tree, Stack())
+    assert expression.type == Void
+    assert expression.expression == ["pass"]

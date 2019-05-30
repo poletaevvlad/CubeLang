@@ -11,13 +11,16 @@ class ExecutionContext:
         self.globals: Dict[str, Any] = globals
 
     def compile(self, program: Iterator[Expression]):
+        source = self.compile_source(program)
+        self.source = compile(source, "<string>", "exec")
+
+    def compile_source(self, program: Iterator[Expression]) -> str:
         stream = CodeStream()
         variables = VariablesPool()
 
         for expression in program:
             expression.generate(variables, stream)
-
-        self.source = compile(stream.get_contents(), "<string>", "exec")
+        return stream.get_contents()
 
     def execute(self):
         if self.source is None:
