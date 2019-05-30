@@ -32,6 +32,8 @@ class Pattern:
             elif (cell in known and known[cell] != color) or (cell in result and result[cell] != color):
                 return None
             elif cell not in known:
+                if color in known.values() or (color in result.values() and result.get(cell, None) != color):
+                    return None
                 result[cell] = color
 
         return result

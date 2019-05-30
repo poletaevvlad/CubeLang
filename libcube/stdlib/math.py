@@ -1,5 +1,5 @@
 from . import stdlib
-from ..compiler.types import Real, Integer, List, Set
+from ..compiler.types import Real, Integer, List, Set, Bool
 import math
 
 
@@ -34,3 +34,5 @@ def sign(x: float) -> int:
         return -1
     else:
         return 0
+
+stdlib.add_function("not", lambda x: not x, [Bool], Bool)

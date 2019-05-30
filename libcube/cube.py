@@ -119,7 +119,7 @@ class Cube(Generic[T]):
             return j, self.shape[2] - 1, i
         raise ValueError("Unknown value for `side` argument")
 
-    def orient(self, orientation: Orientation, keep: Optional[Side] = None,
+    def orient(self, orientation: Orientation, keeping: Optional[Side] = None,
                front: Optional[Pattern] = None, top: Optional[Pattern] = None,
                left: Optional[Pattern] = None, right: Optional[Pattern] = None,
                back: Optional[Pattern] = None, bottom: Optional[Pattern] = None) -> Optional[Orientation]:
@@ -144,7 +144,7 @@ class Cube(Generic[T]):
             yield match(bottom, new_front.to_bottom, values)
             yield match(back, new_front.to_left.to_left, values)
 
-        for possible_front in orientation.iterate_rotations(keep):
+        for possible_front in orientation.iterate_rotations(keeping):
             if all(perform_matching(possible_front)):
                 return possible_front
         else:

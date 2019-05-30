@@ -73,3 +73,23 @@ def test_pattern_match_wrong_found():
         ["g1", None, None]
     ])
     assert pattern.match(side, dict()) is None
+
+
+def test_pattern_multiple_fount():
+    side = MockCubeSide(COLORS)
+    pattern = Pattern([
+        [None, None, None],
+        ["g1", "g2", None],
+        [None, None, None]
+    ])
+    assert pattern.match(side, dict()) is None
+
+
+def test_pattern_multiple():
+    side = MockCubeSide(COLORS)
+    pattern = Pattern([
+        [None, None, None],
+        ["g1", "g2", None],
+        [None, None, None]
+    ])
+    assert pattern.match(side, {"g1": Color.WHITE}) is None

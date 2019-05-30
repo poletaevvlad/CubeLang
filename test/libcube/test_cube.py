@@ -283,7 +283,7 @@ def test_orient_keep():
     for action in parse_actions("RUR'U'"):
         action.perform(cube, Orientation())
 
-    match = cube.orient(Orientation(), keep=Side.LEFT,
+    match = cube.orient(Orientation(), keeping=Side.LEFT,
                         bottom=Pattern([[Color.WHITE, None, None], [None, None, None], [None, None, None]]))
     assert Orientation(Side.FRONT, Side.TOP) == match
 
