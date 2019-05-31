@@ -1,9 +1,12 @@
+from typing import Optional
+
 import pytest
 from itertools import zip_longest
 
 from libcube.orientation import Side
-from libcube.actions import Rotate, Turn
+from libcube.actions import Rotate, Turn, TurningType
 from libcube.postprocessing import optimizer_postprocessor
+from libcube.parser import parse_actions
 
 
 @pytest.mark.parametrize("side1, double1, side2, double2, res, res_double", [
@@ -33,8 +36,47 @@ def test_rotations(side1, double1, side2, double2, res, res_double):
 
 @pytest.mark.parametrize("a1, a2", [
     (Rotate(Side.LEFT, True), Rotate(Side.TOP, False)),
-    (Rotate(Side.LEFT, True), Turn(Side.TOP, 1))
+    (Rotate(Side.LEFT, True), Turn(Side.TOP, 1)),
+    (Turn(TurningType.HORIZONTAL, [1], 1), Turn(TurningType.VERTICAL, [1], 1)),
+    (Turn(TurningType.HORIZONTAL, [1], 1), Turn(TurningType.HORIZONTAL, [2], 1))
 ])
 def test_rotations_do_nothing(a1, a2):
     for x, y in zip_longest(list(optimizer_postprocessor([a1, a2])), [a1, a2]):
         assert repr(x) == repr(y)
+
+
+@pytest.mark.parametrize("type, amount1, amount2, exp_amount", [
+    (TurningType.HORIZONTAL, 1, 1, 2),
+    (TurningType.VERTICAL,   1, 2, 3),
+    (TurningType.SLICE,      1, 3, None),
+    (TurningType.HORIZONTAL, 2, 1, 3),
+    (TurningType.VERTICAL,   2, 2, None),
+    (TurningType.SLICE,      2, 3, 1),
+    (TurningType.HORIZONTAL, 3, 1, None),
+    (TurningType.VERTICAL,   3, 2, 1),
+    (TurningType.SLICE,      3, 3, 2),
+])
+def test_turning(type: TurningType, amount1: int, amount2: int, exp_amount: Optional[int]):
+    a1 = Turn(type, [1], amount1)
+    a2 = Turn(type, [1], amount2)
+    actual = list(optimizer_postprocessor([a1, a2]))
+    if exp_amount is None:
+        assert len(actual) == 0
+    else:
+        assert len(actual) == 1
+        actual = actual[0]
+        assert isinstance(actual, Turn)
+        assert actual.type == type
+        assert actual.turns == exp_amount
+        assert actual.sides == [1]
+
+
+@pytest.mark.parametrize("actions, expected", [
+    ("FRUU'R'F'", ""),
+    ("FLRUU'R'F'", "FLF'"),
+    ("XYY'ZZ'R", "XR")
+])
+def test_multiple(actions, expected):
+    a = optimizer_postprocessor(parse_actions(actions))
+    b = parse_actions(expected)
+    assert all(repr(x) == repr(y) for x, y in zip_longest(a, b))

@@ -29,7 +29,14 @@ def optimizer_postprocessor(actions: Iterable[Action]) -> Iterable[Action]:
                 else:
                     stack.append(Rotate(on_top.axis_side, turns == 2))
         elif isinstance(action, Turn):
-            stack.append(action)
+            on_top: Turn = on_top
+            if on_top.type != action.type or on_top.sides != action.sides:
+                stack.append(action)
+                continue
+            stack.pop()
+            turns = (action.turns + on_top.turns) % 4
+            if turns != 0:
+                stack.append(Turn(action.type, action.sides, turns))
         else:
             stack.append(action)
 
