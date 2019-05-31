@@ -2,11 +2,11 @@ from libcube.actions import Action
 from libcube.cube import Cube
 from libcube.orientation import Orientation, Side, Color
 from libcube.cli.cube_builder import apply_side, CubeBuilder
-from click import BadOptionUsage
 from pytest import raises
 from unittest import mock
 import pytest
 import string
+import argparse
 from typing import List
 
 
@@ -17,23 +17,23 @@ class TestApplySide:
         cube = Cube((2, 2, 2))
         colors = [[Color.WHITE, Color.RED], [Color.ORANGE, Color.GREEN]]
 
-        apply_side(cube, self.orientation, colors, "test")
+        apply_side(cube, self.orientation, colors)
         actual_colors = [[cube.get_side(self.orientation).colors[i, j] for j in [0, 1]] for i in [0, 1]]
         assert colors == actual_colors
 
     def test_wrong_columns(self):
         cube = Cube((2, 2, 2))
         colors = [[Color.WHITE, Color.RED, Color.BLUE], [Color.ORANGE, Color.GREEN, Color.BLUE]]
-        with raises(BadOptionUsage) as e:
-            apply_side(cube, self.orientation, colors, "test")
-        assert str(e.value) == """Invalid value for "--test": Incorrect number of columns"""
+        with raises(argparse.ArgumentTypeError) as e:
+            apply_side(cube, self.orientation, colors)
+        assert str(e.value) == "Incorrect number of columns"
 
     def test_wrong_lines(self):
         cube = Cube((2, 2, 2))
         colors = [[Color.WHITE, Color.RED]]
-        with raises(BadOptionUsage) as e:
-            apply_side(cube, self.orientation, colors, "test")
-        assert str(e.value) == """Invalid value for "--test": Incorrect number of lines"""
+        with raises(argparse.ArgumentTypeError) as e:
+            apply_side(cube, self.orientation, colors)
+        assert str(e.value) == "Incorrect number of lines"
 
 
 class MockAction (Action):
@@ -55,19 +55,18 @@ class TestBuilder:
         assert orientation.front == Side.FRONT
 
     @mock.patch("libcube.cli.cube_builder.apply_side")
-    @pytest.mark.parametrize("side, exp_orientation, exp_field", [
-        (Side.FRONT, Orientation(Side.FRONT, Side.TOP), 'front'),
-        (Side.LEFT, Orientation(Side.LEFT, Side.TOP), 'left'),
-        (Side.RIGHT, Orientation(Side.RIGHT, Side.TOP), 'right'),
-        (Side.BACK, Orientation(Side.BACK, Side.TOP), 'back'),
-        (Side.TOP, Orientation(Side.TOP, Side.BACK), 'top'),
-        (Side.BOTTOM, Orientation(Side.BOTTOM, Side.FRONT), 'bottom'),
+    @pytest.mark.parametrize("side, exp_orientation", [
+        (Side.FRONT, Orientation(Side.FRONT, Side.TOP)),
+        (Side.LEFT, Orientation(Side.LEFT, Side.TOP)),
+        (Side.RIGHT, Orientation(Side.RIGHT, Side.TOP)),
+        (Side.BACK, Orientation(Side.BACK, Side.TOP)),
+        (Side.TOP, Orientation(Side.TOP, Side.BACK)),
+        (Side.BOTTOM, Orientation(Side.BOTTOM, Side.FRONT))
     ])
-    def test_side(self, apply_side_fn, side, exp_orientation, exp_field):
+    def test_side(self, apply_side_fn, side, exp_orientation):
         builder = CubeBuilder((2, 2, 2))
         builder.side(side, [])
-        apply_side_fn.assert_called_once_with(builder.cube, exp_orientation, [],
-                                              exp_field)
+        apply_side_fn.assert_called_once_with(builder.cube, exp_orientation, [])
 
     def test_scramble(self):
         result = []

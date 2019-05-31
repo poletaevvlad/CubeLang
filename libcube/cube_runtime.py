@@ -3,7 +3,7 @@ from .orientation import Orientation, Side, Color
 from .stdlib import Library
 from .compiler import types
 from .actions import Turn, Action, Rotate
-from typing import Callable
+from typing import Callable, Optional
 from .pattern import Pattern
 
 
@@ -19,9 +19,10 @@ class CubeRuntime:
         "white": Color.WHITE, "yellow": Color.YELLOW, "orange": Color.ORANGE
     }
 
-    def __init__(self, cube: Cube, callback: Callable[[Action], None]):
+    def __init__(self, cube: Cube, callback: Callable[[Action], None],
+                 orientation: Optional[Orientation] = None):
         self.cube = cube
-        self.orientation = Orientation()
+        self.orientation = Orientation() if orientation is None else orientation
         self.callback = callback
 
         self.functions = Library()

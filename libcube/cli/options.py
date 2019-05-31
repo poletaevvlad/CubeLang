@@ -4,7 +4,7 @@ from ..actions import Action
 from ..parser import ParsingError, parse_actions
 from ..orientation import Color
 
-import click
+import argparse
 
 
 def truncate_string_around(value: str, column: int, left_offset: int = 20, right_offset: int = 20,
@@ -28,37 +28,43 @@ def _get_syntax_error_message(message: str, text: str, position: int):
     return "".join([message, "\n", " " * 7, value, "\n", " " * (7 + column), "^"])
 
 
-class CubeFormulaParamType(click.ParamType):
-    name = "formula"
+def dimension_type(value: str):
+    try:
+        num = int(value)
+        if num < 2:
+            raise argparse.ArgumentTypeError(f"Cube's dimension must be greater or equal two")
+        return num
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"`{value}` is not an integer")
 
-    def convert(self, value: str, param: str, ctx: click.Context) -> List[Action]:
-        try:
-            return list(parse_actions(value))
-        except ParsingError as e:
-            self.fail(_get_syntax_error_message(str(e), value, e.column), param, ctx)
+
+def formula_type(value: str) -> List[Action]:
+    try:
+        return list(parse_actions(value))
+    except ParsingError as e:
+        raise argparse.ArgumentTypeError(_get_syntax_error_message(str(e), value, e.column))
 
 
-class SideConfigurationType(click.ParamType):
-    name = "side"
+SYMBOLS = {"R": Color.RED, "G": Color.GREEN, "B": Color.BLUE,
+           "W": Color.WHITE, "Y": Color.YELLOW, "O": Color.ORANGE}
 
-    SYMBOLS = {"R": Color.RED, "G": Color.GREEN, "B": Color.BLUE,
-               "W": Color.WHITE, "Y": Color.YELLOW, "O": Color.ORANGE}
 
-    def convert(self, value: str, param: str, ctx: click.Context) -> List[List[Color]]:
-        result: List[List[Color]] = []
-        lines = value.upper().split("/")
-        position = 0
-        for line in lines:
-            result_line: List[Color] = []
-            if len(line) != len(lines[0]):
-                self.fail("Inconsistent line length", param, ctx)
-            for symbol in line:
-                if symbol not in SideConfigurationType.SYMBOLS:
-                    msg = _get_syntax_error_message(f"Unknown color: `{symbol}`", value, position)
-                    self.fail(msg, param, ctx)
-                else:
-                    result_line.append(SideConfigurationType.SYMBOLS[symbol])
-                position += 1
-            result.append(result_line)
+def side_colors_type(value: str):
+
+    result: List[List[Color]] = []
+    lines = value.upper().split("/")
+    position = 0
+    for line in lines:
+        result_line: List[Color] = []
+        if len(line) != len(lines[0]):
+            raise argparse.ArgumentTypeError("Inconsistent line length")
+        for symbol in line:
+            if symbol not in SYMBOLS:
+                msg = _get_syntax_error_message(f"Unknown color: `{symbol}`", value, position)
+                raise argparse.ArgumentTypeError(msg)
+            else:
+                result_line.append(SYMBOLS[symbol])
             position += 1
-        return result
+        result.append(result_line)
+        position += 1
+    return result

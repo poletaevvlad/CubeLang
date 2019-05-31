@@ -1,24 +1,24 @@
-from click import secho
+from termcolor import colored
 from typing import IO, Iterable, Tuple, Optional, List
 import textwrap
 from ..compiler.types import Function, Void, Type
 
 
 class ErrorsOutput:
-    def __init__(self, stream: IO):
+    def __init__(self, stream: IO, use_color: bool = False):
         self.stream = stream
         self.max_width = 80
-        self.use_color = True
+        self.use_color = use_color
         self.line_number_margin = 2
         self.text_indent = 4
 
     def _echo(self, text: str, color: str = None, nl: bool = False) -> None:
         if self.use_color and color is not None:
-            secho(text, self.stream, nl, fg=color)
+            self.stream.write(colored(text, color))
         else:
             self.stream.write(text)
-            if nl:
-                self.stream.write("\n")
+        if nl:
+            self.stream.write("\n")
 
     def _write_lines(self, line_num: str, text: str) -> \
             Iterable[Tuple[int, int]]:
@@ -42,7 +42,7 @@ class ErrorsOutput:
             error_start = max(first, start_col) - first
             error_end = min(last, end_col + 1) - first
             self._echo(" " * (error_start + self.line_number_margin + len(line_num)))
-            self._echo("^" * (error_end - error_start), "bright_red", nl=True)
+            self._echo("^" * (error_end - error_start), "red", nl=True)
 
     def _write_lines_all(self, line_num: str, text: str) -> None:
         for _, _ in self._write_lines(line_num, text):
