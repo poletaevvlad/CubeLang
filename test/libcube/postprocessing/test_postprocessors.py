@@ -17,8 +17,11 @@ class TestChaining:
         chain(p1, p2, p3)
 
         assert p1.callback == p2.process
+        assert p1.done_callback == p2.done
         assert p2.callback == p3.process
+        assert p2.done_callback == p3.done
         assert p3.callback is None
+        assert p3.done_callback is None
 
     def test_function(self):
         p1 = MockPostprocessor()
@@ -26,6 +29,7 @@ class TestChaining:
         chain(p1, mock)
 
         assert p1.callback == mock
+        assert p1.done_callback is None
 
     def test_function_not_last(self):
         p1 = MockPostprocessor()
@@ -38,3 +42,4 @@ class TestChaining:
         p1 = MockPostprocessor()
         chain(p1)
         assert p1.callback is None
+        assert p1.done_callback is None

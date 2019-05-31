@@ -48,3 +48,4 @@ class OptimizingPostprocessor(PostprocessorBase[Action, Action]):
     def done(self):
         for item in self.stack:
             self._return(item)
+        super(OptimizingPostprocessor, self).done()

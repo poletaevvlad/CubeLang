@@ -8,13 +8,15 @@ TOut = TypeVar("TOut")
 class PostprocessorBase(ABC, Generic[TIn, TOut]):
     def __init__(self):
         self.callback: Optional[Callable[[TOut], None]] = None
+        self.done_callback: Optional[Callable[[], None]] = None
 
     @abstractmethod
     def process(self, value: TIn):
         pass
 
     def done(self):
-        pass
+        if self.done_callback is not None:
+            self.done_callback()
 
     def _return(self, value: TOut):
         if self.callback is not None:
@@ -27,6 +29,7 @@ def chain(*stages: Union[PostprocessorBase, Callable[[Any], None]]):
     for i in range(1, len(stages)):
         if isinstance(stages[i], PostprocessorBase):
             stages[i - 1].callback = stages[i].process
+            stages[i - 1].done_callback = stages[i].done
         else:
             stages[i - 1].callback = stages[i]
             if i != len(stages) - 1:
