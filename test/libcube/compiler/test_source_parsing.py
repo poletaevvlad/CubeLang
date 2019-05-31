@@ -46,29 +46,52 @@ def test_literal(name: str, value: str, exp_type: Type, exp_value: str):
     assert expr.intermediates == []
 
 
-@pytest.mark.parametrize("op1_type, op2_type, op_name, res_type, res_expr", [
-    ("int_literal", "int_literal", "op_5_0", Integer, "(1) + (2)"),
-    ("float_literal", "int_literal", "op_5_0", Real, "(1.0) + (2)"),
-    ("int_literal", "float_literal", "op_5_0", Real, "(1) + (2.0)"),
-    ("int_literal", "int_literal", "op_6_1", Real, "(1) / (2)")
-])
-def test_operators(op1_type: str, op2_type: str, op_name: str, res_type: Type, res_expr: str):
-    tree = tr(op_name, tr(op1_type, "1"), tr(op2_type, "2"))
+class TestOperators:
+    @pytest.mark.parametrize("op1_type, op2_type, op_name, res_type, res_expr", [
+        ("int_literal", "int_literal", "op_5_0", Integer, "(1) + (2)"),
+        ("float_literal", "int_literal", "op_5_0", Real, "(1.0) + (2)"),
+        ("int_literal", "float_literal", "op_5_0", Real, "(1) + (2.0)"),
+        ("int_literal", "int_literal", "op_6_1", Real, "(1) / (2)")
+    ])
+    def test_operators(self, op1_type: str, op2_type: str, op_name: str, res_type: Type, res_expr: str):
+        tree = tr(op_name, tr(op1_type, "1"), tr(op2_type, "2"))
 
-    expr: Expression = parser.handle(tree, Stack())
-    assert expr.type == res_type
-    assert expr.intermediates == []
-    assert "".join(expr.expression) == res_expr
+        expr: Expression = parser.handle(tree, Stack())
+        assert expr.type == res_type
+        assert expr.intermediates == []
+        assert "".join(expr.expression) == res_expr
 
+    @pytest.mark.parametrize("operator, arg1, arg2", [
+        ("op_5_0", tr("float_literal", "1"), tr("bool_literal_true")),
+        ("op_5_0", tr("bool_literal_true"), tr("float_literal", "2"))
+    ])
+    def test_wrong_operand(self, operator, arg1, arg2):
+        tree = tr(operator, arg1, arg2)
+        with pytest.raises(CompileTimeError):
+            parser.handle(tree, Stack())
 
-@pytest.mark.parametrize("operator, arg1, arg2", [
-    ("op_5_0", tr("float_literal", "1"), tr("bool_literal_true")),
-    ("op_5_0", tr("bool_literal_true"), tr("float_literal", "2"))
-])
-def test_wrong_operand(operator, arg1, arg2):
-    tree = tr(operator, arg1, arg2)
-    with pytest.raises(CompileTimeError):
-        parser.handle(tree, Stack())
+    @pytest.mark.parametrize("arg1, arg2", [
+        (Bool, Bool), (Integer, Integer), (List(Integer), List(Integer))
+    ])
+    def test_comparision_correct(self, arg1, arg2):
+        tree = tr("op_3_0", tr("variable", "a"), tr("variable", "b"))
+        stack = Stack()
+        stack.add_global("a", arg1)
+        stack.add_global("b", arg2)
+        expr: Expression = parser.handle(tree, stack)
+        assert expr.type == Bool
+
+    @pytest.mark.parametrize("arg1, arg2", [
+        (Bool, Void), (Void, Integer), (Void, Void), (Integer, Real),
+        (Real, Integer), (List(Bool), Set(Bool)), (List(Integer), Set(Integer))
+    ])
+    def test_comparision_incorrect(self, arg1, arg2):
+        tree = tr("op_3_0", tr("variable", "a"), tr("variable", "b"))
+        stack = Stack()
+        stack.add_global("a", arg1)
+        stack.add_global("b", arg2)
+        with pytest.raises(CompileTimeError):
+            parser.handle(tree, stack)
 
 
 def test_variable_exist():

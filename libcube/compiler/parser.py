@@ -7,7 +7,7 @@ from lark import Tree, Lark, Token
 from .expression import Expression, ConditionExpression, WhileLoopExpression, \
     DoWhileLoopExpression, RepeatLoopExpression, ForLoopExpression, \
     CubeTurningExpression, CubeRotationExpression, FunctionDeclarationExpression
-from .operators import BINARY_OPERATORS, BinaryOperator
+from .operators import BINARY_OPERATORS, BinaryOperator, operator_applicable
 from .stack import Stack
 from .types import Integer, Real, Type, Bool, Set, List as ListType, Void, \
     CollectionType, Function, Color, Side, Pattern
@@ -73,13 +73,12 @@ for precedence, operators in enumerate(BINARY_OPERATORS):
             assert len(tree.children) == 2
             expr1: Expression = parser.handle(tree.children[0], stack)
             expr2: Expression = parser.handle(tree.children[1], stack)
-            arg_types = [expr1.type, expr2.type]
-            for operand_types, result_type in op.arguments:
-                if all(ar1.is_assignable(ar2) for ar1, ar2 in zip(operand_types, arg_types)):
-                    return Expression.merge(result_type, op.expression, expr1, expr2)
+            result_type = operator_applicable([expr1.type, expr2.type], op.arguments)
+            if result_type is not None:
+                return Expression.merge(result_type, op.expression, expr1, expr2)
             else:
                 message = f"Operator '{op.symbol}' is not applicable to values"\
-                          f" of type {arg_types[0]} and {arg_types[1]}"
+                          f" of type {expr1.type} and {expr2.type}"
                 raise CompileTimeError(tree, message)
 
 
