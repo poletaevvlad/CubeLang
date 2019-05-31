@@ -1,0 +1,234 @@
+#
+#  Top cross
+#
+
+func handle_front_bottom(): boolean
+    let moving: color = front[2, 1]
+    if moving == left[1, 1] then
+        D'L2
+    else-if moving == right[1, 1] then
+        D R2
+    else-if moving == back[1, 1] then
+        D2 B2
+    else
+        F2
+        return false
+    end
+    return true
+end
+
+
+let over: boolean = false
+while not(over) do
+    orient top: ---/-x-/---, right: ---/x--/---, keeping: top then
+        F
+        if handle_front_bottom() then F' end
+    else-orient top: ---/-x-/---, left: ---/--x/---, keeping: top then
+        F'
+        if handle_front_bottom() then F end
+    else-orient top: ---/-x-/---, bottom: -x-/---/---, keeping: top then
+        handle_front_bottom()
+    else-orient top: ---/-x-/---, front: ---/---/-x-, keeping: top then
+        if bottom[0, 1] == right[1, 1] then
+            F'RF
+        else-if bottom[0, 1] == left[1, 1] then
+            FL'F'
+        else-if bottom[0, 1] == back[1, 1] then
+            DR'BR
+        else
+            DRF'R'
+        end
+    else-orient top: ---/-x-/-y-, keeping: top then
+        FF
+    else-orient front: -x-/-y-/---, keeping: top then
+        FF
+    else
+        over = true
+    end
+end
+
+
+#
+#  Top layer
+#
+
+over = false
+while not(over) do
+    orient top: ---/-x-/---, right: ---/---/x--, keeping: top then
+        while front[1, 1] != front[2, 2] do
+            DY
+        end
+        DFD'F'
+    else-orient top: ---/-x-/---, left: ---/---/--x, keeping: top then
+        while front[1, 1] != front[2, 0] do
+            D'Y'
+        end
+        D'F'DF
+    else-orient top: ---/-x-/---, bottom: --x/---/---, keeping: top then
+        while top[2, 2] != top[1, 1] do
+            DY
+        end
+        R'DR
+    else-orient top: ---/-x-/---, front: --x/---/---, keeping: top then
+        FDF'
+    else-orient top: ---/-x-/---, right: x--/---/---, keeping: top then
+        R'D'R
+    else-orient top: ---/-x-/--x, front: --y/-z-/---, keeping: top then
+        R'D'R
+    else
+        over = true
+    end
+end
+
+
+#
+# Middle section
+#
+
+func push_to_right() D'R'DRDFD'F' end
+
+func push_to_left() DLD'L'D'F'DF end
+
+over = false
+while not(over) do
+    orient bottom: -x-/-y-/---, front: ---/---/-z-, keeping: top then
+        while front[2, 1] != front[1, 1] do
+            DY
+        end
+        if bottom[0, 1] == right[1, 1] then
+            push_to_right()
+        else
+            push_to_left()
+        end
+    else
+        let found_side: boolean = false
+        let turns: int = 0
+        while turns < 4 and not(found_side) do
+            if ((front[1, 2] != front[1, 1] or right[1, 0] != right[1, 1])
+                and front[1, 2] != bottom[1, 1] and left[1, 0] != bottom[1, 1]) then
+                found_side = true
+                push_to_right()
+            else
+                Y
+                turns = turns + 1
+            end
+        end
+        over = not(found_side)
+    end
+end
+
+X2
+
+
+#
+# Bottom cross
+#
+
+func run_bottom_cross() FRUR'U'F' end
+
+orient top: ---/xx-/---, keeping: top then noop else
+    run_bottom_cross()
+    orient top: ---/xx-/---, keeping: top then noop end
+end
+
+if top[1, 0] != top[1, 2] then
+    orient top: -x-/xx-/---, keeping: top then noop end
+    run_bottom_cross()
+end
+
+if top[0, 1] != top[1, 1] then
+    run_bottom_cross()
+end
+
+
+#
+# Correct bottom cross
+#
+
+func fix_bottom_cross()
+    RUR'URUUR'
+    if front[0, 1] != front[1, 1] then
+        U
+    end
+end
+
+over = false
+while not(over) do
+    orient left: -a-/-a-/---, right: -b-/-b-/---, front: -c-/-c-/---, back: -d-/-d-/---, keeping: top then
+        over = true
+    else-orient front: -a-/-a-/---, back: -b-/-b-/---, keeping: top then
+        fix_bottom_cross()
+    else-orient right: -b-/-b-/---, back: -d-/-d-/---, keeping: top then
+        fix_bottom_cross()
+    else
+        if right[0, 1] != right[1, 1] and left[0, 1] != left[1, 1] and front[0, 1] != front[1, 1] then
+            fix_bottom_cross()
+        else
+            U
+        end
+    end
+end
+
+
+#
+# Correct positions on top side
+#
+
+func set_of(a: color, b: color, c: color): set of color
+    let result: set of color
+    add(result, a)
+    add(result, b)
+    add(result, c)
+    return result
+end
+
+over = false
+while not(over) do
+    let i: int = 0
+    let corner_found: boolean = false
+    while not(corner_found) and i < 4 do
+        let corner_expected: set of color = set_of(left[1, 1], top[1, 1], front[1, 1])
+        let corner_actual: set of color = set_of(front[0, 0], top[2, 0], left[0, 2])
+        corner_found = corner_expected == corner_actual
+        if not (corner_found) then
+            Y
+        end
+        i = i + 1
+    end
+    if not(corner_found) then
+        URU'L'UR'U'L
+    else
+        let right_corner: set of color = set_of(right[0, 0], front[0, 2], top[2, 2])
+        if right_corner == set_of(right[1, 1], front[1, 1], top[1, 1]) then
+            over = true
+        else-if right_corner == set_of(left[1, 1], back[1, 1], top[1, 1]) then
+            U'L'URU'LUR'
+        else
+            Y'
+            URU'L'UR'U'L
+        end
+    end
+end
+
+
+#
+# Correct orientation of the top side
+#
+
+orient top: ---/-x-/--y, keeping: top then
+    over = false
+    while not(over) do
+        while top[1, 1] != top[2, 2] do
+             R'D'RD
+        end
+        let turns: int = 0
+        while top[1, 1] == top[2, 2] and turns < 4 do
+            U
+            turns = turns + 1
+        end
+        over = turns == 4
+    end
+    while front[0, 1] != front[1, 1] do
+        U
+    end
+end
