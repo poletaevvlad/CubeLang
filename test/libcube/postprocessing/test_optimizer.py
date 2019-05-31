@@ -5,7 +5,7 @@ from itertools import zip_longest
 
 from libcube.orientation import Side
 from libcube.actions import Rotate, Turn, TurningType
-from libcube.postprocessing import OptimizingPreprocessor
+from libcube.postprocessing import OptimizingPostprocessor
 from libcube.parser import parse_actions
 
 
@@ -25,7 +25,7 @@ def test_rotations(side1, double1, side2, double2, res, res_double):
     a2 = Rotate(side2, double2)
     actual = []
 
-    pp = OptimizingPreprocessor()
+    pp = OptimizingPostprocessor()
     pp.callback = actual.append
     pp.process(a1)
     pp.process(a2)
@@ -49,7 +49,7 @@ def test_rotations(side1, double1, side2, double2, res, res_double):
 ])
 def test_rotations_do_nothing(a1, a2):
     actual = []
-    pp = OptimizingPreprocessor()
+    pp = OptimizingPostprocessor()
     pp.callback = actual.append
     pp.process(a1)
     pp.process(a2)
@@ -75,7 +75,7 @@ def test_turning(type: TurningType, amount1: int, amount2: int, exp_amount: Opti
     a2 = Turn(type, [1], amount2)
     actual = []
 
-    pp = OptimizingPreprocessor()
+    pp = OptimizingPostprocessor()
     pp.callback = actual.append
     pp.process(a1)
     pp.process(a2)
@@ -102,7 +102,7 @@ def test_multiple(actions, expected):
     b = parse_actions(expected)
     actual = []
 
-    pp = OptimizingPreprocessor()
+    pp = OptimizingPostprocessor()
     pp.callback = actual.append
     for x in a:
         pp.process(x)

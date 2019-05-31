@@ -2,10 +2,10 @@ from typing import Deque
 from collections import deque
 
 from ..actions import Action, Rotate, Turn
-from .preprocessor_base import PreprocessorBase
+from .base import PostprocessorBase
 
 
-class OptimizingPreprocessor(PreprocessorBase[Action, Action]):
+class OptimizingPostprocessor(PostprocessorBase[Action, Action]):
     def __init__(self):
         super().__init__()
         self.stack: Deque[Action] = deque()
