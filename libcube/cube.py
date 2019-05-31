@@ -61,7 +61,7 @@ class Cube(Generic[T]):
             right_face.rotate(turns)
 
     def turn_horizontal(self, orientation: Orientation, index: int, turns: int) -> None:
-        orientation = orientation.rotate_clockwise()
+        orientation = orientation.rotate_counterclockwise()
         self.turn_vertical(orientation, index, turns)
 
     def turn_slice(self, orientation: Orientation, index: int, turns: int) -> None:

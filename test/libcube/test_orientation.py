@@ -84,18 +84,18 @@ rotations = [
 
 
 @pytest.mark.parametrize("front, top, after_rotation", rotations)
-def test_rotation_clockwise(front, top, after_rotation):
+def test_rotation_counterclockwise(front, top, after_rotation):
     orientation = Orientation(front, top).rotate_clockwise()
-    for after_top in after_rotation:
+    for after_top in after_rotation[::-1]:
         assert orientation.top == after_top
         orientation = orientation.rotate_clockwise()
     assert orientation.top == top
 
 
 @pytest.mark.parametrize("front, top, after_rotation", rotations)
-def test_rotation_counter_clockwise(front, top, after_rotation):
+def test_rotation_clockwise(front, top, after_rotation):
     orientation = Orientation(front, top).rotate_counterclockwise()
-    for after_top in after_rotation[::-1]:
+    for after_top in after_rotation:
         assert orientation.top == after_top
         orientation = orientation.rotate_counterclockwise()
     assert orientation.top == top
@@ -133,9 +133,9 @@ def test_iterate_orientations(keeping, expected):
 @pytest.mark.parametrize("from_front, from_top, to_front, to_top, steps", [
     (F, T, F, T, []),
     (F, D, F, T, [F, F]),
-    (R, B, F, T, [R, F]),
+    (R, B, F, T, [R, F  ]),
     (T, L, F, T, [T, T, T, F, F, F]),
-    (D, R, F, T, [T, T, T, F]),
+    (D, R, F, T, [T, T,     T, F]),
     (B, R, F, R, [T, T]),
     (R, B, F, D, [R, F, F, F]),
     (R, F, L, D, [T, T, F, F, F]),

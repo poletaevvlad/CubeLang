@@ -1,6 +1,6 @@
 import enum
 from abc import ABC, abstractmethod
-from typing import Union, List, Iterable, TypeVar
+from typing import Union, List, Iterable, TypeVar, Optional
 
 from .cube import Cube
 from .orientation import Orientation, Side, count_occurrences
@@ -33,7 +33,7 @@ class Rotate(Action):
         else:
             return orientation.to_left
 
-    def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
+    def perform(self, cube: Optional[Cube], orientation: Orientation) -> Orientation:
         if self.twice:
             return self.perform_single(self.perform_single(orientation))
         else:
@@ -106,9 +106,9 @@ class Turn(Action):
                 return Turn(TurningType.SLICE, [-x for x in self.sides], self.turns)
         elif turn == Side.FRONT:
             if self.type == TurningType.VERTICAL:
-                return Turn(TurningType.HORIZONTAL, [-x for x in self.sides], 4 - self.turns)
+                return Turn(TurningType.HORIZONTAL, self.sides, 4 - self.turns)
             else:  # TurningType.HORIZONTAL
-                return Turn(TurningType.VERTICAL, self.sides, self.turns)
+                return Turn(TurningType.VERTICAL, [-x for x in self.sides], self.turns)
         elif turn == Side.RIGHT:
             if self.type == TurningType.SLICE:
                 return Turn(TurningType.HORIZONTAL, self.sides, 4 - self.turns)
@@ -117,8 +117,8 @@ class Turn(Action):
         else:
             raise ValueError("Unsupported turn")
 
-    def from_orientation(self, orientation: Orientation) -> "Turn":
+    def from_orientation(self, orientation: Orientation, origin=Orientation()) -> "Turn":
         result: Turn = self
-        for turn in orientation.turns_to(Orientation()):
+        for turn in orientation.turns_to(origin):
             result = result._transform(turn)
         return result

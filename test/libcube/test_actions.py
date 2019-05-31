@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 
 @pytest.mark.parametrize("around, front, top, twice", [
-    (Side.FRONT, Side.FRONT, Side.RIGHT, False),
-    (Side.BACK, Side.FRONT, Side.LEFT, False),
+    (Side.FRONT, Side.FRONT, Side.LEFT, False),
+    (Side.BACK, Side.FRONT, Side.RIGHT, False),
     (Side.RIGHT, Side.BOTTOM, Side.FRONT, False),
     (Side.LEFT, Side.TOP, Side.BACK, False),
     (Side.TOP, Side.RIGHT, Side.TOP, False),
@@ -87,8 +87,8 @@ def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amoun
 
 
 @pytest.mark.parametrize("side, turn, res_side, res_sides, res_turns", [
-    (Side.TOP,   Side.FRONT, TurningType.VERTICAL, 1, 3),
-    (Side.RIGHT, Side.FRONT, TurningType.HORIZONTAL, 1, 3),
+    (Side.TOP,   Side.FRONT, TurningType.VERTICAL, -1, 3),
+    (Side.RIGHT, Side.FRONT, TurningType.HORIZONTAL, -1, 3),
 
     (Side.RIGHT, Side.TOP, TurningType.SLICE, 1, 1),
     (Side.FRONT, Side.TOP, TurningType.VERTICAL, 1, 3),
@@ -106,7 +106,7 @@ def test_turning_transform(side: Side, turn: Side, res_side: TurningType,
 
 
 @pytest.mark.parametrize("orientation, action, type, indices", [
-    (Orientation(Side.BACK, Side.LEFT), Turn(Side.RIGHT, 1, 3), TurningType.HORIZONTAL, 1),
+    (Orientation(Side.BACK, Side.LEFT), Turn(Side.RIGHT, 1, 3), TurningType.HORIZONTAL, -1),
     (Orientation(Side.TOP, Side.BACK), Turn(Side.TOP, 1, 1), TurningType.SLICE, -1),
     (Orientation(Side.RIGHT, Side.BOTTOM), Turn(Side.FRONT, 1, 1), TurningType.VERTICAL, -1)
 ])
