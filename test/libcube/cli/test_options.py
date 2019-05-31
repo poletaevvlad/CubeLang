@@ -2,7 +2,7 @@ from string import ascii_lowercase
 import pytest
 import argparse
 from libcube.cli.options import truncate_string_around, dimension_type, \
-    side_colors_type, formula_type
+    side_colors_type, formula_type, file_contents_type
 from libcube.parser import ParsingError
 from unittest import mock
 
@@ -76,3 +76,18 @@ class TestSideConfiguration:
             side_colors_type("RRO/G/BBW")
 
         assert str(e.value) == "Inconsistent line length"
+
+
+class TestFileOpen:
+    def test_normal(self):
+        with mock.patch("libcube.cli.options.open", mock.mock_open(read_data="data")) as open_mock:
+            assert file_contents_type("/file") == "data"
+            open_mock.assert_called_once_with("/file")
+
+    @mock.patch("libcube.cli.options.open")
+    def test_io_error(self, open_mock):
+        open_mock.side_effect = IOError("~~error~~")
+        with pytest.raises(argparse.ArgumentTypeError) as e:
+            file_contents_type("/file")
+        assert str(e.value) == "Cannot open a file: ~~error~~"
+

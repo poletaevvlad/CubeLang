@@ -68,3 +68,11 @@ def side_colors_type(value: str):
         result.append(result_line)
         position += 1
     return result
+
+
+def file_contents_type(value: str):
+    try:
+        with open(value) as file:
+            return file.read()
+    except IOError as e:
+        raise argparse.ArgumentTypeError(f"Cannot open a file: {e}")
