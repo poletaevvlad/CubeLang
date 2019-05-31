@@ -1,41 +1,26 @@
 from typing import IO, Optional, List
 
 import click
-from click.exceptions import BadOptionUsage
 from lark.exceptions import LarkError, UnexpectedCharacters
 
-from ..compiler.codeio import CodeStream
-from ..compiler.expression import VariablesPool
+from .cube_builder import apply_side
 from .error_display import ErrorsOutput
 from .options import CubeFormulaParamType, SideConfigurationType
+from ..actions import Action
+from ..compiler.codeio import CodeStream
 from ..compiler.errors import CompileTimeError, FunctionArgumentsError
 from ..compiler.executor import ExecutionContext
+from ..compiler.expression import VariablesPool
 from ..compiler.parser import parser, Stack
-from ..cube_runtime import CubeRuntime
-from ..stdlib import stdlib
-from ..actions import Action
-from ..parser import get_action_representation
 from ..cube import Cube
+from ..cube_runtime import CubeRuntime
 from ..orientation import Orientation, Color
+from ..parser import get_action_representation
+from ..stdlib import stdlib
 
 
 def display_action(action: Action):
     print(get_action_representation(action), end="")
-
-
-def apply_side(cube: Cube, orientation: Orientation,
-               colors: Optional[List[List[Color]]], option_name: str):
-    if colors is None:
-        return
-    side = cube.get_side(orientation)
-    if side.rows != len(colors):
-        raise BadOptionUsage(option_name, "Incorrect number of lines")
-    elif side.columns != len(colors[0]):
-        raise BadOptionUsage(option_name, "Incorrect number of columns")
-
-    for i, line in enumerate(colors):
-        for j, color in enumerate(line):
-            side.colors[i, j] = color
 
 
 def init_cube(cube, shuffle, front, left, top, right, bottom, back):
