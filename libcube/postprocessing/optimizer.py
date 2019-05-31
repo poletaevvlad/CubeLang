@@ -1,15 +1,20 @@
-from typing import Iterable, Deque
+from typing import Deque
 from collections import deque
+
 from ..actions import Action, Rotate, Turn
+from .preprocessor_base import PreprocessorBase
 
 
-def optimizer_postprocessor(actions: Iterable[Action]) -> Iterable[Action]:
-    stack: Deque[Action] = deque()
-    for action in actions:
-        if len(stack) == 0 or type(stack[-1]) != type(action):
-            stack.append(action)
-            continue
-        on_top = stack[-1]
+class OptimizingPreprocessor(PreprocessorBase[Action, Action]):
+    def __init__(self):
+        super().__init__()
+        self.stack: Deque[Action] = deque()
+
+    def process(self, action: Action):
+        if len(self.stack) == 0 or type(self.stack[-1]) != type(action):
+            self.stack.append(action)
+            return
+        on_top = self.stack[-1]
         if isinstance(action, Rotate):
             on_top: Rotate = on_top
             turns = 2 if on_top.twice else 1
@@ -18,26 +23,28 @@ def optimizer_postprocessor(actions: Iterable[Action]) -> Iterable[Action]:
             elif on_top.axis_side == action.axis_side.opposite():
                 turns -= 2 if action.twice else 1
             else:
-                stack.append(action)
-                continue
+                self.stack.append(action)
+                return
 
-            stack.pop()
+            self.stack.pop()
             turns = (4 + turns) % 4
             if turns != 0:
                 if turns == 3:
-                    stack.append(Rotate(on_top.axis_side.opposite(), False))
+                    self.stack.append(Rotate(on_top.axis_side.opposite(), False))
                 else:
-                    stack.append(Rotate(on_top.axis_side, turns == 2))
+                    self.stack.append(Rotate(on_top.axis_side, turns == 2))
         elif isinstance(action, Turn):
             on_top: Turn = on_top
             if on_top.type != action.type or on_top.sides != action.sides:
-                stack.append(action)
-                continue
-            stack.pop()
+                self.stack.append(action)
+                return
+            self.stack.pop()
             turns = (action.turns + on_top.turns) % 4
             if turns != 0:
-                stack.append(Turn(action.type, action.sides, turns))
+                self.stack.append(Turn(action.type, action.sides, turns))
         else:
-            stack.append(action)
+            self.stack.append(action)
 
-    return stack
+    def done(self):
+        for item in self.stack:
+            self._return(item)

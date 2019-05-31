@@ -5,7 +5,7 @@ from itertools import zip_longest
 
 from libcube.orientation import Side
 from libcube.actions import Rotate, Turn, TurningType
-from libcube.postprocessing import optimizer_postprocessor
+from libcube.postprocessing import OptimizingPreprocessor
 from libcube.parser import parse_actions
 
 
@@ -23,7 +23,14 @@ from libcube.parser import parse_actions
 def test_rotations(side1, double1, side2, double2, res, res_double):
     a1 = Rotate(side1, double1)
     a2 = Rotate(side2, double2)
-    actual = list(optimizer_postprocessor([a1, a2]))
+    actual = []
+
+    pp = OptimizingPreprocessor()
+    pp.callback = actual.append
+    pp.process(a1)
+    pp.process(a2)
+    pp.done()
+
     if res is None:
         assert len(actual) == 0
     else:
@@ -41,7 +48,14 @@ def test_rotations(side1, double1, side2, double2, res, res_double):
     (Turn(TurningType.HORIZONTAL, [1], 1), Turn(TurningType.HORIZONTAL, [2], 1))
 ])
 def test_rotations_do_nothing(a1, a2):
-    for x, y in zip_longest(list(optimizer_postprocessor([a1, a2])), [a1, a2]):
+    actual = []
+    pp = OptimizingPreprocessor()
+    pp.callback = actual.append
+    pp.process(a1)
+    pp.process(a2)
+    pp.done()
+
+    for x, y in zip_longest(actual, [a1, a2]):
         assert repr(x) == repr(y)
 
 
@@ -59,7 +73,14 @@ def test_rotations_do_nothing(a1, a2):
 def test_turning(type: TurningType, amount1: int, amount2: int, exp_amount: Optional[int]):
     a1 = Turn(type, [1], amount1)
     a2 = Turn(type, [1], amount2)
-    actual = list(optimizer_postprocessor([a1, a2]))
+    actual = []
+
+    pp = OptimizingPreprocessor()
+    pp.callback = actual.append
+    pp.process(a1)
+    pp.process(a2)
+    pp.done()
+
     if exp_amount is None:
         assert len(actual) == 0
     else:
@@ -77,6 +98,14 @@ def test_turning(type: TurningType, amount1: int, amount2: int, exp_amount: Opti
     ("XYY'ZZ'R", "XR")
 ])
 def test_multiple(actions, expected):
-    a = optimizer_postprocessor(parse_actions(actions))
+    a = parse_actions(actions)
     b = parse_actions(expected)
-    assert all(repr(x) == repr(y) for x, y in zip_longest(a, b))
+    actual = []
+
+    pp = OptimizingPreprocessor()
+    pp.callback = actual.append
+    for x in a:
+        pp.process(x)
+    pp.done()
+
+    assert all(repr(x) == repr(y) for x, y in zip_longest(actual, b))
