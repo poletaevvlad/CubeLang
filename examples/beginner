@@ -155,27 +155,33 @@ end
 # Correct bottom cross
 #
 
-func fix_bottom_cross()
-    RUR'URUUR'
-    if front[0, 1] != front[1, 1] then
-        U
+func count_top_correct(): int
+    let count: int = 0
+    suspend_rotations()
+    repeat 4 times
+        if front[0, 1] == front[1, 1] then
+            count = count + 1
+        end
+        Y
     end
+    resume_rotations()
+    return count
 end
 
-over = false
-while not(over) do
-    orient left: -a-/-a-/---, right: -b-/-b-/---, front: -c-/-c-/---, back: -d-/-d-/---, keeping: top then
-        over = true
-    else-orient front: -a-/-a-/---, back: -b-/-b-/---, keeping: top then
-        fix_bottom_cross()
-    else-orient right: -b-/-b-/---, back: -d-/-d-/---, keeping: top then
-        fix_bottom_cross()
-    else
-        if right[0, 1] != right[1, 1] and left[0, 1] != left[1, 1] and front[0, 1] != front[1, 1] then
-            fix_bottom_cross()
-        else
-            U
-        end
+let correct_count: int
+do
+    correct_count = count_top_correct()
+    if correct_count < 2 then
+        U
+    end
+while correct_count < 2
+
+if correct_count != 4 then
+    orient left: -a-/-a-/---, right: -b-/-b-/---, keeping: top then
+        RUR'URU2R'
+    end
+    orient right: -a-/-a-/---, back: -b-/-b-/---, keeping: top then
+        RUR'URU2R'U
     end
 end
 
