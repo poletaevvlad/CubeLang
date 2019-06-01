@@ -129,7 +129,7 @@ class ErrorsOutput:
                 header.append(str(column + 1))
         header.append("]")
 
-        self._echo("".join(header), "bright_red", nl=True)
+        self._echo("".join(header), "red", nl=True)
 
         prefix = " " * self.text_indent
         for line in textwrap.wrap(message, self.max_width - self.text_indent):
