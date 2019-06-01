@@ -1,4 +1,5 @@
 from typing import Callable
+from collections import deque
 
 from .actions import Turn, Action, Rotate
 from .compiler import types
@@ -25,6 +26,7 @@ class CubeRuntime:
                  done_callback: Callable[[], None]):
         self.cube = cube
         self.orientation = orientation
+        self.orientations_stack = deque()
         self.callback = callback
         self.done_callback = done_callback
 
@@ -33,6 +35,8 @@ class CubeRuntime:
         self.functions.add_function("cube_get_color", self.get_color,
                                     [types.Color, types.Integer, types.Integer], types.Color)
         self.functions.add_function("cube_rotate", self.perform_rotate, [types.Side, types.Bool], types.Void)
+        self.functions.add_function("push_orientation", self.push_orientation, [], types.Void)
+        self.functions.add_function("pop_orientation", self.push_orientation, [], types.Void)
         self.functions.exec_globals["orient"] = self.perform_orient
         self.functions.exec_globals["Pattern"] = Pattern
 
@@ -51,6 +55,16 @@ class CubeRuntime:
             return True
         else:
             return False
+
+    def push_orientation(self):
+        self.orientations_stack.append(self.orientation)
+
+    def pop_orientation(self):
+        new_orientation = self.orientations_stack.pop()
+        turns = self.orientation.turns_to(new_orientation)
+        for action in Rotate.from_turn_steps(turns):
+            self.callback(action)
+        self.orientation = new_orientation
 
     def perform_turn(self, side: Side, amount: int):
         action = Turn(side, 1, amount)

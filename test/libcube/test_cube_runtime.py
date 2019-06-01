@@ -4,6 +4,7 @@ from libcube.actions import Action, Turn, TurningType
 from libcube.orientation import Side, Orientation
 from libcube.cube_runtime import CubeRuntime
 from libcube.cube import Cube
+from libcube.parser import get_action_representation
 from unittest.mock import MagicMock
 from unittest.mock import patch
 import pytest
@@ -49,3 +50,21 @@ def test_get_color(side, orientation):
         runtime = CubeRuntime(Cube((3, 3, 3)), Orientation(), lambda action: None, lambda: None)
         runtime.get_color(side, 0, 0)
         mock_method.assert_called_once_with(orientation)
+
+
+def test_state_stack():
+    actions = []
+
+    cube = Cube((2, 2, 2))
+    runtime = CubeRuntime(cube, Orientation(), actions.append, lambda: None)
+
+    runtime.perform_turn(Side.FRONT, 1)
+    runtime.perform_rotate(Side.TOP, False)
+    runtime.push_orientation()
+    for _ in range(3):
+        runtime.perform_turn(Side.FRONT, 1)
+        runtime.perform_rotate(Side.TOP, False)
+    runtime.pop_orientation()
+
+    assert "FYFYFYFYY" == "".join(map(get_action_representation, actions))
+
