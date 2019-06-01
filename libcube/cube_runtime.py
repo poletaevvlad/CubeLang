@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 from collections import deque
 
 from .actions import Turn, Action, Rotate
@@ -27,6 +27,7 @@ class CubeRuntime:
         self.cube = cube
         self.orientation = orientation
         self.orientations_stack = deque()
+        self.suspended_orientation: Optional[Orientation] = None
         self.callback = callback
         self.done_callback = done_callback
 
@@ -37,6 +38,9 @@ class CubeRuntime:
         self.functions.add_function("cube_rotate", self.perform_rotate, [types.Side, types.Bool], types.Void)
         self.functions.add_function("push_orientation", self.push_orientation, [], types.Void)
         self.functions.add_function("pop_orientation", self.push_orientation, [], types.Void)
+        self.functions.add_function("suspend_rotations", self.push_orientation, [], types.Void)
+        self.functions.add_function("resume_rotations", self.push_orientation, [], types.Void)
+
         self.functions.exec_globals["orient"] = self.perform_orient
         self.functions.exec_globals["Pattern"] = Pattern
 
@@ -45,16 +49,31 @@ class CubeRuntime:
         for name, color in CubeRuntime.COLOR_NAMES.items():
             self.functions.add_value(name, types.Color, color)
 
-    def perform_orient(self, *args, **kwargs):
+    def yield_action(self, action: Action) -> None:
+        if self.suspended_orientation is None:
+            self.callback(action)
+        elif isinstance(action, Turn):
+            self.callback(action.from_orientation(self.orientation,
+                                                  self.suspended_orientation))
+
+    def perform_orient(self, *args, **kwargs) -> bool:
         new_orientation = self.cube.orient(self.orientation, *args, **kwargs)
         if new_orientation is not None:
             actions = Rotate.from_turn_steps(self.orientation.turns_to(new_orientation))
             for action in actions:
-                self.callback(action)
+                self.yield_action(action)
             self.orientation = new_orientation
             return True
-        else:
-            return False
+        return False
+
+    def suspend_rotations(self):
+        self.suspended_orientation = self.orientation
+
+    def resume_rotations(self):
+        turns = self.suspended_orientation.turns_to(self.orientation)
+        self.suspended_orientation = None
+        for action in Rotate.from_turn_steps(turns):
+            self.yield_action(action)
 
     def push_orientation(self):
         self.orientations_stack.append(self.orientation)
@@ -63,18 +82,18 @@ class CubeRuntime:
         new_orientation = self.orientations_stack.pop()
         turns = self.orientation.turns_to(new_orientation)
         for action in Rotate.from_turn_steps(turns):
-            self.callback(action)
+            self.yield_action(action)
         self.orientation = new_orientation
 
     def perform_turn(self, side: Side, amount: int):
         action = Turn(side, 1, amount)
         self.orientation = action.perform(self.cube, self.orientation)
-        self.callback(action)
+        self.yield_action(action)
 
     def perform_rotate(self, side: Side, twice: bool):
         action = Rotate(side, twice)
         self.orientation = action.perform(self.cube, self.orientation)
-        self.callback(action)
+        self.yield_action(action)
 
     def get_color(self, side: Side, i: int, j: int):
         if side == Side.FRONT:

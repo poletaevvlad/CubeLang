@@ -54,9 +54,7 @@ def test_get_color(side, orientation):
 
 def test_state_stack():
     actions = []
-
-    cube = Cube((2, 2, 2))
-    runtime = CubeRuntime(cube, Orientation(), actions.append, lambda: None)
+    runtime = CubeRuntime(Cube((2, 2, 2)), Orientation(), actions.append, lambda: None)
 
     runtime.perform_turn(Side.FRONT, 1)
     runtime.perform_rotate(Side.TOP, False)
@@ -68,3 +66,16 @@ def test_state_stack():
 
     assert "FYFYFYFYY" == "".join(map(get_action_representation, actions))
 
+
+def test_suspend_rotations():
+    actions = []
+    runtime = CubeRuntime(Cube((2, 2, 2)), Orientation(), actions.append, lambda: None)
+    runtime.perform_turn(Side.FRONT, 1)
+    runtime.perform_rotate(Side.TOP, False)
+    runtime.suspend_rotations()
+    for _ in range(3):
+        runtime.perform_turn(Side.FRONT, 1)
+        runtime.perform_rotate(Side.TOP, False)
+    runtime.resume_rotations()
+
+    assert "FYFRBY'" == "".join(map(get_action_representation, actions))
