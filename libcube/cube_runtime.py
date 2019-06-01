@@ -10,6 +10,7 @@ from .stdlib import Library
 
 
 class CubeRuntime:
+
     SIDE_NAMES = {
         "front": Side.FRONT, "back": Side.BACK,
         "left": Side.LEFT, "right": Side.RIGHT,
@@ -20,6 +21,15 @@ class CubeRuntime:
         "red": Color.RED, "green": Color.GREEN, "blue": Color.BLUE,
         "white": Color.WHITE, "yellow": Color.YELLOW, "orange": Color.ORANGE
     }
+
+    EXPORTED_FUNCTIONS = [
+        ("cube_turn", "perform_turn", [types.Side, types.Integer], types.Void),
+        ("cube_rotate", "perform_rotate", [types.Side, types.Bool], types.Void),
+        ("push_orientation", "push_orientation", [], types.Void),
+        ("pop_orientation", "push_orientation", [], types.Void),
+        ("suspend_rotations", "push_orientation", [], types.Void),
+        ("resume_rotations", "push_orientation", [], types.Void)
+    ]
 
     def __init__(self, cube: Cube, orientation: Orientation,
                  callback: Callable[[Action], None],
@@ -32,15 +42,11 @@ class CubeRuntime:
         self.done_callback = done_callback
 
         self.functions = Library()
-        self.functions.add_function("cube_turn", self.perform_turn, [types.Side, types.Integer], types.Void)
-        self.functions.add_function("cube_get_color", self.get_color,
-                                    [types.Color, types.Integer, types.Integer], types.Color)
-        self.functions.add_function("cube_rotate", self.perform_rotate, [types.Side, types.Bool], types.Void)
-        self.functions.add_function("push_orientation", self.push_orientation, [], types.Void)
-        self.functions.add_function("pop_orientation", self.push_orientation, [], types.Void)
-        self.functions.add_function("suspend_rotations", self.push_orientation, [], types.Void)
-        self.functions.add_function("resume_rotations", self.push_orientation, [], types.Void)
+        for name, local_name, argument_types, return_type in CubeRuntime.EXPORTED_FUNCTIONS:
+            self.functions.add_function(name, getattr(self, local_name),
+                                        argument_types, return_type)
 
+        self.functions.exec_globals["cube_get_color"] = self.get_color
         self.functions.exec_globals["orient"] = self.perform_orient
         self.functions.exec_globals["Pattern"] = Pattern
 
