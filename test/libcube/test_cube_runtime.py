@@ -10,7 +10,7 @@ import pytest
 
 
 def test_runtime_globals():
-    runtime = CubeRuntime(Cube((3, 3, 3)), lambda action: None)
+    runtime = CubeRuntime(Cube((3, 3, 3)), Orientation(), lambda action: None, lambda: None)
     existing = set(runtime.functions.global_values.keys())
     assert existing.issuperset(set(CubeRuntime.COLOR_NAMES.keys()))
     assert existing.issuperset(set(CubeRuntime.SIDE_NAMES.keys()))
@@ -19,7 +19,7 @@ def test_runtime_globals():
 
 def test_action_callback():
     callback: Callable[[Action], None] = MagicMock()
-    runtime = CubeRuntime(Cube((3, 3, 3)), callback)
+    runtime = CubeRuntime(Cube((3, 3, 3)), Orientation(), callback, lambda: None)
     runtime.perform_turn(Side.LEFT, 2)
 
     callback: MagicMock
@@ -46,6 +46,6 @@ def test_get_color(side, orientation):
             self.colors = Colors()
 
     with patch.object(Cube, 'get_side', return_value=Side()) as mock_method:
-        runtime = CubeRuntime(Cube((3, 3, 3)), lambda action: None)
+        runtime = CubeRuntime(Cube((3, 3, 3)), Orientation(), lambda action: None, lambda: None)
         runtime.get_color(side, 0, 0)
         mock_method.assert_called_once_with(orientation)

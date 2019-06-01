@@ -7,6 +7,8 @@ from libcube import orientation
 
 from unittest.mock import MagicMock
 
+from libcube.orientation import Orientation
+
 
 def test_flip_flops():
     code = """
@@ -21,18 +23,21 @@ def test_flip_flops():
     out_fn = MagicMock()
 
     stack = Stack()
-    cube_context = CubeRuntime(Cube((3, 3, 3)), lambda action: None)
-    cube_context.functions.initialize_stack(stack)
+    finish_function = MagicMock()
+    cube_runtime = CubeRuntime(Cube((3, 3, 3)), Orientation(), lambda action: None, finish_function)
+    cube_runtime.functions.initialize_stack(stack)
     stdlib.initialize_stack(stack)
     stack.add_global("out", Function(([Integer], Void)))
 
-    globals = {"out": out_fn, **stdlib.exec_globals, **cube_context.functions.exec_globals}
+    globals = {"out": out_fn, **stdlib.exec_globals, **cube_runtime.functions.exec_globals}
 
     executor = ExecutionContext(globals)
     executor.compile(parser.parse(code, stack))
     executor.execute()
+    cube_runtime.finished()
 
     out_fn.assert_called_once_with(6)
+    finish_function.assert_called_once()
 
 
 def test_orient():
@@ -46,14 +51,15 @@ def test_orient():
 
     out_fn = MagicMock()
     stack = Stack()
-    cube_context = CubeRuntime(Cube((3, 3, 3)), lambda action: None)
-    cube_context.functions.initialize_stack(stack)
+    cube_runtime = CubeRuntime(Cube((3, 3, 3)), Orientation(), lambda action: None, lambda: None)
+    cube_runtime.functions.initialize_stack(stack)
     stdlib.initialize_stack(stack)
     stack.add_global("out", Function(([Color], Void)))
 
-    globals = {"out": out_fn, **stdlib.exec_globals, **cube_context.functions.exec_globals}
+    globals = {"out": out_fn, **stdlib.exec_globals, **cube_runtime.functions.exec_globals}
 
     executor = ExecutionContext(globals)
     executor.compile(parser.parse(code, stack))
     executor.execute()
+    cube_runtime.finished()
     out_fn.assert_called_once_with(orientation.Color.WHITE)

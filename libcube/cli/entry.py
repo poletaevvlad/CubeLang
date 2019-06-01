@@ -1,22 +1,17 @@
+import sys
 from argparse import ArgumentParser
 
 from lark import UnexpectedCharacters
 from lark.exceptions import LarkError
 
-from ..compiler.errors import CompileTimeError, FunctionArgumentsError
-from .error_display import ErrorsOutput
-from ..compiler import Stack, ExecutionContext, parser
-from ..stdlib import stdlib
 from .cube_builder import init_cube_args_parser, build_cube
+from .error_display import ErrorsOutput
 from .options import file_contents_type
-from ..actions import Action
+from .postprocessors_builder import init_postprocessors_args_parser, build_postprocessors_chain
+from ..compiler import Stack, ExecutionContext, parser
+from ..compiler.errors import CompileTimeError, FunctionArgumentsError
 from ..cube_runtime import CubeRuntime
-from ..parser import get_action_representation
-import sys
-
-
-def display_action(action: Action):
-    print(get_action_representation(action), end="")
+from ..stdlib import stdlib
 
 
 def main():
@@ -24,10 +19,12 @@ def main():
     args_parser.add_argument("source", type=file_contents_type,
                              help="program's source")
     init_cube_args_parser(args_parser)
+    init_postprocessors_args_parser(args_parser)
     args = args_parser.parse_args()
 
     cube, orientation = build_cube(args)
-    runtime = CubeRuntime(cube, display_action, orientation)
+    postprocessor = build_postprocessors_chain(args)
+    runtime = CubeRuntime(cube, orientation, postprocessor.process, postprocessor.done)
 
     stack = Stack()
     stdlib.initialize_stack(stack)
@@ -38,13 +35,6 @@ def main():
     errors = ErrorsOutput(sys.stderr, use_color=True)
     try:
         program = parser.parse(args.source, stack)
-        # if pycode:
-        #     stream = CodeStream()
-        #     variables = VariablesPool()
-        #     for expression in program:
-        #         expression.generate(variables, stream)
-        #     print(stream.get_contents())
-        # else:
         context.compile(program)
     except UnexpectedCharacters as e:
         errors.write_error(f"Unexpected character: `{args.source[e.pos_in_stream]}`", e.line - 1, e.column - 1)
@@ -67,3 +57,4 @@ def main():
 
     # if not pycode:
     context.execute()
+    runtime.finished()

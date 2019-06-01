@@ -45,11 +45,11 @@ class CubeBuilder:
 def init_cube_args_parser(argparse: ArgumentParser):
     argparse.add_argument("-d", dest="dimension", help="dimensions of a cube", nargs=3,
                           default=[3, 3, 3], metavar="N", type=dimension_type)
-    argparse.add_argument("-s", dest="scramble", help="Formula to scramble a cube",
+    argparse.add_argument("-s", dest="scramble", help="formula to scramble a cube",
                           default=[], type=formula_type, metavar="FORMULA")
     for name, side in CubeRuntime.SIDE_NAMES.items():
         argparse.add_argument("--" + name, type=side_colors_type, metavar="COLORS",
-                              help=f"Colors of the {name} face of a cube.", default=None)
+                              help=f"colors of the {name} face of a cube", default=None)
 
 
 def build_cube(arguments: Namespace):
