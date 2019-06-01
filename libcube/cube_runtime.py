@@ -26,9 +26,9 @@ class CubeRuntime:
         ("cube_turn", "perform_turn", [types.Side, types.Integer], types.Void),
         ("cube_rotate", "perform_rotate", [types.Side, types.Bool], types.Void),
         ("push_orientation", "push_orientation", [], types.Void),
-        ("pop_orientation", "push_orientation", [], types.Void),
-        ("suspend_rotations", "push_orientation", [], types.Void),
-        ("resume_rotations", "push_orientation", [], types.Void)
+        ("pop_orientation", "pop_orientation", [], types.Void),
+        ("suspend_rotations", "suspend_rotations", [], types.Void),
+        ("resume_rotations", "resume_rotations", [], types.Void)
     ]
 
     def __init__(self, cube: Cube, orientation: Orientation,
