@@ -43,8 +43,8 @@ class CubeBuilder:
 
 
 def init_cube_args_parser(argparse: ArgumentParser):
-    argparse.add_argument("-d", dest="dimension", help="dimensions of a cube", nargs=3,
-                          default=[3, 3, 3], metavar="N", type=dimension_type)
+    argparse.add_argument("-d", dest="dimension", help="dimensions of a cube",
+                          default=3, metavar="N", type=dimension_type)
     argparse.add_argument("-s", dest="scramble", help="formula to scramble a cube",
                           default=[], type=formula_type, metavar="FORMULA")
     for name, side in CubeRuntime.SIDE_NAMES.items():
@@ -53,7 +53,7 @@ def init_cube_args_parser(argparse: ArgumentParser):
 
 
 def build_cube(arguments: Namespace):
-    builder = CubeBuilder(arguments.dimension)
+    builder = CubeBuilder((arguments.dimension,) * 3)
     for name, side in CubeRuntime.SIDE_NAMES.items():
         builder.side(side, getattr(arguments, name))
     return builder.scramble(arguments.scramble).get()
