@@ -55,7 +55,7 @@ def test_turn_single(text: str, type: TurningType, index: int, turns: int):
     assert len(actions) == 1
     action = actions[0]
     assert isinstance(action, Turn)
-    assert action.sides[0] == index
+    assert action.indices[0] == index
     assert action.turns == turns
     assert action.type == type
 

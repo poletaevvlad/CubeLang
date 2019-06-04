@@ -89,7 +89,7 @@ def test_turning(type: TurningType, amount1: int, amount2: int, exp_amount: Opti
         assert isinstance(actual, Turn)
         assert actual.type == type
         assert actual.turns == exp_amount
-        assert actual.sides == [1]
+        assert actual.indices == [1]
 
 
 @pytest.mark.parametrize("actions, expected", [

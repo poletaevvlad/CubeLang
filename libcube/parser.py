@@ -77,11 +77,11 @@ def parse_actions(algorithm: str) -> Iterator[Action]:
 def get_action_representation(action: Action) -> str:
     if isinstance(action, Turn):
         if action.type == TurningType.VERTICAL:
-            letter = "L" if action.sides[0] > 0 else "R"
+            letter = "L" if action.indices[0] > 0 else "R"
         elif action.type == TurningType.HORIZONTAL:
-            letter = "U" if action.sides[0] > 0 else "D"
+            letter = "U" if action.indices[0] > 0 else "D"
         else:
-            letter = "F" if action.sides[0] > 0 else "B"
+            letter = "F" if action.indices[0] > 0 else "B"
 
         if action.turns == 2:
             return letter + "2"

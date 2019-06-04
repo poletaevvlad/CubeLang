@@ -1,6 +1,6 @@
 import enum
 from abc import ABC, abstractmethod
-from typing import Union, List, Iterable, TypeVar, Optional
+from typing import Union, List, Iterable, TypeVar, Optional, Set
 
 from .cube import Cube
 from .orientation import Orientation, Side, count_occurrences
@@ -65,8 +65,10 @@ class Turn(Action):
         Side.FRONT: TurningType.SLICE, Side.BACK: TurningType.SLICE
     }
 
-    def __init__(self, side: Union[Side, TurningType], indices: Union[int, List[int]], turns: int = 1) -> None:
-        self.sides: List[int] = indices if isinstance(indices, list) else [indices]
+    def __init__(self, side: Union[Side, TurningType],
+                 indices: Union[int, List[Union[int, type(Ellipsis)]]],
+                 turns: int = 1) -> None:
+        self.indices: List[Union[int, ellipsis]] = indices if isinstance(indices, list) else [indices]
         self.turns: int = turns
 
         self.type: TurningType
@@ -74,7 +76,7 @@ class Turn(Action):
             self.type = Turn.TYPES[side]
 
             if side in {Side.BACK, Side.RIGHT, Side.BOTTOM}:
-                self.sides = [-x for x in self.sides]
+                self.indices = Turn.opposite_side(self.indices)
 
             if side not in {Side.BOTTOM, Side.RIGHT, Side.FRONT}:
                 self.turns: int = 4 - turns
@@ -83,17 +85,17 @@ class Turn(Action):
 
     def perform(self, cube: Cube, orientation: Orientation) -> Orientation:
         turning_functions = {
-            TurningType.VERTICAL: cube.turn_vertical,
-            TurningType.HORIZONTAL: cube.turn_horizontal,
-            TurningType.SLICE: cube.turn_slice
+            TurningType.VERTICAL: (cube.turn_vertical, cube.get_side(orientation).columns),
+            TurningType.HORIZONTAL: (cube.turn_horizontal, cube.get_side(orientation).rows),
+            TurningType.SLICE: (cube.turn_slice, cube.get_side(orientation.to_right).columns)
         }
-        rotate_function = turning_functions[self.type]
-        for side in self.sides:
+        rotate_function, size = turning_functions[self.type]
+        for side in Turn.normalize_indices(self.indices, size):
             rotate_function(orientation, side, self.turns)
         return orientation
 
     def __repr__(self):
-        return f"Turn({self.type}, {self.sides}, {self.turns})"
+        return f"Turn({self.type}, {self.indices}, {self.turns})"
 
     def _transform(self, turn: Side) -> "Turn":
         if Turn.TYPES[turn] == self.type:
@@ -101,19 +103,19 @@ class Turn(Action):
 
         if turn == Side.TOP:
             if self.type == TurningType.SLICE:
-                return Turn(TurningType.VERTICAL, self.sides, 4 - self.turns)
+                return Turn(TurningType.VERTICAL, self.indices, 4 - self.turns)
             else:  # TurningType.VERTICAL
-                return Turn(TurningType.SLICE, [-x for x in self.sides], self.turns)
+                return Turn(TurningType.SLICE, [-x for x in self.indices], self.turns)
         elif turn == Side.FRONT:
             if self.type == TurningType.VERTICAL:
-                return Turn(TurningType.HORIZONTAL, self.sides, 4 - self.turns)
+                return Turn(TurningType.HORIZONTAL, self.indices, 4 - self.turns)
             else:  # TurningType.HORIZONTAL
-                return Turn(TurningType.VERTICAL, [-x for x in self.sides], self.turns)
+                return Turn(TurningType.VERTICAL, [-x for x in self.indices], self.turns)
         elif turn == Side.RIGHT:
             if self.type == TurningType.SLICE:
-                return Turn(TurningType.HORIZONTAL, self.sides, 4 - self.turns)
+                return Turn(TurningType.HORIZONTAL, self.indices, 4 - self.turns)
             else:  # TurningType.HORIZONTAL
-                return Turn(TurningType.SLICE, [-x for x in self.sides], self.turns)
+                return Turn(TurningType.SLICE, [-x for x in self.indices], self.turns)
         else:
             raise ValueError("Unsupported turn")
 
@@ -121,4 +123,46 @@ class Turn(Action):
         result: Turn = self
         for turn in orientation.turns_to(origin):
             result = result._transform(turn)
+        return result
+
+    @staticmethod
+    def opposite_side(indices: List[Union[int, type(Ellipsis)]]) -> List[Union[int, type(Ellipsis)]]:
+        return [Ellipsis if index == Ellipsis else -index for index in indices]
+
+    @staticmethod
+    def normalize_indices(indices: List[Union[int, type(Ellipsis)]], width: int) -> Set[int]:
+        def to_positive(idx: Union[int, type(Ellipsis)]):
+            if idx == Ellipsis:
+                return ...
+            elif idx < 0:
+                return width + idx + 1
+            else:
+                return idx
+
+        def add_ends(it: Iterable[Union[int, type(Ellipsis)]]):
+            yield 0
+            yield from it
+            yield width + 1
+
+        def get_tripples(it: Iterable[Union[int, type(Ellipsis)]]):
+            v_iter = iter(it)
+            a = next(v_iter)
+            b = next(v_iter)
+            while True:
+                try:
+                    c = next(v_iter)
+                    yield a, b, c
+                    a, b = b, c
+                except StopIteration:
+                    break
+
+        result = set()
+        stream = add_ends(map(to_positive, indices))
+        for prev_value, value, next_value in get_tripples(stream):
+            if value == Ellipsis:
+                if prev_value > next_value:
+                    prev_value, next_value = next_value, prev_value
+                result.update(range(prev_value + 1, next_value))
+            else:
+                result.add(value)
         return result

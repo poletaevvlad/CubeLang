@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from libcube.cube import Cube
 from libcube.orientation import Side, Orientation
 from libcube.actions import Rotate, Turn, TurningType
@@ -55,19 +57,24 @@ def test_from_turn_steps():
 
 
 class CubeMock(object):
+    SideMock = namedtuple("SideMock", ["columns", "rows"])
+
     def __init__(self):
         self.turn_slice = None
         self.turn_vertical = None
         self.turn_horizontal = None
 
+    def get_side(self, _orientation):
+        return CubeMock.SideMock(3, 3)
+
 
 @pytest.mark.parametrize("side, func, out_sides, out_amount", [
     (Side.FRONT, "turn_slice", [1, 2], 1),
-    (Side.BACK, "turn_slice", [-1, -2], 3),
-    (Side.RIGHT, "turn_vertical", [-1, -2], 1),
+    (Side.BACK, "turn_slice", [2, 3], 3),
+    (Side.RIGHT, "turn_vertical", [2, 3], 1),
     (Side.LEFT, "turn_vertical", [1, 2], 3),
     (Side.TOP, "turn_horizontal", [1, 2], 3),
-    (Side.BOTTOM, "turn_horizontal", [-1, -2], 1)
+    (Side.BOTTOM, "turn_horizontal", [2, 3], 1)
 ])
 def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amount: int) -> None:
     cube: Cube = CubeMock()
@@ -102,7 +109,7 @@ def test_turning_transform(side: Side, turn: Side, res_side: TurningType,
     transformed = action._transform(turn)
     assert transformed.type == res_side
     assert transformed.turns == res_turns
-    assert transformed.sides[0] == res_sides
+    assert transformed.indices[0] == res_sides
 
 
 @pytest.mark.parametrize("orientation, action, type, indices", [
@@ -114,4 +121,22 @@ def test_orientation_changes(orientation: Side, action: Turn, type: TurningType,
                              indices: int):
     new_action = action.from_orientation(orientation)
     assert new_action.type == type
-    assert new_action.sides[0] == indices
+    assert new_action.indices[0] == indices
+
+
+@pytest.mark.parametrize("indices, expected", [
+    ([2], {2}),
+    ([2, 4], {2, 4}),
+    ([2, ..., 4], {2, 3, 4}),
+    ([1, ..., 3, 5], {1, 2, 3, 5}),
+    ([1, ..., 3,  2, ..., 5], {1, 2, 3, 4, 5}),
+    ([..., 3, 5], {1, 2, 3, 5}),
+    ([1, 3, ...], {1, 3, 4, 5}),
+    ([1, 2, -4, -2], {1, 2, 4}),
+    ([-2, ..., -1], {4, 5}),
+    ([2, ..., -2], {2, 3, 4}),
+    ([..., -3], {1, 2, 3}),
+    ([-3, ...], {3, 4, 5})
+])
+def test_normalize_indices(indices, expected):
+    assert expected == Turn.normalize_indices(indices, 5)

@@ -21,7 +21,7 @@ class TestOrientationFreeze:
         ofp.process(Rotate(Side.FRONT))
         ofp.process(Turn(Side.TOP, 1))
 
-        actual = list(map(lambda x: (x.type, x.sides[0]), result))
+        actual = list(map(lambda x: (x.type, x.indices[0]), result))
         assert actual == [
             (TurningType.SLICE, 1), (TurningType.VERTICAL, -1), (TurningType.SLICE, -1),
             (TurningType.VERTICAL, 1), (TurningType.SLICE, -1)

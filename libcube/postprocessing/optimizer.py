@@ -35,13 +35,13 @@ class OptimizingPostprocessor(PostprocessorBase[Action, Action]):
                     self.stack.append(Rotate(on_top.axis_side, turns == 2))
         elif isinstance(action, Turn):
             on_top: Turn = on_top
-            if on_top.type != action.type or on_top.sides != action.sides:
+            if on_top.type != action.type or on_top.indices != action.indices:
                 self.stack.append(action)
                 return
             self.stack.pop()
             turns = (action.turns + on_top.turns) % 4
             if turns != 0:
-                self.stack.append(Turn(action.type, action.sides, turns))
+                self.stack.append(Turn(action.type, action.indices, turns))
         else:
             self.stack.append(action)
 
