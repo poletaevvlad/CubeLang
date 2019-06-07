@@ -4,7 +4,7 @@ from ..actions import Action
 from ..parser import ParsingError, parse_actions
 from ..orientation import Color
 
-import argparse
+from argparse import ArgumentTypeError
 
 
 def truncate_string_around(value: str, column: int, left_offset: int = 20, right_offset: int = 20,
@@ -28,21 +28,23 @@ def _get_syntax_error_message(message: str, text: str, position: int):
     return "".join([message, "\n", " " * 7, value, "\n", " " * (7 + column), "^"])
 
 
-def dimension_type(value: str):
-    try:
-        num = int(value)
-        if num < 2:
-            raise argparse.ArgumentTypeError(f"Cube's dimension must be greater or equal two")
-        return num
-    except ValueError:
-        raise argparse.ArgumentTypeError(f"`{value}` is not an integer")
+def integer_type(min_value: int):
+    def type(value: str):
+        try:
+            val = int(value)
+            if val < min_value:
+                raise ArgumentTypeError(f"the minimum value is {min_value}")
+            return val
+        except ValueError:
+            raise ArgumentTypeError(f"invalid integer value: '{value}'")
+    return type
 
 
 def formula_type(value: str) -> List[Action]:
     try:
         return list(parse_actions(value))
     except ParsingError as e:
-        raise argparse.ArgumentTypeError(_get_syntax_error_message(str(e), value, e.column))
+        raise ArgumentTypeError(_get_syntax_error_message(str(e), value, e.column))
 
 
 SYMBOLS = {"R": Color.RED, "G": Color.GREEN, "B": Color.BLUE,
@@ -57,11 +59,11 @@ def side_colors_type(value: str):
     for line in lines:
         result_line: List[Color] = []
         if len(line) != len(lines[0]):
-            raise argparse.ArgumentTypeError("Inconsistent line length")
+            raise ArgumentTypeError("inconsistent line length")
         for symbol in line:
             if symbol not in SYMBOLS:
-                msg = _get_syntax_error_message(f"Unknown color: `{symbol}`", value, position)
-                raise argparse.ArgumentTypeError(msg)
+                msg = _get_syntax_error_message(f"unknown color: `{symbol}`", value, position)
+                raise ArgumentTypeError(msg)
             else:
                 result_line.append(SYMBOLS[symbol])
             position += 1
@@ -75,4 +77,4 @@ def file_contents_type(value: str):
         with open(value) as file:
             return file.read()
     except IOError as e:
-        raise argparse.ArgumentTypeError(f"Cannot open a file: {e}")
+        raise ArgumentTypeError(f"cannot open a file: {e}")

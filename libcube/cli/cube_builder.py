@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, Namespace, ArgumentTypeError
 
-from .options import formula_type, side_colors_type, dimension_type
+from .options import formula_type, side_colors_type, integer_type
 from ..actions import Action
 from ..cube import Cube
 from ..orientation import Orientation, Color, Side
@@ -45,7 +45,7 @@ class CubeBuilder:
 def init_cube_args_parser(argparse: ArgumentParser):
     group = argparse.add_argument_group("cube options")
     group.add_argument("-d", dest="dimension", help="dimensions of a cube",
-                       default=3, metavar="N", type=dimension_type)
+                       default=3, metavar="N", type=integer_type(2))
     group.add_argument("-s", dest="scramble", help="formula to scramble a cube",
                        default=[], type=formula_type, metavar="FORMULA")
     for name, side in CubeRuntime.SIDE_NAMES.items():

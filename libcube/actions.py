@@ -149,7 +149,7 @@ class Turn(Action):
                     if not prev_ellipsis:
                         string.append(",")
                     prev_ellipsis = False
-                    string.append(str(index))
+                    string.append(str(abs(index)))
             letter += "[" + "".join(string) + "]"
         return letter
 

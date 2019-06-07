@@ -1,7 +1,7 @@
 from string import ascii_lowercase
 import pytest
 import argparse
-from libcube.cli.options import truncate_string_around, dimension_type, \
+from libcube.cli.options import truncate_string_around, integer_type, \
     side_colors_type, formula_type, file_contents_type
 from libcube.parser import ParsingError
 from unittest import mock
@@ -24,19 +24,17 @@ def test_truncation(position, expected):
     assert expected == result
 
 
-class TestDimensionType:
+class TestIntegerType:
     def test_normal(self):
-        assert dimension_type("2") == 2
+        assert integer_type(1)("2") == 2
 
     def test_invalid(self):
-        with pytest.raises(argparse.ArgumentTypeError) as e:
-            dimension_type("abc")
-        assert str(e.value) == "`abc` is not an integer"
+        with pytest.raises(argparse.ArgumentTypeError):
+            integer_type(5)("abc")
 
     def test_too_small(self):
-        with pytest.raises(argparse.ArgumentTypeError) as e:
-            dimension_type("1")
-        assert str(e.value) == "Cube's dimension must be greater or equal two"
+        with pytest.raises(argparse.ArgumentTypeError):
+            integer_type(5)("2")
 
 
 class TestFormulaParam:
@@ -67,7 +65,7 @@ class TestSideConfiguration:
         with pytest.raises(argparse.ArgumentTypeError) as e:
             side_colors_type("RRO/GGM/BBW")
 
-        assert str(e.value) == "Unknown color: `M`\n       ~~rendered~~\n           ^"
+        assert str(e.value) == "unknown color: `M`\n       ~~rendered~~\n           ^"
         assert truncate_fn.call_args_list[0][0][1] == 6
 
     @mock.patch("libcube.cli.options.truncate_string_around", return_value=("~~rendered~~", 4))
@@ -75,7 +73,7 @@ class TestSideConfiguration:
         with pytest.raises(argparse.ArgumentTypeError) as e:
             side_colors_type("RRO/G/BBW")
 
-        assert str(e.value) == "Inconsistent line length"
+        assert str(e.value) == "inconsistent line length"
 
 
 class TestFileOpen:
@@ -89,5 +87,4 @@ class TestFileOpen:
         open_mock.side_effect = IOError("~~error~~")
         with pytest.raises(argparse.ArgumentTypeError) as e:
             file_contents_type("/file")
-        assert str(e.value) == "Cannot open a file: ~~error~~"
-
+        assert str(e.value) == "cannot open a file: ~~error~~"

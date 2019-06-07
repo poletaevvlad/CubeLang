@@ -1,9 +1,9 @@
 import random
-from typing import Optional
-
-import click
+from argparse import ArgumentParser
+from typing import List
 
 from libcube.actions import Turn
+from libcube.cli.options import integer_type
 from libcube.cube import Cube
 from libcube.orientation import Orientation, Side
 
@@ -11,23 +11,47 @@ from libcube.orientation import Orientation, Side
 SIDES = tuple(Side)
 
 
-@click.command()
-@click.option("-n", "turns_num", type=int, default=20)
-@click.option("-o", "output_type", type=click.Choice(["turns", "colors"]),
-              default="turns")
-@click.option("-s", "seed")
-def main(turns_num: int, output_type: str, seed: Optional[str]):
-    if seed is not None:
-        random.seed(seed)
+def main():
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument("-d", dest="dimension", help="dimensions of a cube",
+                            default=3, metavar="N", type=integer_type(2))
+    arg_parser.add_argument("-n", dest="turns_num", help="number of turns",
+                            type=integer_type(1), default=20)
+    arg_parser.add_argument("-a", dest="output_args", action="store_true",
+                            help="display the state of the cube after the turns instead of the formula")
+    arg_parser.add_argument("-s", dest="seed", help="the seed for the pseudorandom number generator")
+    args = arg_parser.parse_args()
+    dim = args.dimension
 
-    actions = (Turn(random.choice(SIDES), 1, random.randint(1, 3))
-               for _ in range(turns_num))
-    if output_type == "turns":
+    if args.seed is not None:
+        random.seed(args.seed)
+
+    actions: List[Turn] = []
+    prev_side = None
+    for i in range(args.turns_num):
+        if prev_side is None:
+            sides = SIDES
+        else:
+            sides = [x for x in SIDES if x != prev_side]
+
+        prev_side = random.choice(sides)
+
+        first_index = random.randint(1, dim // 2)
+        last_index = random.randint(1, first_index)
+        if first_index == last_index:
+            indices = [first_index]
+        else:
+            indices = [last_index, ..., first_index]
+
+        turn = Turn(prev_side, indices, random.randint(1, 3))
+        actions.append(turn)
+
+    if not args.output_args:
         for action in actions:
             print(str(action), end="")
         print()
     else:
-        cube = Cube((3, 3, 3))
+        cube = Cube((dim,) * 3)
         orientation = Orientation()
         for action in actions:
             action.perform(cube, orientation)
