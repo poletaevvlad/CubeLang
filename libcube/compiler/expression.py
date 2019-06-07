@@ -1,7 +1,7 @@
 from typing import List, Optional, Union, Tuple
 
 from .codeio import CodeStream
-from .types import Type, Void
+from .types import Type, Void, Integer
 
 TemplateType = List[Union[str, int]]
 
@@ -252,9 +252,18 @@ class CubeTurningExpression(Expression):
         super(CubeTurningExpression, self).__init__(Void, [])
         self.side: str = side
         self.amount: int = amount
+        self.indices: List[Union[Expression, type(Ellipsis)]] = [Expression(Integer, "1")]
 
-    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
-        stream.push_line(f"cube_turn({self.side}, {self.amount})")
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream,
+                 var_name: Optional[str] = None):
+        expression = [f"cube_turn({self.side}, {self.amount}, ["]
+        for i in range(len(self.indices)):
+            expression.append(i)
+            expression.append(", ")
+        expression[-1] = "])"
+
+        Expression.merge(self.type, expression, *self.indices).\
+            generate(temp_pool, stream, var_name)
 
 
 class CubeRotationExpression(Expression):

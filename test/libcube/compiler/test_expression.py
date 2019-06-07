@@ -184,18 +184,25 @@ class TestForLoop:
         assert res == "tmp_0 = x\nfor i in range(tmp_0):\n    x\n    y\n"
 
 
-def test_cube_turning_single():
-    expression = CubeTurningExpression("left", 1)
-    stream = CodeStream()
-    expression.generate(VariablesPool(), stream, None)
-    assert stream.get_contents() == "cube_turn(left, 1)\n"
+class TestTurning:
+    def test_single(self):
+        expression = CubeTurningExpression("left", 1)
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "cube_turn(left, 1, [1])\n"
 
+    def test_double(self):
+        expression = CubeTurningExpression("left", 2)
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "cube_turn(left, 2, [1])\n"
 
-def test_cube_turning_double():
-    expression = CubeTurningExpression("left", 2)
-    stream = CodeStream()
-    expression.generate(VariablesPool(), stream, None)
-    assert stream.get_contents() == "cube_turn(left, 2)\n"
+    def test_indices(self):
+        expression = CubeTurningExpression("left", 2)
+        expression.indices = [Expression(Integer, x) for x in "abc"]
+        stream = CodeStream()
+        expression.generate(VariablesPool(), stream, None)
+        assert stream.get_contents() == "cube_turn(left, 2, [a, b, c])\n"
 
 
 def test_cube_rotation():

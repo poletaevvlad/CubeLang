@@ -348,6 +348,33 @@ def handle_cube_turning_double(tree: Tree, stack: Stack):
     return expression
 
 
+@parser.handler("cube_turn_range")
+def handle_cube_turn_range(tree: Tree, stack: Stack):
+    expression: CubeTurningExpression = parser.handle(tree.children[0], stack)
+    expression.indices = []
+
+    for i in range(1, len(tree.children)):
+        child: Tree = tree.children[i]
+        argument = parser.handle(child.children[0], stack)
+        assert_type(child.children[0], argument, Integer)
+
+        if child.data == "range_value":
+            expression.indices.append(argument)
+        elif child.data == "range_open_left":
+            expression.indices.append(Expression(Void, "..."))
+            expression.indices.append(argument)
+        elif child.data == "range_open_right":
+            expression.indices.append(argument)
+            expression.indices.append(Expression(Void, "..."))
+        else:  # child.data == "range_closed"
+            expression.indices.append(argument)
+            expression.indices.append(Expression(Void, "..."))
+            argument_2 = parser.handle(child.children[1], stack)
+            assert_type(child.children[1], argument_2, Integer)
+            expression.indices.append(argument_2)
+    return expression
+
+
 @parser.handler("cube_color_reference")
 def handle_dereference(tree: Tree, stack: Stack):
     side_expression: Expression = parser.handle(tree.children[0], stack)

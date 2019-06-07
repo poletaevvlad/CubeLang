@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, List, Union
 from collections import deque
 
 from .actions import Turn, Action, Rotate
@@ -23,8 +23,6 @@ class CubeRuntime:
     }
 
     EXPORTED_FUNCTIONS = [
-        ("cube_turn", "perform_turn", [types.Side, types.Integer], types.Void),
-        ("cube_rotate", "perform_rotate", [types.Side, types.Bool], types.Void),
         ("push_orientation", "push_orientation", [], types.Void),
         ("pop_orientation", "pop_orientation", [], types.Void),
         ("suspend_rotations", "suspend_rotations", [], types.Void),
@@ -46,6 +44,8 @@ class CubeRuntime:
             self.functions.add_function(name, getattr(self, local_name),
                                         argument_types, return_type)
 
+        self.functions.exec_globals["cube_turn"] = self.perform_turn
+        self.functions.exec_globals["cube_rotate"] = self.perform_rotate
         self.functions.exec_globals["cube_get_color"] = self.get_color
         self.functions.exec_globals["orient"] = self.perform_orient
         self.functions.exec_globals["Pattern"] = Pattern
@@ -91,8 +91,9 @@ class CubeRuntime:
             self.yield_action(action)
         self.orientation = new_orientation
 
-    def perform_turn(self, side: Side, amount: int):
-        action = Turn(side, 1, amount)
+    def perform_turn(self, side: Side, amount: int,
+                     indices: List[Union[int, type(Ellipsis)]]):
+        action = Turn(side, indices, amount)
         self.orientation = action.perform(self.cube, self.orientation)
         self.yield_action(action)
 

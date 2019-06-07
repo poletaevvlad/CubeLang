@@ -10,12 +10,18 @@ FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
 IDENTIFIER: /(?!noop)(?!else)(?!return)[a-z_][a-z_\d]*/
 PATTERN: /([-WYORGBa-z]+\/)+[-WYORGBa-z]+/
 
+
+// Statements
+
 _elif_clause: "else-if" expression "then" clause
 if_expression: "if" expression "then" clause (_elif_clause)* ("else" clause)? "end"
 while_expression: "while" expression "do" clause "end"
 do_expression: "do" clause "while" expression
 repeat_expression: "repeat" expression "times" clause "end"
 for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
+
+
+// Expressions
 
 ORIENT_PARAM_NAME: "front" | "back" | "left" | "right" | "top" | "bottom" | "keeping"
 orient_params: ORIENT_PARAM_NAME ":" expression ("," ORIENT_PARAM_NAME ":" expression)*
@@ -29,12 +35,12 @@ cube_color_reference: op_item "[" expression "," expression "]"
 ?op_item: atom | collection_item | cube_color_reference
 
 ?atom: INT_LITERAL -> int_literal
-           | FLOAT_LITERAL -> float_literal
-           | IDENTIFIER -> variable
-           | PATTERN -> pattern
-           | "(" expression ")"
-           | "-" expression -> negation
-           | IDENTIFIER "(" (expression ",")* expression? ")" -> func_call
+    | FLOAT_LITERAL -> float_literal
+    | IDENTIFIER -> variable
+    | PATTERN -> pattern
+    | "(" expression ")"
+    | "-" expression -> negation
+    | IDENTIFIER "(" (expression ",")* expression? ")" -> func_call
 
 ?expression: op_0
 
@@ -43,13 +49,13 @@ cube_color_reference: op_item "[" expression "," expression "]"
 pattern: "(" PATTERN ")"
 
 ?type: "int" -> type_int
-     | "real" -> type_real
-     | "boolean" -> type_bool
-     | "side" -> type_side
-     | "color" -> type_color
-     | "pattern" -> type_pattern
-     | "list" "of" type -> type_list
-     | "set" "of" type -> type_set
+    | "real" -> type_real
+    | "boolean" -> type_bool
+    | "side" -> type_side
+    | "color" -> type_color
+    | "pattern" -> type_pattern
+    | "list" "of" type -> type_list
+    | "set" "of" type -> type_set
 
 var_decl: "let" (IDENTIFIER ",")* IDENTIFIER ":" type ("=" expression)?
 argument: IDENTIFIER ":" type ("=" expression)?
@@ -57,21 +63,47 @@ func_decl: "func" IDENTIFIER "(" (argument ",")* argument? ")" (":" type)? claus
 return_statement: "return" expression?
 var_assignment: assignable "=" expression
 
-?cube_command: "R" -> cube_right
-            | "L" -> cube_left
-            | "U" -> cube_top
-            | "D" -> cube_bottom
-            | "F" -> cube_front
-            | "B" -> cube_back
-            | "X" -> cube_rotate_right
-            | "Y" -> cube_rotate_top
-            | "Z" -> cube_rotate_front
-?cube_action: cube_command
-            | cube_command "2" -> cube_double
-            | cube_command "'" -> cube_opposite
-cube_instruction: cube_action+
+
+// Cube actions
+
+range_value: expression
+range_open_left: ":" expression
+range_open_right: expression ":"
+range_closed: expression ":" expression
+?range_component: range_value
+    | range_open_left
+    | range_open_right
+    | range_closed
+
+?cube_turn: "R" -> cube_right
+    | "L" -> cube_left
+    | "U" -> cube_top
+    | "D" -> cube_bottom
+    | "F" -> cube_front
+    | "B" -> cube_back
+
+?cube_turn_modified: cube_turn
+    | cube_turn "2" -> cube_double
+    | cube_turn "'" -> cube_opposite
+
+?cube_turn_range: cube_turn_modified
+    | cube_turn_modified "[" range_component ("," range_component)* "]" -> cube_turn_range
+
+?cube_rotation: "X" -> cube_rotate_right
+    | "Y" -> cube_rotate_top
+    | "Z" -> cube_rotate_front
+
+?cube_rotation_modified: cube_rotation
+    | cube_rotation "2" -> cube_double
+    | cube_rotation "'" -> cube_opposite
+
+
+// Program
+
+cube_instruction: (cube_rotation_modified | cube_turn_range)+
 
 ?statement: var_decl | expression | var_assignment | while_expression
-          | func_decl | return_statement | do_expression | repeat_expression
-          | for_expression | cube_instruction | orient_expression | "noop" -> noop_expression
+    | func_decl | return_statement | do_expression | repeat_expression
+    | for_expression | cube_instruction | orient_expression
+    | "noop" -> noop_expression
 clause: (statement _NEWLINE)* statement?

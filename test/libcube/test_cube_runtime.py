@@ -15,13 +15,13 @@ def test_runtime_globals():
     existing = set(runtime.functions.global_values.keys())
     assert existing.issuperset(set(CubeRuntime.COLOR_NAMES.keys()))
     assert existing.issuperset(set(CubeRuntime.SIDE_NAMES.keys()))
-    assert "cube_turn" in existing
+    assert "push_orientation" in existing
 
 
 def test_action_callback():
     callback: Callable[[Action], None] = MagicMock()
     runtime = CubeRuntime(Cube((3, 3, 3)), Orientation(), callback, lambda: None)
-    runtime.perform_turn(Side.LEFT, 2)
+    runtime.perform_turn(Side.LEFT, 2, [1])
 
     callback: MagicMock
     action = callback.call_args_list[0][0][0]
@@ -56,11 +56,11 @@ def test_state_stack():
     actions = []
     runtime = CubeRuntime(Cube((2, 2, 2)), Orientation(), actions.append, lambda: None)
 
-    runtime.perform_turn(Side.FRONT, 1)
+    runtime.perform_turn(Side.FRONT, 1, [1])
     runtime.perform_rotate(Side.TOP, False)
     runtime.push_orientation()
     for _ in range(3):
-        runtime.perform_turn(Side.FRONT, 1)
+        runtime.perform_turn(Side.FRONT, 1, [1])
         runtime.perform_rotate(Side.TOP, False)
     runtime.pop_orientation()
 
@@ -70,11 +70,11 @@ def test_state_stack():
 def test_suspend_rotations():
     actions = []
     runtime = CubeRuntime(Cube((2, 2, 2)), Orientation(), actions.append, lambda: None)
-    runtime.perform_turn(Side.FRONT, 1)
+    runtime.perform_turn(Side.FRONT, 1, [1])
     runtime.perform_rotate(Side.TOP, False)
     runtime.suspend_rotations()
     for _ in range(3):
-        runtime.perform_turn(Side.FRONT, 1)
+        runtime.perform_turn(Side.FRONT, 1, [1])
         runtime.perform_rotate(Side.TOP, False)
     runtime.resume_rotations()
 
