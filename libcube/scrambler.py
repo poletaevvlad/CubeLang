@@ -1,12 +1,11 @@
+import random
 from typing import Optional
 
 import click
-import random
 
 from libcube.actions import Turn
 from libcube.cube import Cube
 from libcube.orientation import Orientation, Side
-from libcube.parser import get_action_representation
 
 # noinspection PyTypeChecker
 SIDES = tuple(Side)
@@ -25,7 +24,7 @@ def main(turns_num: int, output_type: str, seed: Optional[str]):
                for _ in range(turns_num))
     if output_type == "turns":
         for action in actions:
-            print(get_action_representation(action), end="")
+            print(str(action), end="")
         print()
     else:
         cube = Cube((3, 3, 3))

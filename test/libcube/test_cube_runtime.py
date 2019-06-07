@@ -1,13 +1,13 @@
 from typing import Callable
-
-from libcube.actions import Action, Turn, TurningType
-from libcube.orientation import Side, Orientation
-from libcube.cube_runtime import CubeRuntime
-from libcube.cube import Cube
-from libcube.parser import get_action_representation
 from unittest.mock import MagicMock
 from unittest.mock import patch
+
 import pytest
+
+from libcube.actions import Action, Turn, TurningType
+from libcube.cube import Cube
+from libcube.cube_runtime import CubeRuntime
+from libcube.orientation import Side, Orientation
 
 
 def test_runtime_globals():
@@ -64,7 +64,7 @@ def test_state_stack():
         runtime.perform_rotate(Side.TOP, False)
     runtime.pop_orientation()
 
-    assert "FYFYFYFYY" == "".join(map(get_action_representation, actions))
+    assert "FYFYFYFYY" == "".join(map(str, actions))
 
 
 def test_suspend_rotations():
@@ -78,4 +78,4 @@ def test_suspend_rotations():
         runtime.perform_rotate(Side.TOP, False)
     runtime.resume_rotations()
 
-    assert "FYFRBY'" == "".join(map(get_action_representation, actions))
+    assert "FYFRBY'" == "".join(map(str, actions))

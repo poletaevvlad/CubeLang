@@ -1,42 +1,27 @@
-from typing import Iterator, Callable, Dict, Optional
-import string
+from typing import Iterator, Dict
 
-from .actions import Turn, Action, Rotate, TurningType
+from .actions import Turn, Action, Rotate
 from .orientation import Side
 
-ActionFactory = Callable[[bool, bool], Action]
-
-
-def create_turn_factory(side: Side) -> ActionFactory:
-    def factory(double: bool, opposite: bool) -> Action:
-        return Turn(side, 1, 2 if double else 3 if opposite else 1)
-    return factory
-
-
-def create_rotate_factory(side: Side) -> ActionFactory:
-    def factory(double: bool, opposite: bool) -> Action:
-        return Rotate(side.opposite() if opposite else side, double)
-    return factory
-
-
-sides_letters: Dict[Side, str] = {
-    Side.LEFT: "L",
-    Side.RIGHT: "R",
-    Side.FRONT: "F",
-    Side.BACK: "B",
-    Side.TOP: "U",
-    Side.BOTTOM: "D"
+SIDE_LETTERS: Dict[str, Side] = {
+    "L": Side.LEFT,
+    "R": Side.RIGHT,
+    "F": Side.FRONT,
+    "B": Side.BACK,
+    "U": Side.TOP,
+    "D": Side.BOTTOM
 }
 
-rotation_letters: Dict[Side, str] = {
-    Side.RIGHT: "X",
-    Side.TOP: "Y",
-    Side.FRONT: "Z",
+ROTATE_LETTERS: Dict[str, Side] = {
+    "X": Side.RIGHT,
+    "Y": Side.TOP,
+    "Z": Side.FRONT
 }
 
-action_factories: Dict[str, ActionFactory] = {
-    **{letter: create_turn_factory(side) for side, letter in sides_letters.items()},
-    **{letter: create_rotate_factory(side) for side, letter in rotation_letters.items()}
+ROTATE_REVERSE: Dict[Side, str] = {
+    Side.RIGHT: "X", Side.LEFT: "X",
+    Side.TOP: "Y", Side.BOTTOM: "Y",
+    Side.FRONT: "Z", Side.BACK: "Z"
 }
 
 
@@ -46,62 +31,121 @@ class ParsingError(Exception):
         self.column = column
 
 
+class ParsingStateMachine:
+    def __init__(self):
+        self.actions = []
+        self.column = 0
+
+        self.action_type = None
+        self.amount = 1
+
+        self.current_number = 0
+        self.number_present = False
+        self.numbers = []
+
+    def yield_action(self):
+        if self.action_type is None:
+            return
+        if self.action_type in ROTATE_LETTERS:
+            side = ROTATE_LETTERS[self.action_type]
+            if self.amount == 3:
+                side = side.opposite()
+            self.actions.append(Rotate(side, self.amount == 2))
+        else:
+            action = Turn(SIDE_LETTERS[self.action_type],
+                          self.numbers if len(self.numbers) > 0 else 1,
+                          self.amount)
+            self.actions.append(action)
+
+        self.action_type = None
+        self.numbers = []
+        self.amount = 1
+        self.number_present = False
+
+    def _unexpected(self, char: str):
+        if char == "\n":
+            raise ParsingError(f"Unexpected end at {self.column + 1}", self.column)
+        else:
+            raise ParsingError(f"Unexpected character: '{char}' at {self.column + 1}", self.column)
+
+    def state_action_type(self, char: str):
+        self.yield_action()
+        if char == "\n":
+            return True, None
+        elif char not in SIDE_LETTERS and char not in ROTATE_LETTERS:
+            self._unexpected(char)
+        else:
+            self.action_type = char
+            return True, self.state_action_spec
+
+    def state_action_spec(self, char: str):
+        if char in SIDE_LETTERS or char in ROTATE_LETTERS:
+            return False, self.state_action_type
+        if char == "'":
+            self.amount = 3
+            return True, self.state_range_start
+        elif char == "2":
+            self.amount = 2
+            return True, self.state_range_start
+        elif char == "[":
+            return False, self.state_range_start
+        elif char == "\n":
+            return True, None
+        else:
+            self._unexpected(char)
+
+    def state_range_start(self, char: str):
+        if char == "[":
+            if self.action_type in ROTATE_LETTERS:
+                self._unexpected(char)
+            return True, self.state_range_number
+        else:
+            return False, self.state_action_type
+
+    def state_range_number(self, char: str):
+        def next_number(force_number: bool = False):
+            if not self.number_present and force_number:
+                self._unexpected(char)
+            elif self.number_present:
+                self.numbers.append(self.current_number)
+            self.current_number = 0
+            self.number_present = False
+
+        if char.isdigit():
+            self.current_number = self.current_number * 10 + int(char)
+            self.number_present = True
+        elif char == ":":
+            if not self.number_present and len(self.numbers) > 0:
+                self._unexpected(char)
+            next_number()
+            self.numbers.append(...)
+        elif char == ",":
+            next_number(True)
+        elif char == "]":
+            if not(self.number_present or (len(self.numbers) > 0 and self.numbers[-1] == Ellipsis)):
+                self._unexpected(char)
+            next_number()
+            return True, self.state_action_type
+        else:
+            self._unexpected(char)
+        return True, self.state_range_number
+
+    def parse(self, algorithm: str):
+        algorithm += "\n"
+        state = self.state_action_type
+        self.column = 0
+
+        while self.column < len(algorithm):
+            while algorithm[self.column] == " ":
+                self.column += 1
+
+            goto_next, state = state(algorithm[self.column])
+            if goto_next:
+                self.column += 1
+        self.yield_action()
+
+
 def parse_actions(algorithm: str) -> Iterator[Action]:
-    double = False
-    opposite = False
-    factory: Optional[ActionFactory] = None
-
-    for index, char in enumerate(algorithm):
-        if char in string.whitespace:
-            continue
-
-        if char == "'" or char == "2":
-            if factory is None:
-                raise ParsingError(f"Illegal modifier '{char}' at {index + 1}", index)
-            if char == "'":
-                opposite = True
-            else:
-                double = True
-        elif char in action_factories:
-            if factory is not None:
-                yield factory(double, opposite)
-                double = False
-                opposite = False
-            factory = action_factories[char]
-        else:
-            raise ParsingError(f"Unknown character '{char}' at {index + 1}", index)
-    if factory is not None:
-        yield factory(double, opposite)
-
-
-def get_action_representation(action: Action) -> str:
-    if isinstance(action, Turn):
-        if action.type == TurningType.VERTICAL:
-            letter = "L" if action.indices[0] > 0 else "R"
-        elif action.type == TurningType.HORIZONTAL:
-            letter = "U" if action.indices[0] > 0 else "D"
-        else:
-            letter = "F" if action.indices[0] > 0 else "B"
-
-        if action.turns == 2:
-            return letter + "2"
-        else:
-            turns = action.turns
-            if letter not in {"D", "R", "F"}:
-                turns = 4 - turns
-            if turns == 3:
-                letter += "'"
-            return letter
-    elif isinstance(action, Rotate):
-        if action.axis_side in rotation_letters:
-            letter = rotation_letters[action.axis_side]
-        else:
-            letter = rotation_letters[action.axis_side.opposite()]
-            if not action.twice:
-                letter += "'"
-        if action.twice:
-            return letter + "2"
-        else:
-            return letter
-    else:
-        raise ValueError(f"Unknown action type: {type(Action)}")
+    sm = ParsingStateMachine()
+    sm.parse(algorithm)
+    return sm.actions

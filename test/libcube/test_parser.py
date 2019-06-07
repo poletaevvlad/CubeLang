@@ -1,23 +1,8 @@
-from pytest import raises
 import pytest
 
-from libcube.parser import ParsingError, parse_actions, get_action_representation
 from libcube.actions import Turn, Action, Rotate, TurningType
 from libcube.orientation import Side
-
-
-def test_illegal_modifier():
-    with raises(ParsingError) as e_data:
-        list(parse_actions("2RDR'D'"))
-    assert e_data.value.column == 0
-    assert str(e_data.value) == "Illegal modifier '2' at 1"
-
-
-def test_illegal_character():
-    with raises(ParsingError) as e_data:
-        list(parse_actions("RLPRL"))
-    assert e_data.value.column == 2
-    assert str(e_data.value) == "Unknown character 'P' at 3"
+from libcube.parser import ParsingError, parse_actions
 
 
 def test_valid_parsing():
@@ -34,32 +19,40 @@ def test_valid_parsing():
         assert action.turns == turns
 
 
-@pytest.mark.parametrize("text, type, index, turns", [
-    ("F", TurningType.SLICE, 1, 1),
-    ("F'", TurningType.SLICE, 1, 3),
-    ("B", TurningType.SLICE, -1, 3),
-    ("B'", TurningType.SLICE, -1, 1),
+@pytest.mark.parametrize("text, type, indices, turns", [
+    ("F", TurningType.SLICE, [1], 1),
+    ("F'", TurningType.SLICE, [1], 3),
+    ("B", TurningType.SLICE, [-1], 3),
+    ("B'", TurningType.SLICE, [-1], 1),
 
-    ("R", TurningType.VERTICAL, -1, 1),
-    ("R'", TurningType.VERTICAL, -1, 3),
-    ("L", TurningType.VERTICAL, 1, 3),
-    ("L'", TurningType.VERTICAL, 1, 1),
+    ("R", TurningType.VERTICAL, [-1], 1),
+    ("R'", TurningType.VERTICAL, [-1], 3),
+    ("L", TurningType.VERTICAL, [1], 3),
+    ("L'", TurningType.VERTICAL, [1], 1),
 
-    ("U", TurningType.HORIZONTAL, 1, 3),
-    ("U'", TurningType.HORIZONTAL, 1, 1),
-    ("D", TurningType.HORIZONTAL, -1, 1),
-    ("D'", TurningType.HORIZONTAL, -1, 3)
+    ("U", TurningType.HORIZONTAL, [1], 3),
+    ("U'", TurningType.HORIZONTAL, [1], 1),
+    ("D", TurningType.HORIZONTAL, [-1], 1),
+    ("D'", TurningType.HORIZONTAL, [-1], 3),
+
+    ("L[2]", TurningType.VERTICAL, [2], 3),
+    ("L[:2]", TurningType.VERTICAL, [..., 2], 3),
+    ("L2[1:2]", TurningType.VERTICAL, [1, ..., 2], 2),
+    ("L[2:]", TurningType.VERTICAL, [2, ...], 3),
+    ("L[1,3]", TurningType.VERTICAL, [1, 3], 3),
+    ("L'[1:2,3]", TurningType.VERTICAL, [1, ..., 2, 3], 1),
+    ("L[1,2:3]", TurningType.VERTICAL, [1, 2, ..., 3], 3)
 ])
-def test_turn_single(text: str, type: TurningType, index: int, turns: int):
+def test_turn_single(text: str, type: TurningType, indices: int, turns: int):
     actions = list(parse_actions(text))
     assert len(actions) == 1
     action = actions[0]
     assert isinstance(action, Turn)
-    assert action.indices[0] == index
+    assert action.indices == indices
     assert action.turns == turns
     assert action.type == type
 
-    assert text == get_action_representation(action)
+    assert text == str(action)
 
 
 def test_rotation():
@@ -92,5 +85,15 @@ def test_rotation():
     (Rotate(Side.BOTTOM, False), "Y'")
 ])
 def test_representation(action: Action, expected: str):
-    actual = get_action_representation(action)
+    actual = str(action)
     assert expected == actual
+
+
+@pytest.mark.parametrize("text, column", [
+    ("Q", 0), ("X[1]", 1), ("R[", 2), ("R2'", 2), ("R'2", 2), ("R:", 1), ("R[]", 2),
+    ("R[1,]", 4), ("R[,1]", 2), ("R[1,:]", 4), ("R[1:, 1]", 4)
+])
+def test_illegal_parsing(text: str, column: int):
+    with pytest.raises(ParsingError) as e:
+        parse_actions(text)
+    assert e.value.column == column
