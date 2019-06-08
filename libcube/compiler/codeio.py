@@ -7,9 +7,11 @@ class CodeStream:
     def __init__(self):
         self.io = StringIO()
         self.indentation: int = 0
+        self.line_number: int = 0
 
     def push_line(self, text: str) -> None:
         self.io.write((CodeStream.INDENTATION * self.indentation) + text + "\n")
+        self.line_number += 1
 
     def push(self, text: str) -> None:
         for line in text.split("\n"):
