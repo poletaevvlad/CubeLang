@@ -3,7 +3,7 @@ from typing import Optional, NamedTuple, List
 
 
 class RuntimeError(Exception):
-    ACCEPTED_EXCEPTIONS = [ValueError]
+    ACCEPTED_EXCEPTIONS = [ValueError, IndexError]
 
     class StackEntry(NamedTuple):
         function_name: Optional[str]

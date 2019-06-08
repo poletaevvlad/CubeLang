@@ -63,18 +63,24 @@ def add_last(collection: typing.List, value) -> None:
 @stdlib.function([List(T), Integer, T], Void)
 def add_at(collection: typing.List, index: int, value) -> None:
     """ Adds an elements to the list at a specified location. """
+    if index < 0:
+        raise ValueError("List index must be zero or a positive integer")
     collection.insert(index, value)
 
 
 @stdlib.function([List(T)], T)
 def remove_first(collection: typing.List):
     """ Removes and returns the first element of a list. """
+    if len(collection) == 0:
+        raise ValueError("The list is empty. There is notthing to remove")
     return collection.pop(0)
 
 
 @stdlib.function([List(T)], T)
 def remove_last(collection: typing.List):
     """ Removes and returns the last element of a list. """
+    if len(collection) == 0:
+        raise ValueError("The list is empty. There is notthing to remove")
     return collection.pop()
 
 

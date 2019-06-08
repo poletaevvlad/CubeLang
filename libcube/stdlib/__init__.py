@@ -2,6 +2,7 @@ from typing import Dict, Any, List, Callable
 
 from ..compiler.types import Type, Function, Bool
 from ..compiler.stack import Stack
+from ..execution.rt_function import RuntimeFunction
 
 
 class Library:
@@ -22,7 +23,7 @@ class Library:
         def wrapper(function):
             name = function.__name__
             self.add_function(name, function, arguments, return_type)
-            return function
+            return RuntimeFunction(name, function)
 
         return wrapper
 
