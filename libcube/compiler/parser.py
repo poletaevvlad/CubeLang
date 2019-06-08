@@ -84,22 +84,22 @@ for precedence, operators in enumerate(BINARY_OPERATORS):
 
 @parser.handler("int_literal")
 def handle_int_literal(tree: Tree, _stack: Stack) -> Expression:
-    return Expression(tree.line, Integer, str(int(tree.children[0])))
+    return Expression(tree.line - 1, Integer, str(int(tree.children[0])))
 
 
 @parser.handler("float_literal")
 def handle_float_literal(tree: Tree, _stack: Stack) -> Expression:
-    return Expression(tree.line, Real, str(float(tree.children[0])))
+    return Expression(tree.line - 1, Real, str(float(tree.children[0])))
 
 
 @parser.handler("bool_literal_true")
 def handle_bool_literal_true(tree: Tree, _stack: Stack) -> Expression:
-    return Expression(tree.line, Bool, "True")
+    return Expression(tree.line - 1, Bool, "True")
 
 
 @parser.handler("bool_literal_false")
 def handle_bool_literal_false(tree: Tree, _stack: Stack) -> Expression:
-    return Expression(tree.line, Bool, "False")
+    return Expression(tree.line - 1, Bool, "False")
 
 
 @parser.handler("variable")
@@ -108,7 +108,7 @@ def handle_variable(tree: Tree, stack: Stack) -> Expression:
     if variable is None:
         raise UnresolvedReferenceError(tree.children[0])
     var_name = "var_" + str(variable.number) if variable.number >= 0 else tree.children[0]
-    return Expression(tree.line, variable.type, var_name)
+    return Expression(tree.line - 1, variable.type, var_name)
 
 
 @parser.handler("type_int", "type_real", "type_bool", "type_color", "type_side", "type_pattern")
@@ -137,7 +137,7 @@ def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
         value: Expression = parser.handle(tree.children[index + 1], stack)
         assert_type(tree.children[index + 1], value, var_type)
         return [Expression.merge(Void, ["var_" + str(num), " = ", 0], value) for num in nums]
-    return [Expression(tree.line, Void, ["var_" + str(num), " = ", var_type.default_value()]) for num in nums]
+    return [Expression(tree.line - 1, Void, ["var_" + str(num), " = ", var_type.default_value()]) for num in nums]
 
 
 def flatten(x):
@@ -175,7 +175,7 @@ def handle_if_expression(tree: Tree, stack: Stack) -> Expression:
         else_clause = handle_clause(tree.children[-1], stack)
     else:
         else_clause = []
-    return ConditionExpression(tree.line, actions, else_clause)
+    return ConditionExpression(tree.line - 1, actions, else_clause)
 
 
 @parser.handler("while_expression")
@@ -184,7 +184,7 @@ def handle_while_expression(tree: Tree, stack: Stack) -> Expression:
     assert_type(tree.children[0], condition, Bool,
                 "Only expression of boolean type can be used as a while condition")
     actions = handle_clause(tree.children[1], stack)
-    return WhileLoopExpression(tree.line, condition, actions)
+    return WhileLoopExpression(tree.line - 1, condition, actions)
 
 
 @parser.handler("do_expression")
@@ -193,7 +193,7 @@ def handle_do_expression(tree: Tree, stack: Stack) -> Expression:
     assert_type(tree.children[1], condition, Bool,
                 "Only expression of boolean type can be used as a do-while condition")
     actions = handle_clause(tree.children[0], stack)
-    return DoWhileLoopExpression(tree.line, condition, actions)
+    return DoWhileLoopExpression(tree.line - 1, condition, actions)
 
 
 @parser.handler("repeat_expression")
@@ -202,7 +202,7 @@ def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
     assert_type(tree.children[0], iterations, Integer,
                 "Iterations count must be integer")
     actions = handle_clause(tree.children[1], stack)
-    return RepeatLoopExpression(tree.line, iterations, actions)
+    return RepeatLoopExpression(tree.line - 1-1 , iterations, actions)
 
 
 @parser.handler("for_expression")
@@ -232,7 +232,7 @@ def handle_repeat_expression(tree: Tree, stack: Stack) -> Expression:
     else:
         actions = [parser.handle(tree.children[2], stack)]
     stack.pop_frame()
-    return ForLoopExpression(tree.line, var_name, range_expression, actions)
+    return ForLoopExpression(tree.line - 1, var_name, range_expression, actions)
 
 
 @parser.handler("func_call")
@@ -262,7 +262,7 @@ def handle_func_call(tree: Tree, stack: Stack):
     if return_type is None:
         raise FunctionArgumentsError(tree, function_name, func_type, arg_types)
     if len(arguments) == 0:
-        return Expression(tree.line, return_type, [function_name, "()"])
+        return Expression(tree.line - 1, return_type, [function_name, "()"])
     else:
         return Expression.merge(return_type, [function_name, "(", *create_arg_list(len(arguments)), ")"], *arguments)
 
@@ -318,13 +318,13 @@ def handle_collection_item(tree: Tree, stack: Stack):
 @parser.handler("cube_right", "cube_left", "cube_top", "cube_bottom", "cube_front", "cube_back")
 def handle_cube_turning(tree: Tree, _stack: Stack):
     side = tree.data[5:]
-    return CubeTurningExpression(tree.line, side, 1)
+    return CubeTurningExpression(tree.line - 1, side, 1)
 
 
 @parser.handler("cube_rotate_right", "cube_rotate_top", "cube_rotate_front")
 def handle_cube_rotation(tree: Tree, _stack: Stack):
     side = tree.data[12:]
-    return CubeRotationExpression(tree.line, side, False)
+    return CubeRotationExpression(tree.line - 1, side, False)
 
 
 @parser.handler("cube_double", "cube_opposite")
@@ -361,14 +361,14 @@ def handle_cube_turn_range(tree: Tree, stack: Stack):
         if child.data == "range_value":
             expression.indices.append(argument)
         elif child.data == "range_open_left":
-            expression.indices.append(Expression(tree.line, Void, "..."))
+            expression.indices.append(Expression(tree.line - 1, Void, "..."))
             expression.indices.append(argument)
         elif child.data == "range_open_right":
             expression.indices.append(argument)
-            expression.indices.append(Expression(tree.line, Void, "..."))
+            expression.indices.append(Expression(tree.line - 1, Void, "..."))
         else:  # child.data == "range_closed"
             expression.indices.append(argument)
-            expression.indices.append(Expression(tree.line, Void, "..."))
+            expression.indices.append(Expression(tree.line - 1, Void, "..."))
             argument_2 = parser.handle(child.children[1], stack)
             assert_type(child.children[1], argument_2, Integer)
             expression.indices.append(argument_2)
@@ -414,7 +414,7 @@ def handle_pattern(tree: Tree, _stack: Stack):
         pattern_lines.append("[" + ", ".join(pattern_line) + "]")
 
     pattern_array = ', '.join(pattern_lines)
-    return Expression(tree.line, Pattern, [f"Pattern([{pattern_array}])"])
+    return Expression(tree.line - 1, Pattern, [f"Pattern([{pattern_array}])"])
 
 
 @parser.handler("orient_params")
@@ -471,7 +471,7 @@ def handle_function_declaration(tree: Tree, stack: Stack):
     func_type = Function((argument_types, return_type))
     var_num = stack.add_variable(func_name, func_type)
     clause = handle_clause(tree.children[-1], inner_stack)
-    return FunctionDeclarationExpression(tree.line, f"var_{var_num}", func_name, return_type,
+    return FunctionDeclarationExpression(tree.line - 1, f"var_{var_num}", func_name, return_type,
                                          [f"var_{i}" for i in range(len(argument_names))], clause)
 
 
@@ -488,11 +488,11 @@ def handle_return_statement(tree: Tree, stack: Stack):
         return Expression.merge(Void, ["return ", 0], value)
     else:
         if stack.context_return_type == Void:
-            return Expression(tree.line, Void, ["return"])
+            return Expression(tree.line - 1, Void, ["return"])
         else:
             raise CompileTimeError(tree, "A value must be returned from this function")
 
 
 @parser.handler("noop_expression")
 def handle_noop_expression(tree: Tree, _stack: Stack):
-    return Expression(tree.line, Void, "pass")
+    return Expression(tree.line - 1, Void, "pass")

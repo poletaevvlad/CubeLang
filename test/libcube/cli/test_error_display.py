@@ -2,6 +2,8 @@ from io import StringIO
 
 from libcube.cli.error_display import ErrorsOutput
 from libcube.compiler.types import Function, Integer, List, Set, Bool, Void
+from libcube.compiler.code_map import CodeMap
+from libcube.execution import RuntimeError
 
 
 def test_code_single_line():
@@ -74,6 +76,37 @@ Supplied arguments:
     set of bool, bool, 
     bool
 
+"""
+    actual = file.getvalue()
+    assert expected == actual
+
+
+def test_traceback():
+    file = StringIO()
+    errors = ErrorsOutput(file)
+    errors.max_width = 35
+
+    error = RuntimeError("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+    error.add_stack_entry("func1", 20)
+    error.add_stack_entry("func2", 25)
+    error.add_stack_entry(None, 30)
+
+    src_map = CodeMap()
+    src_map.add(20, 10)
+    src_map.add(25, 12)
+    src_map.add(30, 14)
+    errors.print_traceback(error, src_map)
+
+    expected = """\
+[runtime error]
+
+    Lorem ipsum dolor sit amet,
+    consectetur adipiscing elit.
+
+Stack trace:
+    line 11   : func1
+    line 13   : func2
+    line 15   
 """
     actual = file.getvalue()
     assert expected == actual

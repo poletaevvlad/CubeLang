@@ -5,7 +5,7 @@ class CodeMap:
     def __init__(self):
         self.line_numbers: Dict[int, int] = dict()
 
-    def add(self, source_line: int, python_line: int) -> None:
+    def add(self, python_line: int, source_line: int) -> None:
         if source_line is not None and python_line is not None:
             self.line_numbers[python_line] = source_line
 

@@ -2,9 +2,12 @@ from termcolor import colored
 from typing import IO, Iterable, Tuple, Optional, List
 import textwrap
 from ..compiler.types import Function, Void, Type
+from ..compiler.code_map import CodeMap
+from ..execution import RuntimeError
+from ..execution.executor import ITracebackWriter
 
 
-class ErrorsOutput:
+class ErrorsOutput(ITracebackWriter):
     def __init__(self, stream: IO, use_color: bool = False):
         self.stream = stream
         self.max_width = 80
@@ -135,3 +138,16 @@ class ErrorsOutput:
         for line in textwrap.wrap(message, self.max_width - self.text_indent):
             self._echo(prefix + line, nl=True)
         self._echo("", nl=True)
+
+    def print_traceback(self, e: RuntimeError, code_map: CodeMap):
+        self._echo("[runtime error]\n", "red", nl=True)
+        for line in textwrap.wrap(str(e), self.max_width - self.text_indent):
+            self._echo(" " * self.text_indent + line, nl=True)
+        self._echo("\n")
+        self._echo("Stack trace:", nl=True, color="yellow")
+        for func, line in e.stack_entries:
+            self._echo(" " * self.text_indent + f"line {code_map[line] + 1:<5}")
+            if func is None:
+                self._echo("\n")
+            else:
+                self._echo(f": {func}", nl=True)

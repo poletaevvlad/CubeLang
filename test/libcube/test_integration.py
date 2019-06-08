@@ -1,3 +1,4 @@
+from compiler.code_map import CodeMap
 from libcube.compiler import Stack, parser
 from libcube.execution import ExecutionContext
 from libcube.compiler.types import Function, Integer, Void, Color
@@ -5,10 +6,15 @@ from libcube.cube_runtime import CubeRuntime
 from libcube.stdlib import stdlib
 from libcube.cube import Cube
 from libcube import orientation
+from libcube.orientation import Orientation
+from libcube.execution.executor import ITracebackWriter
 
 from unittest.mock import MagicMock
 
-from libcube.orientation import Orientation
+
+class MockTracebackWriter(ITracebackWriter):
+    def print_traceback(self, error: RuntimeError, code_map: CodeMap) -> None:
+        raise RuntimeError()
 
 
 def test_flip_flops():
@@ -34,7 +40,7 @@ def test_flip_flops():
 
     executor = ExecutionContext(globals)
     executor.compile(parser.parse(code, stack))
-    executor.execute()
+    executor.execute(MockTracebackWriter())
     cube_runtime.finished()
 
     out_fn.assert_called_once_with(6)
@@ -61,6 +67,6 @@ def test_orient():
 
     executor = ExecutionContext(globals)
     executor.compile(parser.parse(code, stack))
-    executor.execute()
+    executor.execute(MockTracebackWriter())
     cube_runtime.finished()
     out_fn.assert_called_once_with(orientation.Color.WHITE)
