@@ -277,15 +277,17 @@ class CubeRotationExpression(Expression):
 
 
 class FunctionDeclarationExpression(Expression):
-    def __init__(self, name: str, return_type: Type, arguments: List[str], clause: List[Expression]):
+    def __init__(self, name: str, symbol_name: str, return_type: Type, arguments: List[str], clause: List[Expression]):
         super(FunctionDeclarationExpression, self).__init__(Void, [])
         self.name: str = name
+        self.symbol_name: str = symbol_name
         self.return_type: Type = return_type
         self.arguments: List[str] = arguments
         self.clause: List[Expression] = clause
 
     def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
         arguments = ", ".join(self.arguments)
+        stream.push_line(f"@runtime_function(\"{self.symbol_name}\")")
         stream.push_line(f"def {self.name}({arguments}):")
         stream.indent()
         for expression in self.clause:

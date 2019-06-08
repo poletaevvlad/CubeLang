@@ -471,7 +471,7 @@ def handle_function_declaration(tree: Tree, stack: Stack):
     func_type = Function((argument_types, return_type))
     var_num = stack.add_variable(func_name, func_type)
     clause = handle_clause(tree.children[-1], inner_stack)
-    return FunctionDeclarationExpression(f"var_{var_num}", return_type,
+    return FunctionDeclarationExpression(f"var_{var_num}", func_name, return_type,
                                          [f"var_{i}" for i in range(len(argument_names))], clause)
 
 

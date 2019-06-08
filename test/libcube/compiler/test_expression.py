@@ -214,34 +214,39 @@ def test_cube_rotation():
 
 class TestFunctionDeclaration:
     def test_declaration(self):
-        expression = FunctionDeclarationExpression("func_name", Integer, ["x", "y", "z"], [
-            Expression(Void, "a"), Expression(Void, "b")])
+        expression = FunctionDeclarationExpression("func_name", "func", Integer, ["x", "y", "z"],
+                                                   [Expression(Void, "a"), Expression(Void, "b")])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
-        assert stream.get_contents() == "def func_name(x, y, z):\n    a\n    b\n    return 0\n"
+        assert stream.get_contents() == "@runtime_function(\"func\")\n" \
+                                        "def func_name(x, y, z):\n" \
+                                        "    a\n    b\n" \
+                                        "    return 0\n"
 
     def test_no_arguments(self):
-        expression = FunctionDeclarationExpression("func2", List(Integer), [], [
-            Expression(Void, "a")])
+        expression = FunctionDeclarationExpression("func2", "func2", List(Integer), [],
+                                                   [Expression(Void, "a")])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
-        assert stream.get_contents() == "def func2():\n    a\n    return list()\n"
+        assert stream.get_contents() == "@runtime_function(\"func2\")\n" \
+                                        "def func2():\n    a\n    return list()\n"
 
     def test_no_return(self):
-        expression = FunctionDeclarationExpression("func3", Void, [], [
-            Expression(Void, "a")])
+        expression = FunctionDeclarationExpression("func3", "func3", Void, [],
+                                                   [Expression(Void, "a")])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
-        assert stream.get_contents() == "def func3():\n    a\n"
+        assert stream.get_contents() == "@runtime_function(\"func3\")\ndef func3():\n    a\n"
 
     def test_no_body(self):
-        expression = FunctionDeclarationExpression("func2", List(Integer), [], [])
+        expression = FunctionDeclarationExpression("func2", "func2", List(Integer), [], [])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
-        assert stream.get_contents() == "def func2():\n    return list()\n"
+        assert stream.get_contents() == "@runtime_function(\"func2\")\n" \
+                                        "def func2():\n    return list()\n"
 
     def test_no_body_no_return(self):
-        expression = FunctionDeclarationExpression("func2", Void, [], [])
+        expression = FunctionDeclarationExpression("func2", "func2", Void, [], [])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
-        assert stream.get_contents() == "def func2():\n    pass\n"
+        assert stream.get_contents() == "@runtime_function(\"func2\")\ndef func2():\n    pass\n"

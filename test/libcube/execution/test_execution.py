@@ -3,7 +3,7 @@ import math
 from libcube.compiler.parser import parser
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Function, Void, Real
-from execution.executor import ExecutionContext
+from libcube.execution.executor import ExecutionContext
 from libcube.stdlib import stdlib
 
 from unittest.mock import MagicMock
@@ -175,4 +175,3 @@ def test_functions():
     context.execute()
     return_value = [x[0][0] for x in print_fn.call_args_list]
     assert return_value == [1, 2, 3, 4]
-

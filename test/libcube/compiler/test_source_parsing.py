@@ -714,6 +714,7 @@ class TestFunctionDeclaration:
         expression = parser.handle(tree, stack)
         assert isinstance(expression, FunctionDeclarationExpression)
         assert expression.name == "var_0"
+        assert expression.symbol_name == "func_name"
         assert expression.arguments == ["var_0", "var_1"]
         assert expression.return_type == Bool
         assert expression.clause[0].expression == ["var_0"]
@@ -730,6 +731,7 @@ class TestFunctionDeclaration:
         expression = parser.handle(tree, stack)
         assert isinstance(expression, FunctionDeclarationExpression)
         assert expression.name == "var_0"
+        assert expression.symbol_name == "func_name"
         assert expression.arguments == ["var_0"]
         assert expression.return_type == Void
         assert expression.clause[0].expression == ["var_0"]
@@ -744,6 +746,7 @@ class TestFunctionDeclaration:
         expression = parser.handle(tree, stack)
         assert isinstance(expression, FunctionDeclarationExpression)
         assert expression.name == "var_0"
+        assert expression.symbol_name == "func_name"
         assert expression.arguments == []
         assert expression.return_type == Bool
         assert stack.get_variable("func_name").type == Function(([], Bool))
@@ -754,6 +757,7 @@ class TestFunctionDeclaration:
         expression = parser.handle(tree, stack)
         assert isinstance(expression, FunctionDeclarationExpression)
         assert expression.name == "var_0"
+        assert expression.symbol_name == "func_name"
         assert expression.arguments == []
         assert expression.return_type == Void
         assert stack.get_variable("func_name").type == Function(([], Void))
