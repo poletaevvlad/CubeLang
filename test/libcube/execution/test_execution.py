@@ -3,7 +3,7 @@ import math
 from libcube.compiler.parser import parser
 from libcube.compiler.stack import Stack
 from libcube.compiler.types import Integer, Function, Void, Real
-from libcube.compiler.executor import ExecutionContext
+from execution.executor import ExecutionContext
 from libcube.stdlib import stdlib
 
 from unittest.mock import MagicMock

@@ -1,8 +1,8 @@
 from types import CodeType
 from typing import Iterator, Dict, Any
-from .expression import Expression
-from .codeio import CodeStream
-from .stack import VariablesPool
+from compiler.expression import Expression
+from compiler.codeio import CodeStream
+from compiler.stack import VariablesPool
 
 
 class ExecutionContext:

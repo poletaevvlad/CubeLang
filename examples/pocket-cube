@@ -1,0 +1,30 @@
+let colors: list of color
+add_last(colors, red)
+add_last(colors, green)
+add_last(colors, orange)
+add_last(colors, blue)
+
+orient top: ---/---/--Y then noop end
+
+
+func to_right(index: int): int
+    Y
+    return (index + 1) mod 4
+end
+
+func to_left(index: int): int
+    Y'
+    return (4 + index - 1) mod 4
+end
+
+let index: int = index_of(colors, front[0, 1])
+
+
+while true do
+    if front[1, 1] == color[index] then
+        noop
+    elseif right[1, 0] == color[index] then
+        noop
+    end
+    index = to_right(index)
+end

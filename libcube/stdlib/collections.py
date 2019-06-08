@@ -90,3 +90,12 @@ def remove_at(collection: typing.List, index: int):
 def new_list(size: int, value):
     """ Creates a new list of length `size` and fills it with `value`s. """
     return [value] * size
+
+
+@stdlib.function([List(T), T], Integer)
+def index_of(array: list, value) -> int:
+    """ Returns index of an element in a list if it is present, or -1 otherwise. """
+    try:
+        return array.index(value)
+    except ValueError:
+        return -1

@@ -1,4 +1,5 @@
-from libcube.compiler import Stack, ExecutionContext, parser
+from libcube.compiler import Stack, parser
+from libcube.execution import ExecutionContext
 from libcube.compiler.types import Function, Integer, Void, Color
 from libcube.cube_runtime import CubeRuntime
 from libcube.stdlib import stdlib
