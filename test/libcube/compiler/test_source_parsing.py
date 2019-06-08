@@ -29,8 +29,15 @@ def test_operator_generation():
 
 
 def tr(name: str, *children: typing.Union[lark.Tree, str]) -> typing.Union[lark.Tree, lark.Token]:
+    class Meta:
+        def __init__(self):
+            self.line = 0
+            self.column = 0
+            self.end_line = 0
+            self.end_column = 0
+
     return lark.Tree(name, [lark.Token("", x) if isinstance(x, str) else x
-                            for x in children])
+                            for x in children], meta=Meta())
 
 
 @pytest.mark.parametrize("name, value, exp_type, exp_value", [
@@ -253,11 +260,8 @@ def test_while():
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, WhileLoopExpression)
     assert expression.type == Void
-
-    intermediate = expression.intermediates[0]
-    assert isinstance(intermediate, WhileLoopExpression.Intermediate)
-    assert intermediate.condition.expression == ["True"]
-    assert intermediate.actions[0].expression == ["1"]
+    assert expression.condition.expression == ["True"]
+    assert expression.actions[0].expression == ["1"]
 
 
 def test_while_type_error():
@@ -274,11 +278,8 @@ def test_do_while():
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, DoWhileLoopExpression)
     assert expression.type == Void
-
-    intermediate = expression.intermediates[0]
-    assert isinstance(intermediate, DoWhileLoopExpression.Intermediate)
-    assert intermediate.condition.expression == ["True"]
-    assert intermediate.actions[0].expression == ["2"]
+    assert expression.condition.expression == ["True"]
+    assert expression.actions[0].expression == ["2"]
 
 
 def test_do_while_type_error():
@@ -295,11 +296,8 @@ def test_repeat():
     expression = parser.handle(tree, Stack())
     assert isinstance(expression, RepeatLoopExpression)
     assert expression.type == Void
-
-    intermediate = expression.intermediates[0]
-    assert isinstance(intermediate, RepeatLoopExpression.Intermediate)
-    assert intermediate.times.expression == ["2"]
-    assert intermediate.actions[0].expression == ["True"]
+    assert expression.times.expression == ["2"]
+    assert expression.actions[0].expression == ["True"]
 
 
 def test_repeat_error():
@@ -319,11 +317,9 @@ def test_for_loop_existing_var():
               tr("int_literal", "1"))
     expression = parser.handle(tree, stack)
     assert isinstance(expression, ForLoopExpression)
-    intermediate = expression.intermediates[0]
-    assert isinstance(intermediate, ForLoopExpression.Intermediate)
-    assert intermediate.iterator == "var_0"
-    assert intermediate.range.expression == ["var_1"]
-    assert intermediate.actions[0].expression == ["1"]
+    assert expression.iterator == "var_0"
+    assert expression.range.expression == ["var_1"]
+    assert expression.actions[0].expression == ["1"]
 
 
 def test_for_loop_new_var():
@@ -335,13 +331,11 @@ def test_for_loop_new_var():
               tr("clause", tr("int_literal", "1"), tr("variable", "var")))
     expression = parser.handle(tree, stack)
     assert isinstance(expression, ForLoopExpression)
-    intermediate = expression.intermediates[0]
-    assert isinstance(intermediate, ForLoopExpression.Intermediate)
-    assert intermediate.iterator == "var_1"
-    assert intermediate.range.expression == ["var_0"]
-    assert intermediate.actions[0].expression == ["1"]
-    assert intermediate.actions[1].expression == ["var_1"]
-    assert intermediate.actions[1].type == Integer
+    assert expression.iterator == "var_1"
+    assert expression.range.expression == ["var_0"]
+    assert expression.actions[0].expression == ["1"]
+    assert expression.actions[1].expression == ["var_1"]
+    assert expression.actions[1].type == Integer
 
 
 def test_for_loop_wrong_range():
@@ -546,7 +540,8 @@ class TestCubeTurns:
         assert expr.indices[1].expression == ["..."]
 
     def test_indices_both(self):
-        tree = tr("cube_turn_range", tr("cube_left"), tr("range_closed", tr("int_literal", "1"), tr("int_literal", "3")))
+        tree = tr("cube_turn_range", tr("cube_left"),
+                  tr("range_closed", tr("int_literal", "1"), tr("int_literal", "3")))
         expr = parser.handle(tree, Stack())
         assert isinstance(expr, CubeTurningExpression)
         assert len(expr.indices) == 3

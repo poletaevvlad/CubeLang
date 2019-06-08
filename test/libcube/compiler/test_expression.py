@@ -30,9 +30,9 @@ def test_context_manager():
 
 
 def test_generating():
-    expression = Expression(Integer)
-    t1 = expression.add_intermediate(Expression(Integer, ["2 + 3"]))
-    t2 = expression.add_intermediate(Expression(Integer, ["4 + 6"]))
+    expression = Expression(0, Integer)
+    t1 = expression.add_intermediate(Expression(0, Integer, ["2 + 3"]))
+    t2 = expression.add_intermediate(Expression(0, Integer, ["4 + 6"]))
     expression.expression = [t1, " * ", t2]
 
     stream = CodeStream()
@@ -44,18 +44,18 @@ def test_generating():
 
 
 def test_merge():
-    intermediates = [Expression(Integer) for _ in range(7)]
+    intermediates = [Expression(0, Integer) for _ in range(7)]
 
-    ex1 = Expression(Integer, [0, "/", 1])
+    ex1 = Expression(0, Integer, [0, "/", 1])
     ex1.add_intermediate(intermediates[0])
     ex1.add_intermediate(intermediates[1])
 
-    ex2 = Expression(Integer, [0, "*", 1, "*", 2])
+    ex2 = Expression(0, Integer, [0, "*", 1, "*", 2])
     ex2.add_intermediate(intermediates[2])
     ex2.add_intermediate(intermediates[3])
     ex2.add_intermediate(intermediates[4])
 
-    ex3 = Expression(Integer, [1, "+", 0])
+    ex3 = Expression(0, Integer, [1, "+", 0])
     ex3.add_intermediate(intermediates[5])
     ex3.add_intermediate(intermediates[6])
 
@@ -67,8 +67,8 @@ def test_merge():
 
 class TestConditions:
     def test_simple(self):
-        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b"), Expression(Integer, "c")])],
-                                   [])
+        expr = ConditionExpression(0, [(Expression(0, Bool, ["a"]), [Expression(0, Integer, "b"),
+                                                                     Expression(0, Integer, "c")])], [])
         pool = VariablesPool()
         stream = CodeStream()
         expr.generate(pool, stream, None)
@@ -78,8 +78,8 @@ class TestConditions:
         assert expr.type == Void
 
     def test_else(self):
-        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")])],
-                                   [Expression(Real, "c"), Expression(Bool, "d")])
+        expr = ConditionExpression(0, [(Expression(0, Bool, ["a"]), [Expression(0, Integer, "b")])],
+                                      [Expression(0, Real, "c"), Expression(0, Bool, "d")])
         pool = VariablesPool()
         stream = CodeStream()
         expr.generate(pool, stream, None)
@@ -88,9 +88,9 @@ class TestConditions:
         assert expr.type == Void
 
     def test_elseif(self):
-        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")]),
-                                    (Expression(Bool, ["c"]), [Expression(Integer, "d")])],
-                                   [Expression(Real, "e")])
+        expr = ConditionExpression(0, [(Expression(0, Bool, ["a"]), [Expression(0, Integer, "b")]),
+                                       (Expression(0, Bool, ["c"]), [Expression(0, Integer, "d")])],
+                                   [Expression(0, Real, "e")])
         pool = VariablesPool()
         stream = CodeStream()
         expr.generate(pool, stream, None)
@@ -98,8 +98,8 @@ class TestConditions:
         assert res == "if a:\n    b\nelse:\n    if c:\n        d\n    else:\n        e\n"
 
     def test_expression(self):
-        expr = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")])],
-                                   [Expression(Real, "c"), Expression(Integer, "d")])
+        expr = ConditionExpression(0, [(Expression(0, Bool, ["a"]), [Expression(0, Integer, "b")])],
+                                      [Expression(0, Real, "c"), Expression(0, Integer, "d")])
         pool = VariablesPool()
         stream = CodeStream()
         expr.generate(pool, stream, "res")
@@ -109,8 +109,9 @@ class TestConditions:
         assert expr.type == Integer
 
     def test_merge(self):
-        expr1 = Expression(Integer, ["a"])
-        expr2 = ConditionExpression([(Expression(Bool, ["a"]), [Expression(Integer, "b")])], [Expression(Integer, "d")])
+        expr1 = Expression(0, Integer, ["a"])
+        expr2 = ConditionExpression(0, [(Expression(0, Bool, ["a"]), [Expression(0, Integer, "b")])],
+                                    [Expression(0, Integer, "d")])
         merged = Expression.merge(Bool, [0, " -- ", 1], expr1, expr2)
 
         pool = VariablesPool()
@@ -123,13 +124,13 @@ class TestConditions:
 
 class TestWhileLoop:
     def test_loop(self):
-        condition = Expression(Bool, ["a ", 0])
-        condition.add_intermediate(Expression(Integer, "b"))
+        condition = Expression(0, Bool, ["a ", 0])
+        condition.add_intermediate(Expression(0, Integer, "b"))
 
-        action = Expression(Void, ["action ", 0])
-        action.add_intermediate(Expression(Integer, "A"))
+        action = Expression(0, Void, ["action ", 0])
+        action.add_intermediate(Expression(0, Integer, "A"))
 
-        expr = WhileLoopExpression(condition, [Expression(Integer, "b"), action])
+        expr = WhileLoopExpression(0, condition, [Expression(0, Integer, "b"), action])
         stream = CodeStream()
         expr.generate(VariablesPool(), stream, None)
 
@@ -137,10 +138,10 @@ class TestWhileLoop:
         assert res == "tmp_0 = b\nwhile a tmp_0:\n    b\n    tmp_1 = A\n    action tmp_1\n    tmp_0 = b\n"
 
     def test_loop_variable(self):
-        condition = Expression(Bool, ["a ", 0])
-        condition.add_intermediate(Expression(Integer, "b"))
+        condition = Expression(0, Bool, ["a ", 0])
+        condition.add_intermediate(Expression(0, Integer, "b"))
 
-        expr = WhileLoopExpression(condition, [Expression(Integer, "b"), Expression(Integer, "c")])
+        expr = WhileLoopExpression(0, condition, [Expression(0, Integer, "b"), Expression(0, Integer, "c")])
         stream = CodeStream()
         expr.generate(VariablesPool(), stream, None)
 
@@ -150,9 +151,9 @@ class TestWhileLoop:
 
 class TestRepeatLoop:
     def test_loop(self):
-        iterations = Expression(Bool, ["a ", 0])
-        iterations.add_intermediate(Expression(Void, ["b"]))
-        expr = RepeatLoopExpression(iterations, [Expression(Void, "a"), Expression(Void, "b")])
+        iterations = Expression(0, Bool, ["a ", 0])
+        iterations.add_intermediate(Expression(0, Void, ["b"]))
+        expr = RepeatLoopExpression(0, iterations, [Expression(0, Void, "a"), Expression(0, Void, "b")])
         stream = CodeStream()
         expr.generate(VariablesPool(), stream, None)
 
@@ -162,9 +163,9 @@ class TestRepeatLoop:
 
 class TestDoWhileLoop:
     def test_loop(self):
-        conditon = Expression(Bool, ["a ", 0])
-        conditon.add_intermediate(Expression(Void, ["b"]))
-        expr = DoWhileLoopExpression(conditon, [Expression(Void, "a"), Expression(Void, "b")])
+        conditon = Expression(0, Bool, ["a ", 0])
+        conditon.add_intermediate(Expression(0, Void, ["b"]))
+        expr = DoWhileLoopExpression(0, conditon, [Expression(0, Void, "a"), Expression(0, Void, "b")])
         stream = CodeStream()
         expr.generate(VariablesPool(), stream, None)
 
@@ -174,9 +175,9 @@ class TestDoWhileLoop:
 
 class TestForLoop:
     def test_loop(self):
-        range_expression = Expression(Set(Integer), ["range(", 0, ")"])
-        range_expression.add_intermediate(Expression(Bool, ["x"]))
-        expr = ForLoopExpression("i", range_expression, [Expression(Void, "x"), Expression(Integer, "y")])
+        range_expression = Expression(0, Set(Integer), ["range(", 0, ")"])
+        range_expression.add_intermediate(Expression(0, Bool, ["x"]))
+        expr = ForLoopExpression(0, "i", range_expression, [Expression(0, Void, "x"), Expression(0, Integer, "y")])
 
         stream = CodeStream()
         expr.generate(VariablesPool(), stream, None)
@@ -186,27 +187,27 @@ class TestForLoop:
 
 class TestTurning:
     def test_single(self):
-        expression = CubeTurningExpression("left", 1)
+        expression = CubeTurningExpression(0, "left", 1)
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "cube_turn(left, 1, [1])\n"
 
     def test_double(self):
-        expression = CubeTurningExpression("left", 2)
+        expression = CubeTurningExpression(0, "left", 2)
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "cube_turn(left, 2, [1])\n"
 
     def test_indices(self):
-        expression = CubeTurningExpression("left", 2)
-        expression.indices = [Expression(Integer, x) for x in "abc"]
+        expression = CubeTurningExpression(0, "left", 2)
+        expression.indices = [Expression(0, Integer, x) for x in "abc"]
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "cube_turn(left, 2, [a, b, c])\n"
 
 
 def test_cube_rotation():
-    expression = CubeRotationExpression("front", False)
+    expression = CubeRotationExpression(0, "front", False)
     stream = CodeStream()
     expression.generate(VariablesPool(), stream, None)
     assert stream.get_contents() == "cube_rotate(front, False)\n"
@@ -214,8 +215,8 @@ def test_cube_rotation():
 
 class TestFunctionDeclaration:
     def test_declaration(self):
-        expression = FunctionDeclarationExpression("func_name", "func", Integer, ["x", "y", "z"],
-                                                   [Expression(Void, "a"), Expression(Void, "b")])
+        expression = FunctionDeclarationExpression(0, "func_name", "func", Integer, ["x", "y", "z"],
+                                                   [Expression(0, Void, "a"), Expression(0, Void, "b")])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "@runtime_function(\"func\")\n" \
@@ -224,29 +225,29 @@ class TestFunctionDeclaration:
                                         "    return 0\n"
 
     def test_no_arguments(self):
-        expression = FunctionDeclarationExpression("func2", "func2", List(Integer), [],
-                                                   [Expression(Void, "a")])
+        expression = FunctionDeclarationExpression(0, "func2", "func2", List(Integer), [],
+                                                   [Expression(0, Void, "a")])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "@runtime_function(\"func2\")\n" \
                                         "def func2():\n    a\n    return list()\n"
 
     def test_no_return(self):
-        expression = FunctionDeclarationExpression("func3", "func3", Void, [],
-                                                   [Expression(Void, "a")])
+        expression = FunctionDeclarationExpression(0, "func3", "func3", Void, [],
+                                                   [Expression(0, Void, "a")])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "@runtime_function(\"func3\")\ndef func3():\n    a\n"
 
     def test_no_body(self):
-        expression = FunctionDeclarationExpression("func2", "func2", List(Integer), [], [])
+        expression = FunctionDeclarationExpression(0, "func2", "func2", List(Integer), [], [])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "@runtime_function(\"func2\")\n" \
                                         "def func2():\n    return list()\n"
 
     def test_no_body_no_return(self):
-        expression = FunctionDeclarationExpression("func2", "func2", Void, [], [])
+        expression = FunctionDeclarationExpression(0, "func2", "func2", Void, [], [])
         stream = CodeStream()
         expression.generate(VariablesPool(), stream, None)
         assert stream.get_contents() == "@runtime_function(\"func2\")\ndef func2():\n    pass\n"

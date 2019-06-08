@@ -38,7 +38,8 @@ class VariablesPool:
 
 
 class Expression:
-    def __init__(self, expr_type: Type, text: Union[str, TemplateType] = None):
+    def __init__(self, line_number: int, expr_type: Type, text: Union[str, TemplateType] = None):
+        self.line_number: int = line_number
         self.intermediates: List[Expression] = list()
         self.type: Type = expr_type
         if text is not None and isinstance(text, str):
@@ -83,7 +84,8 @@ class Expression:
 
     @staticmethod
     def merge(expr_type: Type, template: TemplateType, *parts: "Expression") -> "Expression":
-        result = Expression(expr_type)
+        line_number = None if any(x is None for x in parts) else min(x.line_number for x in parts)
+        result = Expression(line_number, expr_type)
 
         expressions = [parts[0].expression]
         for inter in parts[0].intermediates:
@@ -106,9 +108,9 @@ class Expression:
 
 class ConditionExpression(Expression):
     class Intermediate(Expression):
-        def __init__(self, returns_value: bool, actions: List[Tuple[Expression, List[Expression]]],
+        def __init__(self, line_number: int, returns_value: bool, actions: List[Tuple[Expression, List[Expression]]],
                      else_clause: List[Expression]):
-            super(ConditionExpression.Intermediate, self).__init__(Void, [])
+            super(ConditionExpression.Intermediate, self).__init__(line_number, Void)
             self.returns_value = returns_value
             self.actions: List[Tuple[Expression, List[Expression]]] = actions
             self.else_clause: List[Expression] = else_clause
@@ -141,7 +143,8 @@ class ConditionExpression(Expression):
                 var_name = None
             self._generate_if(self.actions, temp_pool, stream, var_name)
 
-    def __init__(self, actions: List[Tuple[Expression, List[Expression]]], else_clause: List[Expression]):
+    def __init__(self, line_number: int, actions: List[Tuple[Expression, List[Expression]]],
+                 else_clause: List[Expression]):
         if len(else_clause) > 0:
             res_type = else_clause[-1].type
             for action in actions:
@@ -154,105 +157,85 @@ class ConditionExpression(Expression):
         else:
             res_type = Void
 
-        super(ConditionExpression, self).__init__(res_type, [0])
-        self.add_intermediate(ConditionExpression.Intermediate(res_type, actions, else_clause))
+        super(ConditionExpression, self).__init__(line_number, res_type, [0])
+        self.add_intermediate(ConditionExpression.Intermediate(line_number, res_type, actions, else_clause))
 
 
 class WhileLoopExpression(Expression):
-    class Intermediate(Expression):
-        def __init__(self, condition: Expression, actions: List[Expression]):
-            self.condition: Expression = condition
-            self.actions: List[Expression] = actions
-            super().__init__(Void, [])
+    def __init__(self, line_number: int, condition: Expression, actions: List[Expression]):
+        super().__init__(line_number, Void)
+        self.condition: Expression = condition
+        self.actions: List[Expression] = actions
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
-            with temp_pool.allocate(len(self.condition.intermediates)) as cond_vars:
-                self.condition.generate_intermediates(cond_vars, temp_pool, stream)
-                stream.push_line("while " + self.condition.generate_expression_line(cond_vars) + ":")
-                stream.indent()
-                for action in self.actions:
-                    action.generate(temp_pool, stream, None)
-                self.condition.generate_intermediates(cond_vars, temp_pool, stream)
-                stream.unindent()
-
-    def __init__(self, condition: Expression, actions: List[Expression]):
-        super().__init__(Void, [0])
-        self.add_intermediate(WhileLoopExpression.Intermediate(condition, actions))
-
-
-class RepeatLoopExpression(Expression):
-    class Intermediate(Expression):
-        def __init__(self, times: Expression, actions: List[Expression]):
-            self.times: Expression = times
-            self.actions: List[Expression] = actions
-            super().__init__(Void, [])
-
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
-            with temp_pool.allocate(1) as ctr:
-                counter, = ctr
-                line = self.times.generate_line(temp_pool, stream)
-                stream.push_line(f"for tmp_{counter} in range({line}):")
-                stream.indent()
-                for action in self.actions:
-                    action.generate(temp_pool, stream, None)
-                stream.unindent()
-
-    def __init__(self, times: Expression, actions: List[Expression]):
-        super().__init__(Void, [0])
-        self.add_intermediate(RepeatLoopExpression.Intermediate(times, actions))
-
-
-class DoWhileLoopExpression(Expression):
-    class Intermediate(Expression):
-        def __init__(self, condition: Expression, actions: List[Expression]):
-            self.condition: Expression = condition
-            self.actions: List[Expression] = actions
-            super(DoWhileLoopExpression.Intermediate, self).__init__(Void, [])
-
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
-            stream.push_line("while True:")
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+        with temp_pool.allocate(len(self.condition.intermediates)) as cond_vars:
+            self.condition.generate_intermediates(cond_vars, temp_pool, stream)
+            stream.push_line("while " + self.condition.generate_expression_line(cond_vars) + ":")
             stream.indent()
             for action in self.actions:
                 action.generate(temp_pool, stream, None)
-
-            condition = self.condition.generate_line(temp_pool, stream)
-            stream.push(f"if not ({condition}):")
-            stream.indent()
-            stream.push("break")
-            stream.unindent(2)
-
-    def __init__(self, condition: Expression, actions: List[Expression]):
-        super().__init__(Void, [0])
-        self.add_intermediate(DoWhileLoopExpression.Intermediate(condition, actions))
+            self.condition.generate_intermediates(cond_vars, temp_pool, stream)
+            stream.unindent()
 
 
-class ForLoopExpression(Expression):
-    class Intermediate(Expression):
-        def __init__(self, iterator: str, loop_range: Expression, actions: List[Expression]):
-            self.iterator: str = iterator
-            self.range: Expression = loop_range
-            self.actions: List[Expression] = actions
-            super().__init__(Void, [])
+class RepeatLoopExpression(Expression):
+    def __init__(self, line_number: int, times: Expression, actions: List[Expression]):
+        super().__init__(line_number, Void)
+        self.times: Expression = times
+        self.actions: List[Expression] = actions
 
-        def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
-            range_expression = self.range.generate_line(temp_pool, stream)
-            stream.push(f"for {self.iterator} in {range_expression}:")
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+        with temp_pool.allocate(1) as ctr:
+            counter, = ctr
+            line = self.times.generate_line(temp_pool, stream)
+            stream.push_line(f"for tmp_{counter} in range({line}):")
             stream.indent()
             for action in self.actions:
                 action.generate(temp_pool, stream, None)
             stream.unindent()
 
-    def __init__(self, iterator: str, loop_range: Expression, actions: List[Expression]):
-        super().__init__(Void, [0])
-        self.add_intermediate(ForLoopExpression.Intermediate(iterator, loop_range, actions))
+
+class DoWhileLoopExpression(Expression):
+    def __init__(self, line_number: int, condition: Expression, actions: List[Expression]):
+        super().__init__(line_number, Void)
+        self.condition = condition
+        self.actions = actions
+
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+        stream.push_line("while True:")
+        stream.indent()
+        for action in self.actions:
+            action.generate(temp_pool, stream, None)
+
+        condition = self.condition.generate_line(temp_pool, stream)
+        stream.push(f"if not ({condition}):")
+        stream.indent()
+        stream.push("break")
+        stream.unindent(2)
+
+
+class ForLoopExpression(Expression):
+    def __init__(self, line_number: int, iterator: str, loop_range: Expression, actions: List[Expression]):
+        super().__init__(line_number, Void)
+        self.iterator: str = iterator
+        self.range: Expression = loop_range
+        self.actions: List[Expression] = actions
+
+    def generate(self, temp_pool: VariablesPool, stream: CodeStream, var_name: Optional[str] = None):
+        range_expression = self.range.generate_line(temp_pool, stream)
+        stream.push(f"for {self.iterator} in {range_expression}:")
+        stream.indent()
+        for action in self.actions:
+            action.generate(temp_pool, stream, None)
+        stream.unindent()
 
 
 class CubeTurningExpression(Expression):
-    def __init__(self, side: str, amount: int):
-        super(CubeTurningExpression, self).__init__(Void, [])
+    def __init__(self, line_number: int, side: str, amount: int):
+        super().__init__(line_number, Void)
         self.side: str = side
         self.amount: int = amount
-        self.indices: List[Union[Expression, type(Ellipsis)]] = [Expression(Integer, "1")]
+        self.indices: List[Union[Expression, type(Ellipsis)]] = [Expression(line_number, Integer, "1")]
 
     def generate(self, temp_pool: VariablesPool, stream: CodeStream,
                  var_name: Optional[str] = None):
@@ -267,8 +250,8 @@ class CubeTurningExpression(Expression):
 
 
 class CubeRotationExpression(Expression):
-    def __init__(self, side: str, twice: bool = False):
-        super(CubeRotationExpression, self).__init__(Void, [])
+    def __init__(self, line_number: int, side: str, twice: bool = False):
+        super().__init__(line_number, Void)
         self.side: str = side
         self.twice: bool = twice
 
@@ -277,8 +260,9 @@ class CubeRotationExpression(Expression):
 
 
 class FunctionDeclarationExpression(Expression):
-    def __init__(self, name: str, symbol_name: str, return_type: Type, arguments: List[str], clause: List[Expression]):
-        super(FunctionDeclarationExpression, self).__init__(Void, [])
+    def __init__(self, line_number: int, name: str, symbol_name: str,
+                 return_type: Type, arguments: List[str], clause: List[Expression]):
+        super().__init__(line_number, Void)
         self.name: str = name
         self.symbol_name: str = symbol_name
         self.return_type: Type = return_type
