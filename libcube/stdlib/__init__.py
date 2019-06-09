@@ -21,10 +21,13 @@ class Library:
 
     def function(self, arguments: List[Type], return_type: Type):
         def wrapper(function):
-            name = function.__name__
+            if isinstance(function, RuntimeFunction):
+                name = function.name
+            else:
+                name = function.__name__
+                function = RuntimeFunction(name, function)
             self.add_function(name, function, arguments, return_type)
-            return RuntimeFunction(name, function)
-
+            return function
         return wrapper
 
     def add_value(self, name: str, value_type: Type, value: Any):

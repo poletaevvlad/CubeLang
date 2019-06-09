@@ -146,7 +146,8 @@ class ErrorsOutput(ITracebackWriter):
         self._echo("\n")
         self._echo("Stack trace:", nl=True, color="yellow")
         for func, line in e.stack_entries:
-            self._echo(" " * self.text_indent + f"line {code_map[line] + 1:<5}")
+            line_number = "?" if line is None else code_map[line] + 1
+            self._echo(" " * self.text_indent + f"line {line_number:<5}")
             if func is None:
                 self._echo("\n")
             else:

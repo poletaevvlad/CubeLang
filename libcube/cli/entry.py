@@ -8,9 +8,10 @@ from .cube_builder import init_cube_args_parser, build_cube
 from .error_display import ErrorsOutput
 from .options import file_contents_type
 from .postprocessors_builder import init_postprocessors_args_parser, build_postprocessors_chain
-from ..compiler import Stack, ExecutionContext, parser
+from ..compiler import Stack, parser
 from ..compiler.errors import CompileTimeError, FunctionArgumentsError
 from ..cube_runtime import CubeRuntime
+from ..execution import ExecutionContext
 from ..stdlib import stdlib
 
 
@@ -56,5 +57,5 @@ def main():
         return
 
     # if not pycode:
-    context.execute()
+    context.execute(errors)
     runtime.finished()

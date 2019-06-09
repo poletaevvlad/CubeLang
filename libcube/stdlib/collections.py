@@ -87,6 +87,8 @@ def remove_last(collection: typing.List):
 @stdlib.function([List(T), Integer], T)
 def remove_at(collection: typing.List, index: int):
     """ Removes and returns an element of a list at specified location. """
+    if index < 0 or index >= len(collection):
+        raise ValueError("List index is out of range")
     element = collection[index]
     del collection[index]
     return element
@@ -95,6 +97,8 @@ def remove_at(collection: typing.List, index: int):
 @stdlib.function([Integer, T], List(T))
 def new_list(size: int, value):
     """ Creates a new list of length `size` and fills it with `value`s. """
+    if size < 0:
+        raise ValueError("List size must be a positive integer")
     return [value] * size
 
 
