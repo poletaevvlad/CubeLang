@@ -138,12 +138,31 @@ class Function(Type):
         args = ", ".join(f"({x.arguments}, {x.return_type})" for x in self.overloads)
         return f"{self.name}({args})"
 
+    def expand_variadic(types: typing.List[typing.Union[Type, type(Ellipsis)]], 
+                        number: int) -> typing.Optional[typing.List[Type]]:
+        result: List[Type] = []
+        previous = None
+        for t in types:
+            if t == Ellipsis:
+                if previous == None:
+                    raise ValueError("Ellipsis cannot be the first argument of the function")
+                while len(result) < number:
+                    result.append(previous)
+                return result
+            else:
+                result.append(t)
+                if len(result) > number:
+                    return None
+                previous = t
+        return result if len(result) == number else None
+
     def takes_arguments(self, arguments: typing.List[Type]) -> typing.Optional[Type]:
         for overload in self.overloads:
-            if len(arguments) != len(overload.arguments):
+            func_arguments = Function.expand_variadic(overload.arguments, len(arguments))
+            if func_arguments is None:
                 continue
             generic_arguments = {}
-            for func_arg, real_arg in zip(overload.arguments, arguments):
+            for func_arg, real_arg in zip(func_arguments, arguments):
                 if func_arg == Real and real_arg == Integer:
                     continue
                 else:

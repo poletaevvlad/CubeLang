@@ -76,13 +76,18 @@ def test_generic_args(a: Type, b: Type, result):
     ([Real, List(Integer)], Real),
     ([Integer, List(Integer)], Real),
     ([Real, List(Real)], None),
-    ([Real, Set(Real)], None)
+    ([Real, Set(Real)], None),
+    ([Color, Real, Real], Side),
+    ([Color, Integer], Side),
+    ([Color, Bool], None),
+    ([Color], None)
 ])
 def test_function_arguments(args: typing.List[Type], return_type: Type):
     func = Function(([Integer, Integer], Integer),
                     ([Integer, Real], Bool),
                     ([Real, Real], Color),
-                    ([Real, List(Integer)], Real))
+                    ([Real, List(Integer)], Real),
+                    ([Color, Real, ...], Side))
     res = func.takes_arguments(args)
     assert res == return_type
 
@@ -101,6 +106,18 @@ def test_function_arguments_generic(args: typing.List[Type], return_type: Type):
                     ([Set(T), List(T)], T))
     assert func.takes_arguments(args) == return_type
 
+
+@pytest.mark.parametrize("arguments, amount, expected", [
+    ([Bool, Integer, ...], 5, [Bool, Integer, Integer, Integer, Integer]),
+    ([Bool, Integer, ...], 2, [Bool, Integer]),
+    ([Bool, Integer, ...], 1, None),
+    ([Real, ...], 2, [Real, Real]),
+    ([Real], 1, [Real]),
+    ([Real, Real], 1, None),
+    ([Real, Real], 3, None)
+])
+def test_variadic_expansion(arguments, amount, expected):
+    assert Function.expand_variadic(arguments, amount) == expected
 
 @pytest.mark.parametrize("annotation, val_type", [
     (int, Integer), (float, Real), (bool, Bool), (None, Void),

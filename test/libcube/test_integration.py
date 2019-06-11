@@ -1,4 +1,4 @@
-from compiler.code_map import CodeMap
+from libcube.compiler.code_map import CodeMap
 from libcube.compiler import Stack, parser
 from libcube.execution import ExecutionContext
 from libcube.compiler.types import Function, Integer, Void, Color
