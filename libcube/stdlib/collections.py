@@ -45,6 +45,11 @@ def clear(collection: CollectionType) -> None:
     collection.clear()
 
 
+@stdlib.function([T, ...], Set(T))
+def set_of(*args):
+    return set(args)
+
+
 # List functions
 
 @stdlib.function([List(T), T], Void)
@@ -109,3 +114,8 @@ def index_of(array: list, value) -> int:
         return array.index(value)
     except ValueError:
         return -1
+
+
+@stdlib.function([T, ...], List(T))
+def list_of(*args):
+    return list(args)

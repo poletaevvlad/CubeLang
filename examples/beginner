@@ -190,14 +190,6 @@ end
 # Correct positions on top side
 #
 
-func set_of(a: color, b: color, c: color): set of color
-    let result: set of color
-    add(result, a)
-    add(result, b)
-    add(result, c)
-    return result
-end
-
 over = false
 while not(over) do
     let i: int = 0
