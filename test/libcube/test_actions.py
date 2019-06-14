@@ -94,8 +94,8 @@ def test_turning_vertical(side: Side, func: str, out_sides: List[int], out_amoun
 
 
 @pytest.mark.parametrize("side, turn, res_side, res_sides, res_turns", [
-    (Side.TOP,   Side.FRONT, TurningType.VERTICAL, -1, 3),
-    (Side.RIGHT, Side.FRONT, TurningType.HORIZONTAL, -1, 3),
+    (Side.TOP,   Side.FRONT, TurningType.VERTICAL, -1, 1),
+    (Side.RIGHT, Side.FRONT, TurningType.HORIZONTAL, -1, 1),
 
     (Side.RIGHT, Side.TOP, TurningType.SLICE, 1, 1),
     (Side.FRONT, Side.TOP, TurningType.VERTICAL, 1, 3),
@@ -138,3 +138,38 @@ def test_orientation_changes(orientation: Side, action: Turn, type: TurningType,
 ])
 def test_normalize_indices(indices, expected):
     assert expected == Turn.normalize_indices(indices, 5)
+
+
+def _iterate_orientations():
+    for side in Side:
+        orientation = Orientation.regular(side)
+        for i in range(4):
+            yield orientation
+            orientation = orientation.rotate_clockwise()
+
+
+def cartesian(a, b):
+    for x in a:
+        for y in b:
+            yield x, y
+
+
+@pytest.mark.parametrize("orientation, turn", cartesian(
+    list(_iterate_orientations()), [
+        Turn(Side.LEFT, 1), Turn(Side.LEFT, 1, 3),
+        Turn(Side.RIGHT, 1), Turn(Side.RIGHT, 1, 3),
+        Turn(Side.TOP, 1), Turn(Side.TOP, 1, 3),
+        Turn(Side.BOTTOM, 1), Turn(Side.BOTTOM, 1, 3),
+        Turn(Side.FRONT, 1), Turn(Side.FRONT, 1, 3),
+        Turn(Side.BACK, 1), Turn(Side.BACK, 1, 3)]))
+def test_orientation_transform(orientation, turn):
+    cube1 = Cube((3, 3, 3))
+    cube2 = Cube((3, 3, 3))
+
+    turn.perform(cube1, orientation)
+    origin = Orientation()
+    turn.from_orientation(orientation, origin).perform(cube2, origin)
+
+    for side in Side:
+        o = Orientation.regular(side)
+        assert str(cube1.get_side(o).colors) == str(cube2.get_side(o).colors)

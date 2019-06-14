@@ -164,9 +164,9 @@ class Turn(Action):
                 return Turn(TurningType.SLICE, Turn.opposite_side(self.indices), self.turns)
         elif turn == Side.FRONT:
             if self.type == TurningType.VERTICAL:
-                return Turn(TurningType.HORIZONTAL, self.indices, 4 - self.turns)
+                return Turn(TurningType.HORIZONTAL, self.indices, self.turns)
             else:  # TurningType.HORIZONTAL
-                return Turn(TurningType.VERTICAL, Turn.opposite_side(self.indices), self.turns)
+                return Turn(TurningType.VERTICAL, Turn.opposite_side(self.indices), 4 - self.turns)
         elif turn == Side.RIGHT:
             if self.type == TurningType.SLICE:
                 return Turn(TurningType.HORIZONTAL, self.indices, 4 - self.turns)
@@ -177,7 +177,7 @@ class Turn(Action):
 
     def from_orientation(self, orientation: Orientation, origin=Orientation()) -> "Turn":
         result: Turn = self
-        for turn in orientation.turns_to(origin):
+        for turn in list(orientation.turns_to(origin)):
             result = result._transform(turn)
         return result
 

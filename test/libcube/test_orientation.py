@@ -139,7 +139,7 @@ def test_iterate_orientations(keeping, expected):
     (B, R, F, R, [T, T]),
     (R, B, F, D, [R, F, F, F]),
     (R, F, L, D, [T, T, F, F, F]),
-    (F, T, L, D, [T, T, F, F, F]),
+    (F, T, L, D, [T, T, T, F, F]),
 ])
 def test_turns_to_origin(from_front, from_top, to_front, to_top, steps):
     orientation = Orientation(from_front, from_top)
