@@ -1,6 +1,7 @@
 .idea
 __pycache__
 *.iml
+*.pyc
 .mypy_cache
 
 run_*.sh

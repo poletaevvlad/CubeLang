@@ -1,30 +1,139 @@
-let colors: list of color
-add_last(colors, red)
-add_last(colors, green)
-add_last(colors, orange)
-add_last(colors, blue)
+#
+# Top layer (3 pieces)
+#
 
-orient top: ---/---/--Y then noop end
-
-
-func to_right(index: int): int
-    Y
-    return (index + 1) mod 4
+func opposite_color(clr: color): color
+    return if clr == white then yellow
+        else-if clr == yellow then  white
+        else-if clr == orange then red
+        else-if clr == red then orange
+        else-if clr == green then blue
+        else green end
 end
 
-func to_left(index: int): int
-    Y'
-    return (4 + index - 1) mod 4
-end
+orient top: --/-Y then noop end
+let first_color: set of color = set_of(front[0, 1], right[0, 0])
 
-let index: int = index_of(colors, front[0, 1])
+let front_complete: boolean = front[0, 0] == front[0, 1] and top[1, 0] == top[0, 0]
+let right_complete: boolean = right[0, 0] == right[0, 1] and top[0, 1] == top[1, 1]
 
+let expected_left: set of color = set_of(top[1, 1], front[0, 1], 
+        opposite_color(right[0, 0]))
+let expected_back: set of color = set_of(top[1, 1], opposite_color(front[0, 1]),
+        right[0, 0])
 
-while true do
-    if front[1, 1] == color[index] then
-        noop
-    elseif right[1, 0] == color[index] then
-        noop
+while not(front_complete) or not(right_complete) do
+    let turns: int = 0
+    let found: boolean = false
+    let bottom_corner: set of color
+    while turns < 4 and not(found) do
+        D
+        bottom_corner = set_of(front[1, 1], right[1, 0], bottom[0, 1])
+        found = bottom_corner == expected_left or bottom_corner == expected_back
     end
-    index = to_right(index)
+
+    if not(found) then
+        if not(front_complete) then
+            L2
+        else
+            B2
+        end
+    else
+        if bottom_corner == expected_left then
+            if front[0, 1] == bottom[0, 1] then
+                LD'L'
+            else-if front[0, 1] == front[1, 1] then
+                D2L2
+            else  # front[0, 1] == right[1, 0]
+                DF'D2F
+            end
+            front_complete = true
+        else
+            if right[0, 0] == bottom[0, 1] then
+                B'DB
+            else-if right[0, 0] == front[1, 1] then
+                D'RD2R'
+            else  # right[0, 0] == right[1, 0]
+                D2B2
+            end
+            right_complete = true
+        end
+    end
 end
+
+
+#
+# The last piece on the top layer
+#
+
+let opposite_corner: set of color = set_of(top[1, 1], opposite_color(front[0, 1]), 
+                                           opposite_color(right[0, 0]))
+
+Y2
+
+if set_of(top[1, 1], front[0, 1], right[0, 0]) == opposite_corner then
+    R'D'RD
+end
+
+while set_of(front[1, 1], right[1, 0], bottom[0, 1]) != opposite_corner do
+    D
+end
+
+if top[0, 0] == front[1, 1] then
+    FDF'
+else-if top[0, 0] == right[1, 0] then
+    R'D'R
+else
+    R'D2RDR'D'R
+end
+
+
+Z2
+
+#
+# Orientation of the 
+#
+X
+orient top: x-/--, front: x-/--, right: x-/--, back: --/-x, keeping: top then
+    R'U'RU'R'U2R
+else-orient top: -x/--, front: -x/--, left: -x/--, back: --/x-, keeping: top then
+    LUL'ULU2L'
+else-orient back: --/xx, front: xx/--, keeping: top then
+    R2U2RU2R2
+else-orient front: -x/--, left: xx/--, back: --/-x, keeping: top then
+    R RUR'U' RUR'U' F
+else-orient top: -x/-x, left: xx/--, keeping: top then
+    F RUR'U' F'
+else-orient top: -x/-x, back: --/x-, front: x-/--, keeping: top then
+    RUR'U' R'FRF'
+else
+    FRU'R'U'RUR'F'
+end
+
+
+#
+# Permuting the bottom layer
+#
+
+#let solved: boolean = false
+#while not(solved) do
+#    let side_found: boolean = false
+#    let i: int = 0
+#    while i < 4 and not(side_found) do
+#        Y
+#        let j: int = 0
+#        while j < 4 and not(side_found) do
+#            if front[0, 1] == front[1, 1] then
+#                side_found = true
+#            else
+#                U
+#            end
+#            j = j + 1
+#        end
+#        i = i + 1
+#    end
+
+#    U' L'UR'D2RU'R'D2R2
+
+#    solved = true  # side_found
+#end
