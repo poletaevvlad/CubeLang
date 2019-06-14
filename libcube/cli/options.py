@@ -1,10 +1,12 @@
-from typing import List, Tuple
+from typing import List, Tuple, TypeVar, Dict
 
 from ..actions import Action
 from ..parser import ParsingError, parse_actions
 from ..orientation import Color
 
 from argparse import ArgumentTypeError
+
+T = TypeVar("T")
 
 
 def truncate_string_around(value: str, column: int, left_offset: int = 20, right_offset: int = 20,
@@ -40,6 +42,17 @@ def integer_type(min_value: int):
     return type
 
 
+def dict_type(dictionary: Dict[str, T]):
+    def type(value: str) -> T:
+        if value in dictionary:
+            return dictionary[value]
+        else:
+            keys = list(dictionary.keys())
+            values = ", ".join(f"'{x}'" for x in keys[:-1]) + f" or '{keys[-1]}'"
+            raise ArgumentTypeError(f"unknown value: '{value}'; expected either {values}")
+    return type
+
+
 def formula_type(value: str) -> List[Action]:
     try:
         return list(parse_actions(value))
@@ -52,7 +65,6 @@ SYMBOLS = {"R": Color.RED, "G": Color.GREEN, "B": Color.BLUE,
 
 
 def side_colors_type(value: str):
-
     result: List[List[Color]] = []
     lines = value.upper().split("/")
     position = 0

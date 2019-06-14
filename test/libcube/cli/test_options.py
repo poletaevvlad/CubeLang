@@ -2,7 +2,7 @@ from string import ascii_lowercase
 import pytest
 import argparse
 from libcube.cli.options import truncate_string_around, integer_type, \
-    side_colors_type, formula_type, file_contents_type
+    side_colors_type, formula_type, file_contents_type, dict_type
 from libcube.parser import ParsingError
 from unittest import mock
 
@@ -88,3 +88,22 @@ class TestFileOpen:
         with pytest.raises(argparse.ArgumentTypeError) as e:
             file_contents_type("/file")
         assert str(e.value) == "cannot open a file: ~~error~~"
+
+
+class TestDictType:
+    def test_valid(self):
+        t = dict_type(dict(a=1, b=2, c=3))
+        assert t("a") == 1
+        assert t("b") == 2
+
+    def test_invalid(self):
+        t = dict_type(dict(a=1, b=2, c=3))
+        with pytest.raises(argparse.ArgumentTypeError) as e:
+            t("d")
+        assert str(e.value) == "unknown value: 'd'; expected either 'a', 'b' or 'c'"
+
+    def test_invalid_two_options(self):
+        t = dict_type(dict(a=1, b=2))
+        with pytest.raises(argparse.ArgumentTypeError) as e:
+            t("d")
+        assert str(e.value) == "unknown value: 'd'; expected either 'a' or 'b'"
