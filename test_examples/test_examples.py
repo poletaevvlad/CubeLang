@@ -34,9 +34,8 @@ def run_test(seed, filename, dimension):
     for action in parse_actions(scramble):
         orientation = action.perform(cube, orientation)
 
-    arguments = ["python", "-m", "libcube", "-d", str(dimension),
-                 "-s", scramble]
-    arguments.append(str(Path(__file__).parents[1] / "examples" / filename))
+    arguments = ["python", "-m", "libcube", "-d", str(dimension), "-s", scramble,
+                 str(Path(__file__).parents[1] / "examples" / filename)]
     solution = subprocess.check_output(arguments).decode("utf-8")
 
     for action in parse_actions(solution):
@@ -46,11 +45,11 @@ def run_test(seed, filename, dimension):
 
 @pytest.mark.parametrize("seed", range(75))
 @pytest.mark.timeout(20)
-def test_pocket(seed):
-    run_test(seed, "pocket-cube", 2)
+def test_beginner(seed):
+    run_test(seed, "beginner", 3)
 
 
 @pytest.mark.parametrize("seed", range(75))
 @pytest.mark.timeout(20)
-def test_beginner(seed, rotations, optimizations):
-    run_test(seed, "beginner", 3)
+def test_pocket(seed):
+    run_test(seed, "pocket-cube", 2)

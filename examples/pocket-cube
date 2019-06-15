@@ -101,37 +101,45 @@ else-orient top: {-x/--}, front: {-x/--}, left: {-x/--}, back: {-x/--}, keeping:
 else-orient back: {xx/--}, front: {xx/--}, keeping: top then
     R2U2RU2R2
 else-orient front: {-x/--}, left: {xx/--}, back: {x-/--}, keeping: top then
-    R RUR'U' RUR'U' F
+    F RUR'U' RUR'U' F'
 else-orient top: {-x/-x}, left: {xx/--}, keeping: top then
     F RUR'U' F'
 else-orient top: {-x/-x}, back: {-x/--}, front: {x-/--}, keeping: top then
     RUR'U' R'FRF'
-else
+else-orient top: {x-/-x}, front: {x-/--}, right: {-x/--}, keeping: top then
     FRU'R'U'RUR'F'
 end
-
 
 #
 # Permuting the bottom layer
 #
 
-let solved: boolean = false
-while not(solved) do
+let over: boolean = false
+while not(over) do
     let i: int = 0
-    while i < 4 and not(solved) do
-        Y
+    let solved: boolean = false
+
+    while i < 4 and not(solved) and not(over) do
         let j: int = 0
         while j < 4 and not(solved) do
             if right[0, 0] == right[1, 0] and right[0, 1] == right[1, 1] and \
                     right[0, 0] == right[0, 1] then
                 solved = true
+                over = left[0, 0] == left[1, 0] and left[0, 1] == left[1, 1]
             else
                 U
             end
             j = j + 1
         end
         i = i + 1
+        if not(solved) then
+            Y
+        end
     end
-
-    U' L' U R' D2 R U' R' D2 R2
+    if not(over) then
+        U' L' U R' D2 R U' R' D2 R2
+        if not(solved) then
+            X'
+        end
+    end
 end
