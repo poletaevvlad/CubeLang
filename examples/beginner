@@ -70,7 +70,7 @@ while not(over) do
         D'F'DF
     else-orient top: {---/-x-/---}, bottom: {--x/---/---}, keeping: top then
         suspend_rotations()
-        while top[2, 2] != top[1, 1] do
+        while front[2, 2] != front[1, 1] do
             DY
         end
         resume_rotations()
@@ -179,6 +179,9 @@ end
 if correct_count != 4 then
     orient left: {-a-/-a-/---}, right: {-b-/-b-/---}, keeping: top then
         RUR'URU2R'
+        while count_top_correct() < 2 do
+            U
+        end
     end
     orient right: {-a-/-a-/---}, back: {-b-/-b-/---}, keeping: top then
         RUR'URU2R'U
