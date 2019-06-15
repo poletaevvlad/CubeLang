@@ -30,6 +30,7 @@ while not(front_complete) or not(right_complete) do
         D
         bottom_corner = set_of(front[1, 1], right[1, 0], bottom[0, 1])
         found = bottom_corner == expected_left or bottom_corner == expected_back
+        turns = turns + 1
     end
 
     if not(found) then
@@ -91,7 +92,7 @@ end
 Z2
 
 #
-# Orientation of the 
+# Orientation of the bottom layer
 #
 orient top: {x-/--}, front: {x-/--}, right: {x-/--}, back: {x-/--}, keeping: top then
     R'U'RU'R'U2R

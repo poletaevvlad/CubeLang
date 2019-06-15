@@ -1,5 +1,6 @@
 from typing import Callable, Optional, List, Union
 from collections import deque
+import sys
 
 from .actions import Turn, Action, Rotate
 from .compiler import types
@@ -7,6 +8,7 @@ from .cube import Cube
 from .orientation import Orientation, Side, Color
 from .pattern import Pattern
 from .stdlib import Library
+from .execution.rt_error import TerminateExecutionError
 
 
 class CubeRuntime:
@@ -26,7 +28,9 @@ class CubeRuntime:
         ("push_orientation", "push_orientation", [], types.Void),
         ("pop_orientation", "pop_orientation", [], types.Void),
         ("suspend_rotations", "suspend_rotations", [], types.Void),
-        ("resume_rotations", "resume_rotations", [], types.Void)
+        ("resume_rotations", "resume_rotations", [], types.Void),
+        ("exit", "perform_exit", [], types.Void),
+        ("print", "debug_print", [types.T, ...], types.Void)
     ]
 
     def __init__(self, cube: Cube, orientation: Orientation,
@@ -61,6 +65,9 @@ class CubeRuntime:
         elif isinstance(action, Turn):
             self.callback(action.from_orientation(self.orientation,
                                                   self.suspended_orientation))
+
+    def debug_print(self, *args):
+        print(*args, file=sys.stderr)
 
     def perform_orient(self, *args, **kwargs) -> bool:
         new_orientation = self.cube.orient(self.orientation, *args, **kwargs)
@@ -101,6 +108,9 @@ class CubeRuntime:
         action = Rotate(side, twice)
         self.orientation = action.perform(self.cube, self.orientation)
         self.yield_action(action)
+
+    def perform_exit(self):
+        raise TerminateExecutionError()
 
     def get_color(self, side: Side, i: int, j: int):
         if side == Side.FRONT:

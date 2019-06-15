@@ -2,6 +2,10 @@ import traceback
 from typing import Optional, NamedTuple, List
 
 
+class TerminateExecutionError(Exception):
+    pass
+
+
 class RuntimeError(Exception):
     ACCEPTED_EXCEPTIONS = [ValueError, IndexError]
 

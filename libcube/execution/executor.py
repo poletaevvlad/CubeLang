@@ -4,7 +4,7 @@ from ..compiler.expression import Expression
 from ..compiler.codeio import CodeStream
 from ..compiler.stack import VariablesPool
 from ..compiler.code_map import CodeMap
-from .rt_error import RuntimeError
+from .rt_error import RuntimeError, TerminateExecutionError
 from .rt_function import runtime_function
 from abc import ABC, abstractmethod
 
@@ -40,6 +40,8 @@ class ExecutionContext:
             raise RuntimeError("Illegal state: program must be compiled first")
         try:
             exec(self.source, self.globals)
+            return True
+        except TerminateExecutionError:
             return True
         except Exception as e:
             e = RuntimeError.update_error(None, e)
