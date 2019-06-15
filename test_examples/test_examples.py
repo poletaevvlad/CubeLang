@@ -9,16 +9,12 @@ from libcube.orientation import Orientation, Side
 from libcube.parser import parse_actions
 
 
-FILES = [("beginner", 3), ("pocket-cube", 2)]
-
-
 def generate_tests():
     for seed in range(50):
-        for file in FILES:
-            yield (seed, *file, True, True)
-            yield (seed, *file, False, True)
-            yield (seed, *file, True, False)
-            yield (seed, *file, False, False)
+        yield (seed, True, True)
+        yield (seed, False, True)
+        yield (seed, True, False)
+        yield (seed, False, False)
 
 
 def assert_solved(cube: Cube):
@@ -34,9 +30,7 @@ def assert_solved(cube: Cube):
                     assert c == color
 
 
-@pytest.mark.parametrize("seed, filename, dimension, rotations, optimizations",
-                         list(generate_tests()))
-def test_example(seed, filename, dimension, rotations, optimizations):
+def run_test(seed, filename, dimension, rotations, optimizations):
     scramble = subprocess.check_output(
         ["python", "-m", "libcube.scrambler", "-d", str(dimension),
          "-s", str(seed)])
@@ -61,3 +55,15 @@ def test_example(seed, filename, dimension, rotations, optimizations):
     for action in parse_actions(solution):
         orientation = action.perform(cube, orientation)
     assert_solved(cube)
+
+
+@pytest.mark.parametrize("seed, rotations, optimizations", list(generate_tests()))
+@pytest.mark.timeout(20)
+def test_pocket(seed, rotations, optimizations):
+    run_test(seed, "pocket-cube", 2, rotations, optimizations)
+
+
+@pytest.mark.parametrize("seed, rotations, optimizations", list(generate_tests()))
+@pytest.mark.timeout(20)
+def test_beginner(seed, rotations, optimizations):
+    run_test(seed, "beginner", 3, rotations, optimizations)
