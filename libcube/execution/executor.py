@@ -24,6 +24,7 @@ class ExecutionContext:
 
     def compile(self, program: Iterator[Expression]):
         source = self.compile_source(program)
+        # print(source)
         self.source = compile(source, "<string>", "exec")
 
     def compile_source(self, program: Iterator[Expression]) -> str:

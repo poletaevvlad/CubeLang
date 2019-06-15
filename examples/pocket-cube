@@ -11,15 +11,15 @@ func opposite_color(clr: color): color
         else green end
 end
 
-orient top: --/-Y then noop end
+orient top: {--/-Y} then noop end
 let first_color: set of color = set_of(front[0, 1], right[0, 0])
 
 let front_complete: boolean = front[0, 0] == front[0, 1] and top[1, 0] == top[0, 0]
 let right_complete: boolean = right[0, 0] == right[0, 1] and top[0, 1] == top[1, 1]
 
-let expected_left: set of color = set_of(top[1, 1], front[0, 1], 
+let expected_left: set of color = set_of(top[1, 1], front[0, 1], \
         opposite_color(right[0, 0]))
-let expected_back: set of color = set_of(top[1, 1], opposite_color(front[0, 1]),
+let expected_back: set of color = set_of(top[1, 1], opposite_color(front[0, 1]), \
         right[0, 0])
 
 while not(front_complete) or not(right_complete) do
@@ -66,7 +66,7 @@ end
 # The last piece on the top layer
 #
 
-let opposite_corner: set of color = set_of(top[1, 1], opposite_color(front[0, 1]), 
+let opposite_corner: set of color = set_of(top[1, 1], opposite_color(front[0, 1]), \
                                            opposite_color(right[0, 0]))
 
 Y2
@@ -93,17 +93,17 @@ Z2
 #
 # Orientation of the 
 #
-orient top: x-/--, front: x-/--, right: x-/--, back: x-/--, keeping: top then
+orient top: {x-/--}, front: {x-/--}, right: {x-/--}, back: {x-/--}, keeping: top then
     R'U'RU'R'U2R
-else-orient top: -x/--, front: -x/--, left: -x/--, back: -x/--, keeping: top then
+else-orient top: {-x/--}, front: {-x/--}, left: {-x/--}, back: {-x/--}, keeping: top then
     LUL'ULU2L'
-else-orient back: xx/--, front: xx/--, keeping: top then
+else-orient back: {xx/--}, front: {xx/--}, keeping: top then
     R2U2RU2R2
-else-orient front: -x/--, left: xx/--, back: x-/--, keeping: top then
+else-orient front: {-x/--}, left: {xx/--}, back: {x-/--}, keeping: top then
     R RUR'U' RUR'U' F
-else-orient top: -x/-x, left: xx/--, keeping: top then
+else-orient top: {-x/-x}, left: {xx/--}, keeping: top then
     F RUR'U' F'
-else-orient top: -x/-x, back: -x/--, front: x-/--, keeping: top then
+else-orient top: {-x/-x}, back: {-x/--}, front: {x-/--}, keeping: top then
     RUR'U' R'FRF'
 else
     FRU'R'U'RUR'F'
@@ -121,7 +121,7 @@ while not(solved) do
         Y
         let j: int = 0
         while j < 4 and not(solved) do
-            if right[0, 0] == right[1, 0] and right[0, 1] == right[1, 1] and
+            if right[0, 0] == right[1, 0] and right[0, 1] == right[1, 1] and \
                     right[0, 0] == right[0, 1] then
                 solved = true
             else

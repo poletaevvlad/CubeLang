@@ -1,22 +1,23 @@
 WHITESPACE: /\s/
 %ignore WHITESPACE
-_NEWLINE: /(\n|\r|\r\n)+/
-
+_NEWLINE: /(?<!\\)(\n|\r|\r\n)+/
+_LINECONT: /\\(\n|\r|\r\n)/
+%ignore _LINECONT
 COMMENT: /#.*/
 %ignore COMMENT
 
-INT_LITERAL.2: /\-?\d+/
+INT_LITERAL: /\-?\d+/
 FLOAT_LITERAL: /\-?\d*\.\d+([eE][+-]?\d+)?/
 IDENTIFIER: /(?!noop)(?!else)(?!return)[a-z_][a-z_\d]*/
-PATTERN: /([-WYORGBa-z]+\/)+[-WYORGBa-z]+/
+PATTERN: /\{([-WYORGBa-z]+\/)+[-WYORGBa-z]+\}/
 
 
 // Statements
 
-_elif_clause: "else-if" expression "then" clause
+_elif_clause: "else-if"	 expression "then" clause
 if_expression: "if" expression "then" clause (_elif_clause)* ("else" clause)? "end"
 while_expression: "while" expression "do" clause "end"
-do_expression: "do" clause "while" expression
+//do_expression: "do" clause "while" expression (_NEWLINE | ";")
 repeat_expression: "repeat" expression "times" clause "end"
 for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 
@@ -25,7 +26,7 @@ for_expression: "for" IDENTIFIER "in" expression "do" clause "end"
 
 ORIENT_PARAM_NAME: "front" | "back" | "left" | "right" | "top" | "bottom" | "keeping"
 orient_params: ORIENT_PARAM_NAME ":" expression ("," ORIENT_PARAM_NAME ":" expression)*
-_else_orient: "else-orient" orient_params " then" clause
+_else_orient: "else-orient" orient_params "then" clause
 orient_expression: "orient" orient_params "then" clause (_else_orient)* ("else" clause)? "end" -> if_expression
 
 collection_item: op_item "[" expression "]"
@@ -103,7 +104,9 @@ range_closed: expression ":" expression
 cube_instruction: (cube_rotation_modified | cube_turn_range)+
 
 ?statement: var_decl | expression | var_assignment | while_expression
-    | func_decl | return_statement | do_expression | repeat_expression
+    | func_decl | return_statement | repeat_expression //| do_expression
     | for_expression | cube_instruction | orient_expression
     | "noop" -> noop_expression
-clause: (statement _NEWLINE)* statement?
+
+_line: (statement ";")* statement [";"]
+clause: _NEWLINE? (_line _NEWLINE)* _line _NEWLINE?

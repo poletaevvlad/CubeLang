@@ -27,7 +27,7 @@ class Parser:
         path = Path(__file__).parents[2] / "data" / "syntax.lark"
         with open(str(path)) as f:
             grammar = Parser._generate_operators(BINARY_OPERATORS) + f.read()
-        self.lark = Lark(grammar, start="clause", propagate_positions=True)
+        self.lark = Lark(grammar, parser="lalr", start="clause", propagate_positions=True)
         self.callbacks: Dict[str, Callback] = dict()
 
     @staticmethod
@@ -400,7 +400,7 @@ def handle_pattern(tree: Tree, _stack: Stack):
     colors = {"G": "green", "R": "red", "O": "orange", "Y": "yellow",
               "W": "white", "B": "blue", "-": "None"}
 
-    text = tree.children[0].split("/")
+    text = tree.children[0][1:-1].split("/")
     pattern_lines = []
     for line in text:
         pattern_line = []

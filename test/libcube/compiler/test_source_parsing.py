@@ -641,13 +641,13 @@ class TestColorReference:
 
 class TestPatterns:
     def test_valid(self):
-        tree = tr("pattern", "-RG/-rg/rrO")
+        tree = tr("pattern", "{-RG/-rg/rrO}")
         expr: Expression = parser.handle(tree, Stack())
         assert expr.type == Pattern
         assert expr.expression == ['Pattern([[None, red, green], [None, "r", "g"], ["r", "r", orange]])']
 
     def test_inconsisted_line_lengths(self):
-        tree = tr("pattern", "-RG/-/rrO")
+        tree = tr("pattern", "{-RG/-/rrO}")
         with pytest.raises(CompileTimeError):
             parser.handle(tree, Stack())
 

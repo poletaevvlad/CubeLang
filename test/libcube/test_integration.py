@@ -20,10 +20,10 @@ class MockTracebackWriter(ITracebackWriter):
 def test_flip_flops():
     code = """
         let count: int
-        do
+        while top[1, 1] != top[2, 2] or count == 0 do 
             RUR'U'
             count = count + 1
-        while top[1, 1] != top[2, 2]
+        end
         out(count)
     """
 
@@ -49,9 +49,9 @@ def test_flip_flops():
 
 def test_orient():
     code = """
-        orient top: G--/---/---, bottom: --Y/---/--- then
+        orient top: {G--/---/---}, bottom: {--Y/---/---} then
             out(red)
-        else-orient top: (-W-/---/---), right: (---/---/-O-) then
+        else-orient top: {-W-/---/---}, right: {---/---/-O-} then
             out(top[1, 1])
         end
     """

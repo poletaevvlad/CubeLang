@@ -1,7 +1,9 @@
 from typing import Iterator, Dict
+from string import whitespace
 
 from .actions import Turn, Action, Rotate
 from .orientation import Side
+
 
 SIDE_LETTERS: Dict[str, Side] = {
     "L": Side.LEFT,
@@ -131,14 +133,11 @@ class ParsingStateMachine:
         return True, self.state_range_number
 
     def parse(self, algorithm: str):
-        algorithm += "\n"
+        algorithm = algorithm.translate({ord(x): None for x in whitespace}) + "\n"
         state = self.state_action_type
         self.column = 0
 
         while self.column < len(algorithm):
-            while algorithm[self.column] == " ":
-                self.column += 1
-
             goto_next, state = state(algorithm[self.column])
             if goto_next:
                 self.column += 1
