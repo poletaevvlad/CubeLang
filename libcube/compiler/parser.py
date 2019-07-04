@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union, List, Callable, Dict, IO, Iterator
+from typing import Union, List, Callable, Dict, IO, Iterator, Tuple
 
 from lark import Tree, Lark, Token
 
@@ -52,10 +52,36 @@ class Parser:
     def handle(self, tree: Tree, stack: Stack) -> Union[Expression, Type]:
         return self.callbacks[tree.data](tree, stack)
 
+    @staticmethod
+    def _get_line_column(text:str, position: int) -> Tuple[int, int]:
+        line = text.count("\n", 0, position) + 1
+        column = position - text[:position].rfind("\n")
+        return line, column
+
+    @staticmethod
+    def _fix_line_numbers(source: str, tree: Tree):
+        """ Calculating line and columns number for each node in the lark tree
+            due to an error in lark parser. Line numbers are not correct when
+            LALR parser is used. This function call should be removed when the
+            future version of lark is available."""
+        if isinstance(tree, str):
+            return
+
+        if hasattr(tree.meta, "start_pos"):
+            tree.meta.line, tree.meta.column = \
+                Parser._get_line_column(source, tree.meta.start_pos - 1)
+        if hasattr(tree.meta, "end_pos"):
+            tree.meta.end_line, tree.meta.end_column = \
+                Parser._get_line_column(source, tree.meta.end_pos - 1)
+
+        for child in tree.children:
+            Parser._fix_line_numbers(source, child)
+
     def parse(self, file: Union[IO, str], stack: Stack) -> Iterator[Expression]:
         if not isinstance(file, str):
             file = file.read()
         tree = self.lark.parse(file)
+        Parser._fix_line_numbers(file, tree)
         for subtree in tree.children:
             expr = self.handle(subtree, stack)
             if isinstance(expr, Expression):

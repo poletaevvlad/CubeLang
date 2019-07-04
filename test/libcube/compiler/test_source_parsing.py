@@ -14,6 +14,14 @@ from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, \
 import typing
 
 
+def test_line_column():
+    text = "xxx\nxx\nxxxx\nx\n\n"
+    actual = [parser._get_line_column(text, p) for p in range(len(text))]
+    expected = [(1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (2, 2), (2, 3), (3, 1),
+                (3, 2), (3, 3), (3, 4), (3, 5), (4, 1), (4, 2), (5, 1)]
+    assert actual == expected
+
+
 def test_operator_generation():
     operators = [
         [BinaryOperator("a", [], []), BinaryOperator("b", [], [])],
