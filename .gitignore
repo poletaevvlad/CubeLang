@@ -5,3 +5,7 @@ __pycache__
 .mypy_cache
 
 run_*.sh
+
+dist
+*.egg-info
+build

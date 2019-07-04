@@ -13,12 +13,15 @@ from ..compiler.errors import CompileTimeError, FunctionArgumentsError
 from ..cube_runtime import CubeRuntime
 from ..execution import ExecutionContext
 from ..stdlib import stdlib
+from .. import __version__
 
 
 def main():
     args_parser = ArgumentParser()
     args_parser.add_argument("source", type=file_contents_type,
                              help="program's source")
+    args_parser.add_argument("-v", "--version", action="version", version="%(prog)s " + __version__)
+
     init_cube_args_parser(args_parser)
     init_postprocessors_args_parser(args_parser)
     args = args_parser.parse_args()
