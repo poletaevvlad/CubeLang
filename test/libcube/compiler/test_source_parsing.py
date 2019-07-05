@@ -147,38 +147,42 @@ def test_type_handle(tree: lark.Tree, expected: Type):
     assert parser.handle(tree, Stack()) == expected
 
 
-def test_var_declaration():
-    tree = tr("var_decl", "a", "b", "c", tr("type_int"))
-    stack = Stack()
+class TestVariableDeclaration:
+    def test_var_declaration(self):
+        tree = tr("var_decl", "a", "b", "c", tr("type_int"))
+        stack = Stack()
 
-    expressions = parser.handle(tree, stack)
-    for i, value in enumerate(expressions):
-        assert value.type == Void
-        assert value.expression == ["var_" + str(i), " = ", "0"]
+        expressions = parser.handle(tree, stack)
+        for i, value in enumerate(expressions):
+            assert value.type == Void
+            assert value.expression == ["var_" + str(i), " = ", "0"]
 
-    assert stack.get_variable("a").type == Integer
-    assert stack.get_variable("b").type == Integer
-    assert stack.get_variable("c").type == Integer
+        assert stack.get_variable("a").type == Integer
+        assert stack.get_variable("b").type == Integer
+        assert stack.get_variable("c").type == Integer
 
+    def test_value(self):
+        tree = tr("var_decl", "a", "b", "c", tr("type_int"), tr("int_literal", "1"))
+        stack = Stack()
 
-def test_var_declaration_value():
-    tree = tr("var_decl", "a", "b", "c", tr("type_int"), tr("int_literal", "1"))
-    stack = Stack()
+        values: typing.List[Expression] = parser.handle(tree, stack)
+        for i, value in enumerate(values):
+            assert value.type == Void
+            assert value.expression == ["var_" + str(i), " = ", "1"]
 
-    values: typing.List[Expression] = parser.handle(tree, stack)
-    for i, value in enumerate(values):
-        assert value.type == Void
-        assert value.expression == ["var_" + str(i), " = ", "1"]
+        assert stack.get_variable("a").type == Integer
+        assert stack.get_variable("b").type == Integer
+        assert stack.get_variable("c").type == Integer
 
-    assert stack.get_variable("a").type == Integer
-    assert stack.get_variable("b").type == Integer
-    assert stack.get_variable("c").type == Integer
+    def test_wrong_type(self):
+        tree = tr("var_decl", "a", tr("type_int"), tr("float_literal", "1"))
+        with pytest.raises(ValueTypeError):
+            parser.handle(tree, Stack())
 
-
-def test_var_declaration_wrong_type():
-    tree = tr("var_decl", "a", tr("type_int"), tr("float_literal", "1"))
-    with pytest.raises(ValueTypeError):
-        parser.handle(tree, Stack())
+    def test_reserved_word(self):
+        tree = tr("var_decl", "then", tr("type_int"))
+        with pytest.raises(CompileTimeError):
+            parser.handle(tree, Stack())
 
 
 def test_if_expression():

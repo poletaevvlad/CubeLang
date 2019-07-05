@@ -19,6 +19,10 @@ TYPE_NAMES = {"type_int": Integer, "type_real": Real, "type_bool": Bool,
 
 Callback = Callable[[Tree, Stack], Union[Type, Expression]]
 
+RESERVED_NAMES = {"int", "real", "boolean", "side", "color", "pattern", "list",
+                  "set", "of", "func", "let", "return", "if", "then", "end",
+                  "while", "do", "repeat", "for", "in", "orient"}
+
 
 # TODO: Symbols aren't visible inside functions
 
@@ -154,6 +158,8 @@ def handle_variable_declaration(tree: Tree, stack: Stack) -> List[Expression]:
     var_names: List[str] = []
     index = 0
     while isinstance(tree.children[index], str):
+        if str(tree.children[index]) in RESERVED_NAMES:
+            raise CompileTimeError(tree, f"`{tree.children[index]}` is not a valid variable name")
         var_names.append(tree.children[index])
         index += 1
     var_type: Type = parser.handle(tree.children[index], stack)
