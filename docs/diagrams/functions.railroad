@@ -1,0 +1,12 @@
+Diagram(
+    Stack(Sequence(
+        "func", NonTerminal("Function name"), 
+    ), Sequence(
+        "(", ZeroOrMore(
+           Sequence(NonTerminal("Argument name"), ":", NonTerminal("Type")), ","
+        ), ")"
+    ), Sequence(
+        Optional(Sequence(":", NonTerminal("Return type"))),
+        OneOrMore(NonTerminal("Statement")), "end"
+    ))
+)

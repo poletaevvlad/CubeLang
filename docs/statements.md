@@ -145,3 +145,29 @@ orient top: {--/-Y} then noop end
 ```
 
 This statement will iterate through all possible orientations of the cube until the orientation with yellow sticker in the bottom right position of the top face is found. This initial orientation is common in the speedcubing community.
+
+
+## Function declaration
+
+User may define function incapsulating commonly used operations. They are called like any function in the standard library. 
+
+![](./diagrams/out/functions.svg)
+
+*Note:* Variables and functions declared outside the function are not visible inside the function. All functions declared in cubelang can be pure or only mutate collection arguments. Recursion is not possible in cubelang. This limitation may change in the future versions of the language.
+
+Function may return a value. The type of return value must be specified in function signature. To stop the execution of the function and return a value `return` keyword is used. If `return` statement was not executed, return type's default value is returned. 
+
+The following example shows an example function that calculates the greates common denominator of two integers.
+
+```bash
+func gcd(a: int, b: int): int
+    while a != 0 and b != 0 do
+        if a > b then
+            a = a - b
+        else
+            b = b - a
+        end
+    end
+    return a + b
+end
+```

@@ -5,9 +5,6 @@ During the execution of the cubelang program the state of the cube is simulated.
 ## Cube turns
 All turns and rotations are executed using special commands: `R`, `L`, `U`, `D`, `F`, `B`. When one of these commands is executed the right, left, top, bottom, front or back face will be rotated clockwise respectively. If the face needs to be rotated counterclockwise a user may use one of two modifier. A `'` symbol is used to reverse the rotation direction. A `2` symbol doubles the angle.
 
-The following diagram depicts the state of the solved cube *after* each operations described above.
-
-
 These operations are enough to solve 3x3x3 or 2x2x2 twisting cube puzzle, but not cubes of higher dimensions as it is not possible to rotate slices located on the middle. cubelang uses extended notation for these purposes.
 
 ![](./diagrams/out/turns.svg)
