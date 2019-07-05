@@ -1,0 +1,16 @@
+Diagram(
+    Stack(
+        Sequence(
+            Optional('-'),
+            ZeroOrMore(NonTerminal("digit")),
+            ".",
+            OneOrMore(NonTerminal("digit")),
+        ),
+        Optional(Sequence(
+            Choice(0, "e", "E"),
+            Choice(0, Skip(), "+", "-"),
+            OneOrMore(NonTerminal("digit")),
+        ), "skip")
+    )
+)
+
