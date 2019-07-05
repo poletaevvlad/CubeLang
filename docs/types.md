@@ -8,7 +8,7 @@ cubelang allows its users to create and assign variables using the following syn
 
 Multiple variables may be declared using the syntax above. These variables will have the same type and initial value.
 
-Variable name is an arbitrary string consisting of *lowercase* latin letters (`a`--`z`), underscore symbol (`_`) or an arabic digit (`0`--`9`). A variable name must not begin with a digit. A variable name also cannot be any of the following reserved words:
+Variable name is an arbitrary string consisting of *lowercase* latin letters (`a`--`z`), underscore symbol (`_`) or an arabic digit (`0`--`9`). A variable name must not begin with a digit. A variable name also cannot be any of the following reserved words: `boolean`, `color`, `do`, `end`, `for`, `func`, `if`, `in`, `int`, `let`, `list`, `of`, `orient`, `pattern`, `real`, `repeat`, `return`, `set`, `side`, `then`, `while`.
 
 A variable has a scope. Variable is available only after it is declared using `let` keyword. If variable is declared inside a block such as a conditional clause or a loop, it is available only within this block. If a variable is declared on the top level (outside of any block) it is available anywhere within a script after declaration.
 
