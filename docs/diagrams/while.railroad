@@ -1,0 +1,5 @@
+Diagram(
+    "while", NonTerminal("Predicate"), "do", 
+    OneOrMore(NonTerminal("Statement")), 
+    "end"
+)

@@ -1,0 +1,23 @@
+Diagram(
+    Stack(
+        Sequence(
+            "if",
+            NonTerminal("Predicate"),
+            "then",
+            OneOrMore(NonTerminal("Statement"))
+        ),
+        ZeroOrMore(
+            Sequence(
+                "else-if",
+                NonTerminal("Predicate"),
+                "then",
+                OneOrMore(NonTerminal("Statement"))
+            ),
+        ),
+        Optional(Sequence(
+                "else",
+                OneOrMore(NonTerminal("Statement"))
+            )
+        )
+    ), "end"
+)

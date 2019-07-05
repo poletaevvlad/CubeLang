@@ -1,0 +1,11 @@
+Diagram(
+    Comment("Constraints list:"),
+    OneOrMore( Choice(0,
+        Sequence(
+            Choice(5, "front", "back", "left", "right", "top", "bottom"), 
+            ":",
+            NonTerminal("Pattern expression")
+        ),
+        Sequence("keeping", ":", NonTerminal("Side expression"))
+    ), ",")
+)

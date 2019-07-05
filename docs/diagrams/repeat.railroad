@@ -1,0 +1,5 @@
+Diagram(
+    "repeat", NonTerminal("Int expression"), "times", 
+    OneOrMore(NonTerminal("Statement")), 
+    "end"
+)

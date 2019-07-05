@@ -1,0 +1,5 @@
+Diagram(
+    "for", NonTerminal("Identifier"), "in", NonTerminal("Collection"), "do",
+    OneOrMore(NonTerminal("Statement")), 
+    "end"
+)

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg  xmlns="http://www.w3.org/2000/svg" class="railroad-diagram" height="272" viewBox="0 0 651.5 272" width="651.5">
+<g transform="translate(.5 .5)">
+<style>/* <![CDATA[ */
+	svg.railroad-diagram {
+		background-color:hsl(30,20%,95%);
+	}
+	svg.railroad-diagram path {
+		stroke-width:3;
+		stroke:black;
+		fill:rgba(0,0,0,0);
+	}
+	svg.railroad-diagram text {
+		font:bold 14px monospace;
+		text-anchor:middle;
+	}
+	svg.railroad-diagram text.label{
+		text-anchor:start;
+	}
+	svg.railroad-diagram text.comment{
+		font:italic 12px monospace;
+	}
+	svg.railroad-diagram rect{
+		stroke-width:3;
+		stroke:black;
+		fill:hsl(120,100%,90%);
+	}
+
+/* ]]> */
+</style><g>
+<path d="M20 171v20m10 -20v20m-10 -10h20"></path></g><path d="M40 181h10"></path><g>
+<path d="M50 181h0.0"></path><path d="M179.0 181h0.0"></path><text class="comment" x="114.5" y="186">Constraints list:</text></g><path d="M179 181h10"></path><path d="M189 181h10"></path><g>
+<path d="M199 181h0.0"></path><path d="M601.5 181h0.0"></path><path d="M199.0 181h10"></path><g>
+<path d="M209.0 181h0.0"></path><path d="M591.5 181h0.0"></path><path d="M209.0 181h20"></path><g>
+<path d="M229.0 181h0.0"></path><path d="M571.5 181h0.0"></path><g>
+<path d="M229.0 181h0.0"></path><path d="M340.0 181h0.0"></path><path d="M229.0 181a10 10 0 0 0 10 -10v-10a10 10 0 0 1 10 -10"></path><g class="terminal">
+<path d="M249.0 151h12.75"></path><path d="M307.25 151h12.75"></path><rect height="22" rx="10" ry="10" width="45.5" x="261.75" y="140"></rect><text x="284.5" y="155">top</text></g><path d="M320.0 151a10 10 0 0 1 10 10v10a10 10 0 0 0 10 10"></path><path d="M229.0 181a10 10 0 0 0 10 -10v-40a10 10 0 0 1 10 -10"></path><g class="terminal">
+<path d="M249.0 121h4.25"></path><path d="M315.75 121h4.25"></path><rect height="22" rx="10" ry="10" width="62.5" x="253.25" y="110"></rect><text x="284.5" y="125">right</text></g><path d="M320.0 121a10 10 0 0 1 10 10v40a10 10 0 0 0 10 10"></path><path d="M229.0 181a10 10 0 0 0 10 -10v-70a10 10 0 0 1 10 -10"></path><g class="terminal">
+<path d="M249.0 91h8.5"></path><path d="M311.5 91h8.5"></path><rect height="22" rx="10" ry="10" width="54.0" x="257.5" y="80"></rect><text x="284.5" y="95">left</text></g><path d="M320.0 91a10 10 0 0 1 10 10v70a10 10 0 0 0 10 10"></path><path d="M229.0 181a10 10 0 0 0 10 -10v-100a10 10 0 0 1 10 -10"></path><g class="terminal">
+<path d="M249.0 61h8.5"></path><path d="M311.5 61h8.5"></path><rect height="22" rx="10" ry="10" width="54.0" x="257.5" y="50"></rect><text x="284.5" y="65">back</text></g><path d="M320.0 61a10 10 0 0 1 10 10v100a10 10 0 0 0 10 10"></path><path d="M229.0 181a10 10 0 0 0 10 -10v-130a10 10 0 0 1 10 -10"></path><g class="terminal">
+<path d="M249.0 31h4.25"></path><path d="M315.75 31h4.25"></path><rect height="22" rx="10" ry="10" width="62.5" x="253.25" y="20"></rect><text x="284.5" y="35">front</text></g><path d="M320.0 31a10 10 0 0 1 10 10v130a10 10 0 0 0 10 10"></path><path d="M229.0 181h20"></path><g class="terminal">
+<path d="M249.0 181h0.0"></path><path d="M320.0 181h0.0"></path><rect height="22" rx="10" ry="10" width="71.0" x="249.0" y="170"></rect><text x="284.5" y="185">bottom</text></g><path d="M320.0 181h20"></path></g><path d="M340.0 181h10"></path><g class="terminal">
+<path d="M350.0 181h0.0"></path><path d="M378.5 181h0.0"></path><rect height="22" rx="10" ry="10" width="28.5" x="350.0" y="170"></rect><text x="364.25" y="185">:</text></g><path d="M378.5 181h10"></path><path d="M388.5 181h10"></path><g class="non-terminal">
+<path d="M398.5 181h0.0"></path><path d="M571.5 181h0.0"></path><rect height="22" width="173.0" x="398.5" y="170"></rect><text x="485.0" y="185">Pattern expression</text></g></g><path d="M571.5 181h20"></path><path d="M209.0 181a10 10 0 0 1 10 10v10a10 10 0 0 0 10 10"></path><g>
+<path d="M229.0 211h23.5"></path><path d="M548.0 211h23.5"></path><g class="terminal">
+<path d="M252.5 211h0.0"></path><path d="M332.0 211h0.0"></path><rect height="22" rx="10" ry="10" width="79.5" x="252.5" y="200"></rect><text x="292.25" y="215">keeping</text></g><path d="M332.0 211h10"></path><path d="M342.0 211h10"></path><g class="terminal">
+<path d="M352.0 211h0.0"></path><path d="M380.5 211h0.0"></path><rect height="22" rx="10" ry="10" width="28.5" x="352.0" y="200"></rect><text x="366.25" y="215">:</text></g><path d="M380.5 211h10"></path><path d="M390.5 211h10"></path><g class="non-terminal">
+<path d="M400.5 211h0.0"></path><path d="M548.0 211h0.0"></path><rect height="22" width="147.5" x="400.5" y="200"></rect><text x="474.25" y="215">Side expression</text></g></g><path d="M571.5 211a10 10 0 0 0 10 -10v-10a10 10 0 0 1 10 -10"></path></g><path d="M591.5 181h10"></path><path d="M209.0 181a10 10 0 0 0 -10 10v40a10 10 0 0 0 10 10"></path><g class="terminal">
+<path d="M209.0 241h177.0"></path><path d="M414.5 241h177.0"></path><rect height="22" rx="10" ry="10" width="28.5" x="386.0" y="230"></rect><text x="400.25" y="245">,</text></g><path d="M591.5 241a10 10 0 0 0 10 -10v-40a10 10 0 0 0 -10 -10"></path></g><path d="M601.5 181h10"></path><path d="M 611.5 181 h 20 m -10 -10 v 20 m 10 -20 v 20"></path></g></svg>

@@ -1,0 +1,10 @@
+Diagram(
+    Stack(
+        Sequence("orient", NonTerminal("Constraints list"), "then", 
+            OneOrMore(NonTerminal("Statement"))), 
+        ZeroOrMore(Sequence("else-orient", NonTerminal("Constraints list"), "then",
+            OneOrMore(NonTerminal("Statement")))),
+        Optional(Sequence("else", OneOrMore(NonTerminal("Statement")))),
+    ), "end"
+)
+
