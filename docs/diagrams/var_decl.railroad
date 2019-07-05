@@ -1,0 +1,12 @@
+Diagram(
+    OneOrMore(
+        NonTerminal("Variable name"),
+        ","
+    ),
+    ":",
+    NonTerminal("type"),
+    Optional(Sequence(
+        ":", 
+        NonTerminal("Initial value")
+    ))
+)
