@@ -1,0 +1,14 @@
+Diagram(
+    Choice(2, "F", "U", "R", "L", "U", "D"),
+    Choice(1, "'", Skip(), "2"), 
+    Optional(Sequence(
+        "[", 
+        OneOrMore(Choice(1, 
+            NonTerminal("Index"),
+            Sequence(NonTerminal("Index"), ":"),
+            Sequence(":", NonTerminal("Index")),
+            Sequence(NonTerminal("Index"), ":", NonTerminal("Index")),
+        ), ","),
+        "]"
+    ))
+)
