@@ -1,5 +1,5 @@
-from libcube.compiler.stack import Stack
-from libcube.compiler.types import Integer, Real, Bool, List
+from cubelang.compiler.stack import Stack
+from cubelang.compiler.types import Integer, Real, Bool, List
 
 
 def test_globals():

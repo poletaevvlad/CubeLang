@@ -1,15 +1,15 @@
 import lark
 import pytest
 
-from libcube.compiler.parser import parser, BinaryOperator
-from libcube.compiler.expression import Expression, ConditionExpression, \
+from cubelang.compiler.parser import parser, BinaryOperator
+from cubelang.compiler.expression import Expression, ConditionExpression, \
     WhileLoopExpression, DoWhileLoopExpression, RepeatLoopExpression, \
     ForLoopExpression, CubeTurningExpression, CubeRotationExpression, \
     FunctionDeclarationExpression
-from libcube.compiler.stack import Stack
-from libcube.compiler.errors import ValueTypeError, UnresolvedReferenceError, \
+from cubelang.compiler.stack import Stack
+from cubelang.compiler.errors import ValueTypeError, UnresolvedReferenceError, \
     FunctionArgumentsError, CompileTimeError
-from libcube.compiler.types import Integer, Real, Type, Bool, List, Set, Void, \
+from cubelang.compiler.types import Integer, Real, Type, Bool, List, Set, Void, \
     Function, Color, Side, Pattern
 import typing
 

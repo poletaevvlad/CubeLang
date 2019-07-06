@@ -2,10 +2,10 @@ import random
 from argparse import ArgumentParser
 from typing import List
 
-from libcube.actions import Turn
-from libcube.cli.options import integer_type
-from libcube.cube import Cube
-from libcube.orientation import Orientation, Side
+from cubelang.actions import Turn
+from cubelang.cli.options import integer_type
+from cubelang.cube import Cube
+from cubelang.orientation import Orientation, Side
 
 # noinspection PyTypeChecker
 SIDES = tuple(Side)

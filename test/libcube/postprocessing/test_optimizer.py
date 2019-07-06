@@ -3,10 +3,10 @@ from typing import Optional
 import pytest
 from itertools import zip_longest
 
-from libcube.orientation import Side
-from libcube.actions import Rotate, Turn, TurningType
-from libcube.postprocessing import OptimizingPostprocessor
-from libcube.parser import parse_actions
+from cubelang.orientation import Side
+from cubelang.actions import Rotate, Turn, TurningType
+from cubelang.postprocessing import OptimizingPostprocessor
+from cubelang.parser import parse_actions
 
 
 @pytest.mark.parametrize("side1, double1, side2, double2, res, res_double", [

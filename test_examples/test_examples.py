@@ -4,9 +4,9 @@ from sys import stdout
 
 import pytest
 
-from libcube.cube import Cube
-from libcube.orientation import Orientation, Side
-from libcube.parser import parse_actions
+from cubelang.cube import Cube
+from cubelang.orientation import Orientation, Side
+from cubelang.parser import parse_actions
 
 
 def assert_solved(cube: Cube):
@@ -24,7 +24,7 @@ def assert_solved(cube: Cube):
 
 def run_test(seed, filename, dimension):
     scramble = subprocess.check_output(
-        ["python", "-m", "libcube.scrambler", "-d", str(dimension),
+        ["python", "-m", "cubelang.scrambler", "-d", str(dimension),
          "-s", str(seed)])
 
     scramble = scramble.decode(stdout.encoding).strip()
@@ -34,7 +34,7 @@ def run_test(seed, filename, dimension):
     for action in parse_actions(scramble):
         orientation = action.perform(cube, orientation)
 
-    arguments = ["python", "-m", "libcube", "-d", str(dimension), "-s", scramble,
+    arguments = ["python", "-m", "cubelang", "-d", str(dimension), "-s", scramble,
                  str(Path(__file__).parents[1] / "examples" / filename)]
     solution = subprocess.check_output(arguments).decode("utf-8")
 

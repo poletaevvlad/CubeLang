@@ -1,7 +1,7 @@
-from libcube.actions import Action
-from libcube.cube import Cube
-from libcube.orientation import Orientation, Side, Color
-from libcube.cli.cube_builder import apply_side, CubeBuilder
+from cubelang.actions import Action
+from cubelang.cube import Cube
+from cubelang.orientation import Orientation, Side, Color
+from cubelang.cli.cube_builder import apply_side, CubeBuilder
 from pytest import raises
 from unittest import mock
 import pytest
@@ -54,7 +54,7 @@ class TestBuilder:
         assert orientation.top == Side.TOP
         assert orientation.front == Side.FRONT
 
-    @mock.patch("libcube.cli.cube_builder.apply_side")
+    @mock.patch("cubelang.cli.cube_builder.apply_side")
     @pytest.mark.parametrize("side, exp_orientation", [
         (Side.FRONT, Orientation(Side.FRONT, Side.TOP)),
         (Side.LEFT, Orientation(Side.LEFT, Side.TOP)),

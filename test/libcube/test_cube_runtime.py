@@ -4,10 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
-from libcube.actions import Action, Turn, TurningType
-from libcube.cube import Cube
-from libcube.cube_runtime import CubeRuntime
-from libcube.orientation import Side, Orientation
+from cubelang.actions import Action, Turn, TurningType
+from cubelang.cube import Cube
+from cubelang.cube_runtime import CubeRuntime
+from cubelang.orientation import Side, Orientation
 
 
 def test_runtime_globals():

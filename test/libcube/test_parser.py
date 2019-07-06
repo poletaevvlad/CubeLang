@@ -1,8 +1,8 @@
 import pytest
 
-from libcube.actions import Turn, Action, Rotate, TurningType
-from libcube.orientation import Side
-from libcube.parser import ParsingError, parse_actions
+from cubelang.actions import Turn, Action, Rotate, TurningType
+from cubelang.orientation import Side
+from cubelang.parser import ParsingError, parse_actions
 
 
 def test_valid_parsing():

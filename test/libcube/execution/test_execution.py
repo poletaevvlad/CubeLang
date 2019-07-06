@@ -1,13 +1,13 @@
 import math
 from unittest.mock import MagicMock
 
-from libcube.compiler.code_map import CodeMap
-from libcube.compiler.parser import parser
-from libcube.compiler.stack import Stack
-from libcube.compiler.types import Integer, Function, Void, Real
-from libcube.execution.executor import ExecutionContext, ITracebackWriter
-from libcube.execution.rt_error import RuntimeError
-from libcube.stdlib import stdlib
+from cubelang.compiler.code_map import CodeMap
+from cubelang.compiler.parser import parser
+from cubelang.compiler.stack import Stack
+from cubelang.compiler.types import Integer, Function, Void, Real
+from cubelang.execution.executor import ExecutionContext, ITracebackWriter
+from cubelang.execution.rt_error import RuntimeError
+from cubelang.stdlib import stdlib
 
 
 class MockTracebackWriter(ITracebackWriter):

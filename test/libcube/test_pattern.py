@@ -1,9 +1,9 @@
 from typing import Tuple, List
 
-from libcube.cube import ICubeSide
-from libcube.orientation import Color
-from libcube.sides import Component
-from libcube.pattern import Pattern
+from cubelang.cube import ICubeSide
+from cubelang.orientation import Color
+from cubelang.sides import Component
+from cubelang.pattern import Pattern
 
 
 class MockCubeSide(ICubeSide[None]):

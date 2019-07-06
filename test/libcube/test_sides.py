@@ -1,5 +1,5 @@
-from libcube.sides import CubeSide, ICubeSide, CubeSideView, Component
-from libcube.orientation import Color
+from cubelang.sides import CubeSide, ICubeSide, CubeSideView, Component
+from cubelang.orientation import Color
 
 import pytest
 

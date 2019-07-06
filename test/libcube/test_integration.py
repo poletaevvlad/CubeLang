@@ -1,13 +1,13 @@
-from libcube.compiler.code_map import CodeMap
-from libcube.compiler import Stack, parser
-from libcube.execution import ExecutionContext
-from libcube.compiler.types import Function, Integer, Void, Color
-from libcube.cube_runtime import CubeRuntime
-from libcube.stdlib import stdlib
-from libcube.cube import Cube
-from libcube import orientation
-from libcube.orientation import Orientation
-from libcube.execution.executor import ITracebackWriter
+from cubelang.compiler.code_map import CodeMap
+from cubelang.compiler import Stack, parser
+from cubelang.execution import ExecutionContext
+from cubelang.compiler.types import Function, Integer, Void, Color
+from cubelang.cube_runtime import CubeRuntime
+from cubelang.stdlib import stdlib
+from cubelang.cube import Cube
+from cubelang import orientation
+from cubelang.orientation import Orientation
+from cubelang.execution.executor import ITracebackWriter
 
 from unittest.mock import MagicMock
 

@@ -1,12 +1,12 @@
 from unittest import mock
-from libcube.execution.rt_error import RuntimeError
-from libcube.execution.rt_function import runtime_function
+from cubelang.execution.rt_error import RuntimeError
+from cubelang.execution.rt_function import runtime_function
 from textwrap import dedent
 import pytest
 
 
 class TestUpdateError:
-    @mock.patch("libcube.execution.rt_error.RuntimeError.get_exception_line")
+    @mock.patch("cubelang.execution.rt_error.RuntimeError.get_exception_line")
     def test_create(self, get_line_fn: mock.MagicMock):
         get_line_fn.return_value = 10
 
@@ -17,7 +17,7 @@ class TestUpdateError:
         assert exp.stack_entries[0].function_name == "function"
         assert exp.stack_entries[0].line_number == 10
 
-    @mock.patch("libcube.execution.rt_error.RuntimeError.get_exception_line")
+    @mock.patch("cubelang.execution.rt_error.RuntimeError.get_exception_line")
     def test_update(self, get_line_fn: mock.MagicMock):
         get_line_fn.return_value = 20
 

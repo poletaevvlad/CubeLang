@@ -1,9 +1,9 @@
 from io import StringIO
 
-from libcube.cli.error_display import ErrorsOutput
-from libcube.compiler.types import Function, Integer, List, Set, Bool, Void
-from libcube.compiler.code_map import CodeMap
-from libcube.execution import RuntimeError
+from cubelang.cli.error_display import ErrorsOutput
+from cubelang.compiler.types import Function, Integer, List, Set, Bool, Void
+from cubelang.compiler.code_map import CodeMap
+from cubelang.execution import RuntimeError
 
 
 def test_code_single_line():

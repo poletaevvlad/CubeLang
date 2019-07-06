@@ -1,5 +1,5 @@
-from libcube.postprocessing.base import PostprocessorBase
-from libcube.postprocessing import chain
+from cubelang.postprocessing.base import PostprocessorBase
+from cubelang.postprocessing import chain
 from unittest.mock import MagicMock
 import pytest
 

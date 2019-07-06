@@ -1,5 +1,5 @@
 from typing import Tuple
-from libcube.orientation import Side, Orientation, _normalize_turns
+from cubelang.orientation import Side, Orientation, _normalize_turns
 
 import pytest
 

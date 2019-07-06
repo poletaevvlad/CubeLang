@@ -1,8 +1,8 @@
 from typing import List
 
-from libcube.postprocessing import OrientationFreezePostprocessor
-from libcube.actions import Turn, Rotate, TurningType
-from libcube.orientation import Side
+from cubelang.postprocessing import OrientationFreezePostprocessor
+from cubelang.actions import Turn, Rotate, TurningType
+from cubelang.orientation import Side
 
 
 class TestOrientationFreeze:

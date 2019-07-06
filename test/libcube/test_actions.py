@@ -1,8 +1,8 @@
 from collections import namedtuple
 
-from libcube.cube import Cube
-from libcube.orientation import Side, Orientation
-from libcube.actions import Rotate, Turn, TurningType
+from cubelang.cube import Cube
+from cubelang.orientation import Side, Orientation
+from cubelang.actions import Rotate, Turn, TurningType
 
 import pytest
 from typing import List

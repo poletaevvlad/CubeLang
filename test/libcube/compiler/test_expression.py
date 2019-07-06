@@ -1,9 +1,9 @@
-from libcube.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression, \
+from cubelang.compiler.expression import VariablesPool, Expression, ConditionExpression, WhileLoopExpression, \
     RepeatLoopExpression, DoWhileLoopExpression, ForLoopExpression, CubeTurningExpression, CubeRotationExpression, \
     FunctionDeclarationExpression
-from libcube.compiler.types import Integer, Real, Bool, Void, Set, List
-from libcube.compiler.codeio import CodeStream
-from libcube.compiler.code_map import CodeMap
+from cubelang.compiler.types import Integer, Real, Bool, Void, Set, List
+from cubelang.compiler.codeio import CodeStream
+from cubelang.compiler.code_map import CodeMap
 
 
 def test_allocation():

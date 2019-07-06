@@ -1,7 +1,7 @@
 import typing
 
 import pytest
-from libcube.compiler.types import Type, Integer, Real, Bool, List, Set, Function, Void, type_annotation_to_type, T, \
+from cubelang.compiler.types import Type, Integer, Real, Bool, List, Set, Function, Void, type_annotation_to_type, T, \
     Color, Side
 
 

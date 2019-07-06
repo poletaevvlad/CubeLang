@@ -1,12 +1,12 @@
 from string import ascii_lowercase
 import pytest
 import argparse
-from libcube.cli.options import truncate_string_around, integer_type, \
+from cubelang.cli.options import truncate_string_around, integer_type, \
     side_colors_type, formula_type, file_contents_type, dict_type
-from libcube.parser import ParsingError
+from cubelang.parser import ParsingError
 from unittest import mock
 
-from libcube.orientation import Color
+from cubelang.orientation import Color
 
 
 @pytest.mark.parametrize("position, expected", [
@@ -38,14 +38,14 @@ class TestIntegerType:
 
 
 class TestFormulaParam:
-    @mock.patch("libcube.cli.options.parse_actions", return_value=iter([1, 2, 3]))
+    @mock.patch("cubelang.cli.options.parse_actions", return_value=iter([1, 2, 3]))
     def test_correct(self, parse_actions_function):
         actual = formula_type("abcdef")
         assert actual == [1, 2, 3]
         parse_actions_function.assert_called_once_with("abcdef")
 
-    @mock.patch("libcube.cli.options.parse_actions", side_effect=ParsingError("~~test error~~", 10))
-    @mock.patch("libcube.cli.options.truncate_string_around", return_value=("~~rendered~~", 4))
+    @mock.patch("cubelang.cli.options.parse_actions", side_effect=ParsingError("~~test error~~", 10))
+    @mock.patch("cubelang.cli.options.truncate_string_around", return_value=("~~rendered~~", 4))
     def test_invalid_syntax(self, _1, _2):
         with pytest.raises(argparse.ArgumentTypeError) as e:
             formula_type(ascii_lowercase)
@@ -60,7 +60,7 @@ class TestSideConfiguration:
                           [Color.GREEN, Color.GREEN, Color.YELLOW],
                           [Color.BLUE, Color.BLUE, Color.WHITE]]
 
-    @mock.patch("libcube.cli.options.truncate_string_around", return_value=("~~rendered~~", 4))
+    @mock.patch("cubelang.cli.options.truncate_string_around", return_value=("~~rendered~~", 4))
     def test_wrong_symbol(self, truncate_fn: mock.MagicMock):
         with pytest.raises(argparse.ArgumentTypeError) as e:
             side_colors_type("RRO/GGM/BBW")
@@ -68,7 +68,7 @@ class TestSideConfiguration:
         assert str(e.value) == "unknown color: `M`\n       ~~rendered~~\n           ^"
         assert truncate_fn.call_args_list[0][0][1] == 6
 
-    @mock.patch("libcube.cli.options.truncate_string_around", return_value=("~~rendered~~", 4))
+    @mock.patch("cubelang.cli.options.truncate_string_around", return_value=("~~rendered~~", 4))
     def test_wrong_line_length(self, _1):
         with pytest.raises(argparse.ArgumentTypeError) as e:
             side_colors_type("RRO/G/BBW")
@@ -78,11 +78,11 @@ class TestSideConfiguration:
 
 class TestFileOpen:
     def test_normal(self):
-        with mock.patch("libcube.cli.options.open", mock.mock_open(read_data="data")) as open_mock:
+        with mock.patch("cubelang.cli.options.open", mock.mock_open(read_data="data")) as open_mock:
             assert file_contents_type("/file") == "data"
             open_mock.assert_called_once_with("/file")
 
-    @mock.patch("libcube.cli.options.open")
+    @mock.patch("cubelang.cli.options.open")
     def test_io_error(self, open_mock):
         open_mock.side_effect = IOError("~~error~~")
         with pytest.raises(argparse.ArgumentTypeError) as e:

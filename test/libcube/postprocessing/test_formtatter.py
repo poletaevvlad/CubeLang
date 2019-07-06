@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock, call
 
-from libcube.actions import Turn
-from libcube.orientation import Side
-from libcube.postprocessing.formatter import FormattingPostprocessor
+from cubelang.actions import Turn
+from cubelang.orientation import Side
+from cubelang.postprocessing.formatter import FormattingPostprocessor
 
 
 def test_formatting():

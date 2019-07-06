@@ -1,10 +1,10 @@
 from typing import List
 
-from libcube.cube import Cube, shift_list
-from libcube.sides import CubeSide, CubeSideView, ICubeSide
-from libcube.orientation import Orientation, Side, Color
-from libcube.parser import parse_actions
-from libcube.pattern import Pattern
+from cubelang.cube import Cube, shift_list
+from cubelang.sides import CubeSide, CubeSideView, ICubeSide
+from cubelang.orientation import Orientation, Side, Color
+from cubelang.parser import parse_actions
+from cubelang.pattern import Pattern
 
 from unittest.mock import MagicMock
 import pytest

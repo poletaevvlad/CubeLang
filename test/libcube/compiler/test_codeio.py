@@ -1,4 +1,4 @@
-from libcube.compiler.codeio import CodeStream
+from cubelang.compiler.codeio import CodeStream
 
 
 def test_simple_push():

@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
-from libcube.cli.postprocessors_builder import init_postprocessors_args_parser, \
+from cubelang.cli.postprocessors_builder import init_postprocessors_args_parser, \
     build_postprocessors_chain, print_action
-from libcube.postprocessing import OptimizingPostprocessor, FormattingPostprocessor, \
+from cubelang.postprocessing import OptimizingPostprocessor, FormattingPostprocessor, \
     OrientationFreezePostprocessor
 import pytest
 from unittest import mock
@@ -20,7 +20,7 @@ def parser():
     (["--no-rotations"], [OrientationFreezePostprocessor, OptimizingPostprocessor, FormattingPostprocessor]),
     (["-ro"], [OrientationFreezePostprocessor, FormattingPostprocessor])
 ])
-@mock.patch("libcube.cli.postprocessors_builder.chain")
+@mock.patch("cubelang.cli.postprocessors_builder.chain")
 def test_default(chain_mock: mock.MagicMock, parser, args, types):
     args = parser.parse_args(args)
     pp = build_postprocessors_chain(args)

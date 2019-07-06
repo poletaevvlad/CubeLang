@@ -1,6 +1,6 @@
-from libcube.compiler.stack import Stack
-from libcube.stdlib import Library
-from libcube.compiler.types import Integer, Real, Void, Function
+from cubelang.compiler.stack import Stack
+from cubelang.stdlib import Library
+from cubelang.compiler.types import Integer, Real, Void, Function
 
 
 # noinspection PyUnresolvedReferences
