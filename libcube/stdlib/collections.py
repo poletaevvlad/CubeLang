@@ -10,7 +10,7 @@ CollectionType = typing.Union[typing.Set, typing.List]
 @stdlib.function([Set(T)], Integer)
 @stdlib.function([List(T)], Integer)
 def size(collection: CollectionType):
-    """ Returns number of elements in the collection. """
+    """ Returns a number of elements in the collection. """
     return len(collection)
 
 
@@ -54,13 +54,13 @@ def set_of(*args):
 
 @stdlib.function([List(T), T], Void)
 def add_first(collection: typing.List, value) -> None:
-    """ Adds an elements to the begining of a list. It's index will be 0. """
+    """ Adds an elements to the begining of a list. Its index will be 0. """
     collection.insert(0, value)
 
 
 @stdlib.function([List(T), T], Void)
 def add_last(collection: typing.List, value) -> None:
-    """ Adds an element to the end of a list. It's index will be one less
+    """ Adds an element to the end of a list. Its index will be one less
     than the size of a list. """
     collection.append(value)
 
