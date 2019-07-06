@@ -1,6 +1,7 @@
 import railroad
 import os
 from io import StringIO
+import re
 
 RUNTIME = {"Diagram": railroad.Diagram,
            "Terminal": railroad.Terminal,
@@ -36,7 +37,7 @@ def main():
             f.write("""<?xml version="1.0" encoding="utf-8"?>\n""")
             svg_text = svg.getvalue()
             svg_text = svg_text.replace("<svg", "<svg  xmlns=\"http://www.w3.org/2000/svg\"", 1)
-            f.write(svg_text)
+            f.write(re.sub(r"&#\d+", r"\g<0>;", svg_text))
         print(file)
 
 
