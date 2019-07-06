@@ -221,7 +221,7 @@ Pops orientation from the stack and generates necessary rotations to bring the c
 func suspend_rotations()
 ```
 
-Prevent cubelang runtime from outputing rotations. This creates two new states: apparent orientation and actual orientation. All turning will be converted to the apparent orientation.
+Prevent CubeLang runtime from outputing rotations. This creates two new states: apparent orientation and actual orientation. All turning will be converted to the apparent orientation.
 
 <hr>
 

@@ -1,12 +1,12 @@
-# cubelang
+# CubeLang
 
-cubelang is a strongly staticly typed domain-specific procedural programming language made for solving twisting cube puzzles like Rubik's cubes.
+CubeLang is a strongly staticly typed domain-specific procedural programming language made for solving twisting cube puzzles like Rubik's cubes.
 
 <hr>
 
 ## Examples
 
-There are two exampe programs written in cubelang. They are located in the `exemples` directory. 
+There are two exampe programs written in CubeLang. They are located in the `exemples` directory. 
 
 The results of executing example programs are shown bellow.
 
@@ -23,9 +23,9 @@ Documentation constists of the following sections:
 
 **Usage** @ [docs/usage.md](./docs/usage.md)<br>Describes the command line arguments for the interpreter and scrambler utility application
 
-**Variables and types** @ [docs/types.md](./docs/types.md) <br> Describes how to define a variable, determine it's scope. Lists data types, supported by cubelang.
+**Variables and types** @ [docs/types.md](./docs/types.md) <br> Describes how to define a variable, determine it's scope. Lists data types, supported by CubeLang.
 
-**Operators** @ [docs/operators.md](./docs/operators.md) <br> Lists binary and unary operators supported by cubelang.
+**Operators** @ [docs/operators.md](./docs/operators.md) <br> Lists binary and unary operators supported by CubeLang.
 
 **Conditions and loops** @ [docs/statements.md](./docs/statements.md) <br> Shows the syntax of most execution controlling operators: conditions, loops and `orient` operator.
 

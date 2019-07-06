@@ -2,7 +2,7 @@
 
 ## Binary operators
 
-cubelang supports multiple binary operators listed bellow in the order of ascending precedence. cubeland is using an infix notation.
+CubeLang supports multiple binary operators listed bellow in the order of ascending precedence. cubeland is using an infix notation.
 
 The order of computation is determined by operator precedence. It can be changed by using parenthesis or assigning part of the expression to the variable.
 
@@ -90,7 +90,7 @@ Evaluates the remainder of integer division.
 
 ## Unary operator
 
-The only unary operator supported by cubelang is unary minus:
+The only unary operator supported by CubeLang is unary minus:
 
 ### `-a`
 *Types:* `-int` → `int`; `-real` → `real`

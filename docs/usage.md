@@ -1,7 +1,7 @@
 # Usage
 
 ## Interpreter
-cubelang interpreter is an application with a command line iterface. In order to run a program a user must specify cube’s initial state and location of the program file. 
+CubeLang interpreter is an application with a command line iterface. In order to run a program a user must specify cube’s initial state and location of the program file. 
 
 `cubelang` application has the following arguments and options:
 
@@ -22,13 +22,13 @@ usage: cubelang [-h] [-v] [-d N] [-s FORMULA] [--front COLORS]
 |--------|-------------|
 | `-h` or `--help` | Displays the help message with the list of options and their brief descriptions, then terminates the program. |
 | `-v` or `--version` | Displays the version of the interpreter and terminates the program. |
-|`-o` or `--not-optimize` | By default, cubelang interpreter performs optimizations of the program’s output. For example `R2 R’` would be replaced with `R` and `F X X’ F` -- with `F2`. These optimizations are disabled if this option is present. |
+|`-o` or `--not-optimize` | By default, CubeLang interpreter performs optimizations of the program’s output. For example `R2 R’` would be replaced with `R` and `F X X’ F` -- with `F2`. These optimizations are disabled if this option is present. |
 |`-r` or `--no-rotations` | If this option is present no rotation of the cube is outputted. All turning actions are changed with the same action but relative to the original orientation. For example if the program output is `F Y F` and the option is present then the output would be `F R`. |
-| `-d` | Dimensions of the cube. By default cubelang uses 3x3x3 cube. The minimum value is 2. |
+| `-d` | Dimensions of the cube. By default CubeLang uses 3x3x3 cube. The minimum value is 2. |
 | `-s` | List of turns and rotations that determines the initial state of the cube. These actions are performed on the solved cube with the red face in the front and yellow face at the top.
-| `--front`, `--right`, `--left`, `--back`, `--top`, `--bottom` | <p>Colors of the specific face of the initial cube configuration. These options use the format similar to the pattern literal. The parameter value must be a string of uppercase character (`R` for red, `O` for orange, `W` for white, `Y` for yellow, `G` for green, `B` for blue) separated by `/` character. These uppercase character describe colors of the face from top to bottom, left to right. For example option `--front RGG/ORB/BRG` would produce front face colors shown on the image below. </p><p>Note that cubelang does not validate if the initial cube state is solvable twisting cube. These options are applied before the actions described by the `-s` options.</p> |
+| `--front`, `--right`, `--left`, `--back`, `--top`, `--bottom` | <p>Colors of the specific face of the initial cube configuration. These options use the format similar to the pattern literal. The parameter value must be a string of uppercase character (`R` for red, `O` for orange, `W` for white, `Y` for yellow, `G` for green, `B` for blue) separated by `/` character. These uppercase character describe colors of the face from top to bottom, left to right. For example option `--front RGG/ORB/BRG` would produce front face colors shown on the image below. </p><p>Note that CubeLang does not validate if the initial cube state is solvable twisting cube. These options are applied before the actions described by the `-s` options.</p> |
 
-The simplest way to run cubelang program is by defining the initial cube state by passing the scrambling algorithm to the interpreter:
+The simplest way to run CubeLang program is by defining the initial cube state by passing the scrambling algorithm to the interpreter:
 
 ```bash
 cubelang ~/path/to/program -s “DFD2UDLB2U'DL'DF2L'R2D'U2LB2L'U'”

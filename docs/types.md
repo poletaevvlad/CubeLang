@@ -2,7 +2,7 @@
 
 ## Variable declaration
 
-cubelang allows its users to create and assign variables using the following syntax:
+CubeLang allows its users to create and assign variables using the following syntax:
 
 ![let variable_name[, var_name [, ...]]: type[ = initial value]](./diagrams/out/var_decl.svg)
 
@@ -14,7 +14,7 @@ A variable has a scope. Variable is available only after it is declared using `l
 
 A user may declare a variable with the same name within an inner block. Statements inside this block will reference the new variable, outside this block -- the old variable.
 
-When declaring a variable a user must specify its type and may specify its initial value. If initial value is not specified the default value is used. cubelang supports multiple types described below.
+When declaring a variable a user must specify its type and may specify its initial value. If initial value is not specified the default value is used. CubeLang supports multiple types described below.
 
 ## Integer type
 
@@ -91,7 +91,7 @@ For example, the pattern defined above requires that:
 
 ## Collection types
 
-cubelang defines two collection types: `list` and `set`.  Values of these types can hold multiple values of the same type.
+CubeLang defines two collection types: `list` and `set`.  Values of these types can hold multiple values of the same type.
 
 A list is a sequential collection of values that can be accessed by their index. The first item in the list has the index `0`. Items in the list  can be repeat.
 

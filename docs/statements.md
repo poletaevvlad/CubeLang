@@ -1,6 +1,6 @@
 # Conditions and loops
 
-There multiple operators supported by cubelang that control the way the program executes. These operators include `if` statement, various types of loops and `orient` statement.
+There multiple operators supported by CubeLang that control the way the program executes. These operators include `if` statement, various types of loops and `orient` statement.
 
 ## Conditional statement
 
@@ -114,7 +114,7 @@ An `orient` statement allows users to automatically change orientation of the cu
 
 ![](./diagrams/out/orient-constraints.svg)
 
-An `orient` statement is similar to the `if` statement. `orient` executes the first code block of code after the set of constraints for the orientation. For each branch the cubelang library will iterate through every possible orientation (if the keeping parameter is defined, then the library will iterate only through orientation that does not change the specified size) and determine if the patterns match corresponding faces. If they do the brunch will be executed, otherwise the next following brunch will be considered. `else` brunch works similarly to the `else` brunch in the `if` statement.
+An `orient` statement is similar to the `if` statement. `orient` executes the first code block of code after the set of constraints for the orientation. For each branch the CubeLang library will iterate through every possible orientation (if the keeping parameter is defined, then the library will iterate only through orientation that does not change the specified size) and determine if the patterns match corresponding faces. If they do the brunch will be executed, otherwise the next following brunch will be considered. `else` brunch works similarly to the `else` brunch in the `if` statement.
 
 Consider the fragment from the [`pocket-cube`](../examples/pocket-cube) example. 
 
@@ -136,7 +136,7 @@ else-orient top: {x-/-x}, front: {x-/--}, right: {-x/--}, keeping: top then
 end
 ```
 
-In the first line of the snippet above we can see five constraints. The cubelang library will attempt to find such orientation that will satisfy all of these constraints: top left sticker of the top face has the same color as the top left sticker of the front face, top left sticekr of the right face and top left color of the back face. The face on the top will not change. If such orientation can be found the formula on the second line will be executed. Otherwise, the constraints on the line 3 will be considered.
+In the first line of the snippet above we can see five constraints. The CubeLang library will attempt to find such orientation that will satisfy all of these constraints: top left sticker of the top face has the same color as the top left sticker of the front face, top left sticekr of the right face and top left color of the back face. The face on the top will not change. If such orientation can be found the formula on the second line will be executed. Otherwise, the constraints on the line 3 will be considered.
 
 Patterns can also be used without variables or `keeling` constraint. For example the same example file includes the following line:
 
@@ -153,7 +153,7 @@ User may define function incapsulating commonly used operations. They are called
 
 ![](./diagrams/out/functions.svg)
 
-*Note:* Variables and functions declared outside the function are not visible inside the function. All functions declared in cubelang can be pure or only mutate collection arguments. Recursion is not possible in cubelang. This limitation may change in the future versions of the language.
+*Note:* Variables and functions declared outside the function are not visible inside the function. All functions declared in CubeLang can be pure or only mutate collection arguments. Recursion is not possible in CubeLang. This limitation may change in the future versions of the language.
 
 Function may return a value. The type of return value must be specified in function signature. To stop the execution of the function and return a value `return` keyword is used. If `return` statement was not executed, return type's default value is returned. 
 

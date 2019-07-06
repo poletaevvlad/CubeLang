@@ -1,6 +1,6 @@
 # Indexing
 
-cubelang allows users to access the colors of cube stickers. The syntax is similar to accessing the element of the list but two indices are used: a 0-based index of a row and a 0-based index of a column: 
+CubeLang allows users to access the colors of cube stickers. The syntax is similar to accessing the element of the list but two indices are used: a 0-based index of a row and a 0-based index of a column: 
 
 ![](./diagrams/out/color_indexing.svg)
 
