@@ -6,14 +6,20 @@ CubeLang is a strongly staticly typed domain-specific procedural programming lan
 
 ## Examples
 
-There are two exampe programs written in CubeLang. They are located in the `exemples` directory. 
+There are two exampe programs written in CubeLang. They are located in the `exemples` directory of this repository. 
 
 The results of executing example programs are shown bellow.
 
 **Beginner's method** (3x3x3 cube) @ [examples/beginner](examples/beginner)
 
+
+| [![](./docs/images/example_beginner_1.png)](https://www.youtube.com/watch?v=dzqH6hYKuco) | [![](./docs/images/example_beginner_2.png)](https://www.youtube.com/watch?v=7hDjaBIfIeU) | [![](./docs/images/example_beginner_3.png)](https://www.youtube.com/watch?v=-jjZ7OJNd4g) | [![](./docs/images/example_beginner_4.png)](https://www.youtube.com/watch?v=_PxvFn2qd5M) | [![](./docs/images/example_beginner_5.png)](https://www.youtube.com/watch?v=D6EbnLoh51s) | [![](./docs/images/example_beginner_6.png)](https://www.youtube.com/watch?v=NhziEe3avvM)
+|--|--|--|--|--|--|
+
 **Pocket cube** (2x2x2 cube) @ [examples/pocket-cube](examples/pocket-cube)
 
+| [![](./docs/images/example_pocket_1.png)](https://www.youtube.com/watch?v=NhziEe3avvM) | [![](./docs/images/example_pocket_2.png)](https://www.youtube.com/watch?v=z7OPzDXNGSA) | [![](./docs/images/example_pocket_3.png)](https://www.youtube.com/watch?v=MO36Aj56TVw) | [![](./docs/images/example_pocket_4.png)](https://www.youtube.com/watch?v=ZX0P7-SvCWod5M) | [![](./docs/images/example_pocket_5.png)](https://www.youtube.com/watch?v=an4ovEBPumc) | [![](./docs/images/example_pocket_6.png)](https://www.youtube.com/watch?v=Qvmfpi6yIWQ)
+|--|--|--|--|--|--|
 
 ## Documentation
 
