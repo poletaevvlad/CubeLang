@@ -28,7 +28,7 @@ RESERVED_NAMES = {"int", "real", "boolean", "side", "color", "pattern", "list",
 
 class Parser:
     def __init__(self):
-        path = Path(__file__).parents[2] / "data" / "syntax.lark"
+        path = Path(__file__).parents[1] / "data" / "syntax.lark"
         with open(str(path)) as f:
             grammar = Parser._generate_operators(BINARY_OPERATORS) + f.read()
         self.lark = Lark(grammar, parser="lalr", start="clause", propagate_positions=True)

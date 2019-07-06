@@ -12,8 +12,8 @@ with open(str(Path(__file__).parents[0] / "cubelang" / "__init__.py")) as f:
 setup(
     name='CubeLang',
     version=metadata["version"],
-    packages=find_packages(),
-    package_data={'': ["../data/*.lark"]},
+    packages=["cubelang", "cubelang.cli", "cubelang.compiler", "cubelang.execution", 
+              "cubelang.postprocessing", "cubelang.stdlib"],
     url='https://github.com/poletaevvlad/CubeLang',
     license='MIT',
     author=metadata["version"],
