@@ -4,6 +4,31 @@ CubeLang is a strongly statically typed domain-specific procedural programming l
 
 <hr>
 
+## Installation
+
+CubeLang requires Python 3.6 or newer to functions. For the information on how to install Python please refer to the [downlaod page](https://www.python.org/downloads/).
+
+The easies way to install CubeLang is by using pip. On how to install pip please refer to the [manual](https://pip.pypa.io/en/stable/installing/).
+
+```bash
+pip install CubeLang
+```
+
+After the installation `cubelang` and `cubelang-scramble` command line utilities will be available.
+
+#### Development
+
+In order to develop CubeLang clone this repository and install dependencies.
+
+```bash
+git clone https://github.com/poletaevvlad/CubeLang.git
+cd CubeLang
+pip install lark-parser termcolor
+pip install -r test_requirements.txt
+```
+
+Tests for the interpreter are located in the `test` directory, tests for the example programs are in the `test_examples` directory. CubeLang uses pytest for testing.
+
 ## Examples
 
 There are two example programs written in CubeLang. They are located in the `examples` directory of the GitHub repository.
