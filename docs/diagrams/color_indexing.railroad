@@ -1,0 +1,6 @@
+Diagram(
+    NonTerminal("Side expression"), "[", 
+    NonTerminal("Row index"), ",", NonTerminal("Column index"),
+    "]"
+)
+

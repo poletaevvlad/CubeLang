@@ -11,7 +11,17 @@ These operations are enough to solve 3x3x3 or 2x2x2 twisting cube puzzle, but no
 
 In the square brackets 1-based indices or ranges of indices can be specified. These indices determine what slices will be turned. Slices are numbered starting with one (the slice that would have been rotated if the index weren’t specified).
 
-A user can use ranges of indices instead of the multiple indices. These ranges can be open and closed. The closed range such as `[2:5]` references all slices with indices from 2 to 5. It is equivalent to writing `[2, 3, 4, 5]`. Open ranges do not specify one of the boundaries. Writing `[:3]` would produce the same result as writing [1, 2, 3]. Writing [3:] would produce the same result as `[3, 4, …, N]` where *N* is the dimension of the cube (Note that `[3, 4, …, N]` is not a valid syntax; for *N* = 5 the range may be written as `[3, 4, 5]`). 
+| ![](./images/turn_front.png) | ![](./images/turn_right.png) | ![](./images/turn_top.png) |
+|:-----------:|:-------------:|:------------:|
+| `F[2]`      |  `R[2]`       | `U[2]`       |
+| ![](./images/turn_back.png) | ![](./images/turn_left.png) | ![](./images/turn_bottom.png) |
+| `B[2]`      |  `L[2]`       | `D[2]`       |
+
+A user can use ranges of indices instead of the multiple indices. These ranges can be open and closed. The closed range such as `[2:5]` references all slices with indices from 2 to 5. It is equivalent to writing `[2, 3, 4, 5]`. Open ranges do not specify one of the boundaries. Writing `[:3]` would produce the same result as writing `[1, 2, 3]`. Writing `[3:]` would produce the same result as `[3, 4, …, N]` where *N* is the dimension of the cube (Note that `[3, 4, …, N]` is not a valid syntax; for *N* = 5 the range may be written as `[3, 4, 5]`). 
+
+| ![](./images/turn_ranges.png)           |
+|:---------------------------------------:|
+| `L[:2, 5:6, 8:]` *or* `R'[:2, 4:5, 8:]` |
 
 ## Rotations
 
