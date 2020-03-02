@@ -2,13 +2,13 @@
 
 ## Binary operators
 
-CubeLang supports multiple binary operators listed bellow in the order of ascending precedence. cubeland is using an infix notation.
+CubeLang supports multiple binary operators listed bellow in the order of ascending precedence. CubeLanf uses infix notation for binary operators.
 
 The order of computation is determined by operator precedence. It can be changed by using parenthesis or assigning part of the expression to the variable.
 
-### `a xor b` 
+### `a xor b`
 
-*Types:* `boolean xor boolean` → `boolean` 
+*Types:* `boolean xor boolean` → `boolean`
 *Precedence:* 1
 
 Exclusive or of the boolean operands. Evaluates to  `true` if one of the operands is `true` and the other one is `false`.
@@ -61,7 +61,7 @@ Evaluates to `true` if the value of the left operand is less than (`<`), greater
 *Types:* `int ( + | - ) int` → `int`; `real ( + | - ) real` → `real`
 *Precedence:* 6
 
-Performs arithmetic addition (`+`) or subtraction (`-`) of operands' values. 
+Performs arithmetic addition (`+`) or subtraction (`-`) of operands' values.
 
 If both operands are integers then an integer is produced. If at least one of the operands is real then the other one is implicitly converted to real and the real value is produced.
 
