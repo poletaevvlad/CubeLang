@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<svg  xmlns="http://www.w3.org/2000/svg" class="railroad-diagram" height="191" viewBox="0 0 652.0 191" width="652.0">
+<svg class="railroad-diagram" height="191" viewBox="0 0 652.0 191" width="652.0" xmlns="http://www.w3.org/2000/svg">
 <g transform="translate(.5 .5)">
 <style>/* <![CDATA[ */
 	svg.railroad-diagram {

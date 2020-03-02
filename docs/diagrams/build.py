@@ -36,8 +36,7 @@ def main():
         with open(dir + "/out/" + file[:-9] + ".svg", "w") as f:
             f.write("""<?xml version="1.0" encoding="utf-8"?>\n""")
             svg_text = svg.getvalue()
-            svg_text = svg_text.replace("<svg", "<svg  xmlns=\"http://www.w3.org/2000/svg\"", 1)
-            f.write(re.sub(r"&#\d+", r"\g<0>;", svg_text))
+            f.write(svg_text)
         print(file)
 
 
