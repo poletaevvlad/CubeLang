@@ -5,14 +5,14 @@
 ```bash
 func round(value: real): int
 ```
-Rounds the argument to a nearest integer.
+Rounds the argument to the nearest integer.
 
 <hr>
 
 ```bash
 func floor(value: real): int
 ```
-Returns the largest integer smaler or equal to `value`.
+Returns the largest integer smaller or equal to `value`.
 
 <hr>
 
@@ -37,7 +37,7 @@ func pow(a: int, b:int): int
 func pow(a: real, b:real): real
 ```
 
-Raises `a` to the power of `b` -- a<sup>b</sup>.
+Raises `a` to the power of `b`&mdash;a<sup>b</sup>.
 
 <hr>
 
@@ -133,7 +133,7 @@ Creates a new set containing all values passed as arguments to this function.
 ```bash
 func add_first(collection: list of T, value: T)
 ```
-Adds an elements to the begining of a list. Its index will be 0.
+Adds an element to the beginning of a list. Its index will be 0.
 
 <hr>
 
@@ -149,7 +149,7 @@ Adds an element to the end of a list. Its index will be one less than the size o
 func add_at(collection: list of T, index: int, value: T)
 ```
 
-Adds an elements to the list at a specified location.
+Adds an element to the list at a specified location.
 
 <hr>
 
@@ -173,7 +173,7 @@ Removes and returns the last element of a list.
 func remove_at(collection: list of T, index: int): T
 ```
 
-Removes and returns an element of a list at specified location.
+Removes and returns an element of a list at the specified location.
 
 <hr>
 
@@ -189,7 +189,7 @@ Creates a new list of length `size` and fills it with `value`s.
 func index_of(collection: list of T, value: T): int
 ```
 
-Returns index of an element in a list if it is present, or -1 otherwise.
+Returns the index of the element in a list if it is present, or -1 otherwise.
 
 <hr>
 
