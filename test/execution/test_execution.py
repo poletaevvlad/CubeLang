@@ -66,7 +66,7 @@ def test_execution_gcd():
 def test_execution_integration():
     """
     Computing pi by integrating:
-    \frac{\pi}{2} = \int^1_{-1} \sqrt{1 - x^2} dx
+    \\frac{\\pi}{2} = \\int^1_{-1} \\sqrt{1 - x^2} dx
     """
 
     code = """
@@ -74,12 +74,12 @@ def test_execution_integration():
         let x: real = -1
         let y: real = sqrt(1 - x * x)
         let result: real
-                
+
         while x + delta_x < 1 do
-            let next_x: real = x + delta_x 
+            let next_x: real = x + delta_x
             let next_y: real = sqrt(1 - next_x * next_x)
             result = result + (y + next_y) / 2 * delta_x
-            
+
             y = next_y
             x = next_x
         end
@@ -108,20 +108,20 @@ def test_pascals_triangle():
     Values are returned via `print` function line by line separated by `0`.
     """
     code = """
-        let result: list of list of int        
+        let result: list of list of int
         let row_size: int = 1
-        
+
         repeat 5 times
             let row: list of int = new_list(row_size, 1)
             let i: int = 1
             while i < row_size - 1 do
                 row[i] = result[size(result) - 1][i] + result[size(result) - 1][i - 1]
-                i = i + 1 
+                i = i + 1
             end
             add_last(result, row)
             row_size = row_size + 1
         end
-        
+
         for row in result do
             for x in row do
                 print(x)
@@ -150,7 +150,7 @@ def test_functions():
                 func g(x: int): int
                     return x - 1
                 end
-            
+
                 let c: int
                 while x != 0 do
                     x = g(x)
@@ -158,7 +158,7 @@ def test_functions():
                 end
                 return c
             end
-            
+
             let i: int = 1
             while true do
                 if i == 5 then
@@ -188,7 +188,7 @@ def test_exception():
         func f()
             throw()
         end
-        
+
         f()
     """
 
