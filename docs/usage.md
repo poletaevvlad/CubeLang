@@ -1,7 +1,7 @@
 # Usage
 
 ## Interpreter
-CubeLang interpreter is an application with a command line iterface. In order to run a program a user must specify cube’s initial state and location of the program file. 
+CubeLang interpreter is a command-line application. To run a program, specify the cube’s initial state and the path to the program file.
 
 `cubelang` application has the following arguments and options:
 
@@ -13,8 +13,8 @@ usage: cubelang [-h] [-v] [-d N] [-s FORMULA] [--front COLORS]
 ```
 
 ### Arguments
- 
-`source` argument is a relative or absolute path to the program source file. 
+
+`source` argument is a relative or absolute path to the program source file.
 
 ### Options
 
@@ -22,13 +22,13 @@ usage: cubelang [-h] [-v] [-d N] [-s FORMULA] [--front COLORS]
 |--------|-------------|
 | `-h` or `--help` | Displays the help message with the list of options and their brief descriptions, then terminates the program. |
 | `-v` or `--version` | Displays the version of the interpreter and terminates the program. |
-|`-o` or `--not-optimize` | By default, CubeLang interpreter performs optimizations of the program’s output. For example `R2 R’` would be replaced with `R` and `F X X’ F` -- with `F2`. These optimizations are disabled if this option is present. |
-|`-r` or `--no-rotations` | If this option is present no rotation of the cube is outputted. All turning actions are changed with the same action but relative to the original orientation. For example if the program output is `F Y F` and the option is present then the output would be `F R`. |
-| `-d` | Dimensions of the cube. By default CubeLang uses 3x3x3 cube. The minimum value is 2. |
-| `-s` | List of turns and rotations that determines the initial state of the cube. These actions are performed on the solved cube with the red face in the front and yellow face at the top.
-| `--front`, `--right`, `--left`, `--back`, `--top`, `--bottom` | <p>Colors of the specific face of the initial cube configuration. These options use the format similar to the pattern literal. The parameter value must be a string of uppercase character (`R` for red, `O` for orange, `W` for white, `Y` for yellow, `G` for green, `B` for blue) separated by `/` character. These uppercase character describe colors of the face from top to bottom, left to right. For example option `--front RGG/ORB/BRG` would produce front face colors shown on the image below. </p><p>Note that CubeLang does not validate if the initial cube state is solvable twisting cube. These options are applied before the actions described by the `-s` options.</p> |
+|`-o` or `--not-optimize` | By default, the CubeLang interpreter performs optimizations of the program's output. For example, `R2 R’` would be replaced with `R` and `F X X’ F`&mdash;with `F2`. These optimizations are disabled if this option is present. |
+|`-r` or `--no-rotations` | If this option is specified, no rotation actions are sent to the output. All turning actions are replaced with the same actions, but relative to the original orientation. For example, if the program output is `F Y F` and the option is present, then the output would be `F R`. |
+| `-d` | Dimensions of the cube. By default, CubeLang uses a 3&times;3&times;3 cube. The minimum value is 2. |
+| `-s` | List of turns and rotations that determines the initial state of the cube. These actions are performed on the solved cube with the red face in the front and yellow face on top. |
+| `--front`, `--right`, `--left`, `--back`, `--top`, `--bottom` | <p>Colors of the specific face of the initial cube configuration. These options use the format similar to the pattern literal. The parameter value must be a string of uppercase character (`R` for red, `O` for orange, `W` for white, `Y` for yellow, `G` for green, `B` for blue) separated by `/` character. These uppercase characters describe colors of the face from top to bottom, left to right. For example option `--front RGG/ORB/BRG` would produce front face colors shown on the image below.</p><p>Note that CubeLang does not validate if the initial cube state is valid, meaning it can be solved. These colors are applied before the actions described by the `-s` options if any.</p> |
 
-The simplest way to run CubeLang program is by defining the initial cube state by passing the scrambling algorithm to the interpreter:
+The simplest way to run CubeLang program is to define the initial cube state by specifying the scrambling algorithm:
 
 ```bash
 cubelang ~/path/to/program -s “DFD2UDLB2U'DL'DF2L'R2D'U2LB2L'U'”
@@ -36,9 +36,9 @@ cubelang ~/path/to/program -s “DFD2UDLB2U'DL'DF2L'R2D'U2LB2L'U'”
 
 ## Scrambler
 
-There are an utility application bundled with the interpreter. It can be used to generate a scrambled cube configuration. This program outputs either the list of turns or colors of each face of the cube.
+There is a utility application bundled with the interpreter. You can use it to generate a scrambled cube configuration. This program outputs either the list of turns or colors of each face of the cube.
 
-A scrambler takes the following options:
+The scrambler takes the following options:
 
 ```
 usage: cubelang-scramble [-h] [-d N] [-n TURNS_NUM] [-a] [-s SEED]
@@ -47,9 +47,9 @@ usage: cubelang-scramble [-h] [-d N] [-n TURNS_NUM] [-a] [-s SEED]
 | Option | Description |
 |--------|-------------|
 | `-h` or `--help` | Displays the help message with the list of options and their brief descriptions, then terminates the program. |
-| `-d` | Dimensions of the cube. By default the scrambler uses 3x3x3 cube. The minimum value is 2. |
+| `-d` | Dimensions of the cube. By default, the scrambler uses a 3&times;3&times;3 cube. The minimum value is 2. |
 | `-n` | The number of turns that will be generated by the scrambler. The default value is 20. |
-| `-a` | If the option is present the state of each face of a cube after scrambling will be displayed instead of the turns. The output format matches the options syntax of `cubelang` interpreter program. |
+| `-a` | If the option is present, the state of each face of the cube after scrambling will be displayed instead of the turns. The output format matches the options syntax of the `cubelang` interpreter. |
 | `-s` | A random seed. The scramble will always be the same if the seed is the same. |
 
 
